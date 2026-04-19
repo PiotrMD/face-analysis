@@ -120,16 +120,26 @@ def validate_faces(files):
             print("[VALIDATOR] cascade unavailable — skipping face check")
             return {"is_valid": True, "errors": []}
 
-        # Detect faces — two passes: normal + scaled gray for better recall
+        # Detect faces — higher minNeighbors reduces false positives from jewelry/background
         eq = cv2.equalizeHist(gray)
-        faces = cc.detectMultiScale(eq, scaleFactor=1.1, minNeighbors=4, minSize=(40, 40))
+        faces = cc.detectMultiScale(eq, scaleFactor=1.1, minNeighbors=7, minSize=(60, 60))
         face_count = len(faces)
         print(f"[VALIDATOR] en_face: face_count={face_count}")
 
         if face_count == 0:
             return {"is_valid": False, "errors": ["Nie wykryto twarzy. Załącz zdjęcie twarzy — tylko takie zdjęcia mogą być analizowane."]}
+
+        # If multiple faces detected, keep only the largest one (filters out jewelry/background false positives)
         if face_count > 1:
-            return {"is_valid": False, "errors": ["Na zdjęciu wykryto więcej niż jedną twarz. Załącz zdjęcie przedstawiające wyłącznie Twoją twarz."]}
+            areas = [fw * fh for (fx, fy, fw, fh) in faces]
+            largest_idx = int(np.argmax(areas))
+            largest_area = areas[largest_idx]
+            second_area = sorted(areas, reverse=True)[1]
+            # Block only if second-largest face is >30% of the largest (likely a real second person)
+            if second_area > largest_area * 0.30:
+                return {"is_valid": False, "errors": ["Na zdjęciu wykryto więcej niż jedną twarz. Załącz zdjęcie przedstawiające wyłącznie Twoją twarz."]}
+            faces = [faces[largest_idx]]
+            print(f"[VALIDATOR] en_face: multiple detections, kept largest (false positive filtered)")
 
         fx, fy, fw, fh = faces[0]
         face_ratio = (fw * fh) / (w * h) if w * h > 0 else 0.0
