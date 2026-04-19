@@ -494,7 +494,7 @@ VALID_STATUSES = {'good', 'mild', 'moderate'}
 REQUIRED_TOP_FIELDS = [
     'summary', 'biological_age_estimate',
     'strongest_asset', 'top_priority', 'recommendations',
-    'category_scores', 'key_findings', 'sections', 'disclaimer'
+    'key_findings', 'sections', 'disclaimer'
 ]
 VALID_CONFIDENCE = {'wysoka', 'umiarkowana', 'niska'}
 VALID_FEATURES = {'under_eye', 'midface_volume', 'tissue_descent', 'jawline_jowls',
@@ -560,16 +560,21 @@ def _validate_result(result: dict) -> None:
         'symmetry':        [],
     }
 
-    cat = result.get('category_scores', {})
+    if not isinstance(result.get('category_scores'), dict):
+        result['category_scores'] = {}
+    cat = result['category_scores']
     for sec_name in REQUIRED_SECTIONS:
         feat_names = FEATURE_MAP.get(sec_name, [])
         derived = _concern_to_score(feat_names)
         if derived is not None:
-            result['category_scores'][sec_name] = derived
+            cat[sec_name] = derived
         elif sec_name in cat:
-            result['category_scores'][sec_name] = max(0, min(10, int(round(float(cat[sec_name])))))
+            try:
+                cat[sec_name] = max(0, min(10, int(round(float(cat[sec_name])))))
+            except (ValueError, TypeError):
+                cat[sec_name] = 5
         else:
-            result['category_scores'][sec_name] = 5
+            cat[sec_name] = 5
 
     # overall_score — average of derived category scores
     scores = [result['category_scores'][s] for s in REQUIRED_SECTIONS]

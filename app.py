@@ -117,23 +117,20 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         return result
     except ValueError as e:
         msg = str(e)
-        print(f"[OPENAI CALL BLOCKED] {msg}", flush=True)
         if any(msg.startswith(p) for p in ("EYES_BLOCKED:", "PHOTO_UNSUITABLE:", "POOR_PHOTO_QUALITY:")):
-            raise  # re-raise so app can return a proper 422 user error
+            raise
         import traceback
-        with open('err.log', 'a', encoding='utf-8') as f:
-            f.write(traceback.format_exc() + '\n---\n')
+        tb = traceback.format_exc()
+        print(f"[OPENAI CALL FAILED ValueError] {msg}\n{tb}", flush=True)
         return None
     except Exception as e:
         import traceback
         tb = traceback.format_exc()
-        with open('err.log', 'a', encoding='utf-8') as f:
-            f.write(tb + '\n---\n')
-        print(f"[OPENAI CALL FAILED] {e}", flush=True)
+        print(f"[OPENAI CALL FAILED Exception] {type(e).__name__}: {e}\n{tb}", flush=True)
         return None
 
 
-APP_VERSION = "13ece7e-v4"  # hardcoded — update on each deploy to confirm Railway runs latest
+APP_VERSION = "e46147f-v5"  # hardcoded — update on each deploy to confirm Railway runs latest
 
 
 @app.route('/version')
