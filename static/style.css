@@ -1896,8 +1896,16 @@ a.contact-row__value:hover { text-decoration: underline; }
 }
 
 @media (max-width: 600px) {
-    .band--hero { padding: 28px 22px 26px; }
+    .band--hero { padding: 28px 16px 26px; }
     .hero-score__num { font-size: 4.5rem; }
+    .hero-viz {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 16px;
+    }
+    .hero-gauge .gauge-svg { width: 160px; height: 160px; }
+    .hero-radar canvas { max-width: 260px; max-height: 220px; width: 100% !important; }
+    .hero-radar { width: 100%; }
 }
 
 /* ════════════════════════════════════════
