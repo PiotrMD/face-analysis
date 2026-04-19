@@ -758,6 +758,9 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-xs);
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
 }
 
 .band__title {
@@ -1298,7 +1301,7 @@ a.contact-row__value:hover { text-decoration: underline; }
     .demo-banner     { flex-direction: column; gap: 10px; }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 520px) {
     .topbar__brand   { font-size: .8rem; }
     .hero__headline  { font-size: 1.65rem; }
     .upload-card     { padding: 20px 14px; }
@@ -2628,9 +2631,11 @@ a.contact-row__value:hover { text-decoration: underline; }
 }
 
 @media (max-width: 640px) {
-    .med-cred__grid { grid-template-columns: 1fr; }
-    .med-cred__aside { flex-direction: row; text-align: left; gap: 14px; }
-    .med-cred__avatar { flex-shrink: 0; }
+    .med-cred__grid { grid-template-columns: 1fr; gap: 16px; }
+    .med-cred__aside { flex-direction: row; text-align: left; gap: 14px; align-items: center; }
+    .med-cred__avatar { flex-shrink: 0; width: 72px; height: 72px; }
+    .med-cred__list li { word-break: break-word; overflow-wrap: break-word; }
+    .med-cred__lead { word-break: break-word; overflow-wrap: break-word; }
 }
 
 /* ════════════════════════════════════════
