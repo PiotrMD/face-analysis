@@ -216,14 +216,7 @@
     </div>
 
     <script>
-    /* On touch devices: clicking the upload area directly opens camera (front-facing) */
-    (function() {
-        var isTouchDevice = (navigator.maxTouchPoints > 0) || ('ontouchstart' in window);
-        if (isTouchDevice) {
-            var inp = document.getElementById('en_face');
-            if (inp) inp.setAttribute('capture', 'user');
-        }
-    })();
+    /* No capture attribute — mobile gets full OS picker: gallery, camera, files */
 
     /* localised strings for JS */
     var _T = {{ t | tojson }};
