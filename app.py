@@ -133,6 +133,16 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         return None
 
 
+@app.route('/version')
+def version():
+    import subprocess
+    try:
+        commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], text=True).strip()
+    except Exception:
+        commit = 'unknown'
+    return jsonify({'commit': commit, 'started': STATIC_VERSION})
+
+
 @app.route('/demo')
 def demo():
     return render_template('results.html', result=DEMO_RESULT, token='demo', is_demo=True)
