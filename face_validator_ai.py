@@ -308,14 +308,30 @@ def validate_face_ai(image_path: str, openai_client, model: str = "gpt-4o") -> d
     result = _normalize(result)
     print(f"[VALIDATE_AI] valid={result['image_valid']} pose={result['head_pose']['yaw']} impression={result['overall_impression']['labels']}")
 
-    # Only hard-block: glasses, no face, AI filter — everything else passes
-    occlusion = result.get('occlusion_type') or ''
-    if occlusion in ('sunglasses', 'glasses') or not result.get('eyes_visible', True):
+    # Log what GPT decided for each blocking field
+    occlusion  = result.get('occlusion_type') or ''
+    eyes_ok    = result.get('eyes_visible', True)
+    filter_det = result.get('filter_detected', False)
+    face_cnt   = result.get('face_count', 1)
+    pose       = result.get('head_pose', {})
+    print(f"[VALIDATE_AI] occlusion={occlusion!r} eyes={eyes_ok} filter={filter_det} "
+          f"face_count={face_cnt} pose_yaw={pose.get('yaw')} "
+          f"frontal={result.get('frontal_face')} sharpness={result.get('sharpness_ok')}")
+
+    # Hard-block: glasses
+    if occlusion in ('sunglasses', 'glasses') or not eyes_ok:
+        print(f"[VALIDATE_AI] REJECT reason=glasses occlusion={occlusion!r} eyes_visible={eyes_ok}")
         raise ValueError(f"EYES_BLOCKED: {REJECTION_MESSAGES['glasses']}")
-    if result.get('filter_detected'):
+    # Hard-block: AI filter
+    if filter_det:
+        print("[VALIDATE_AI] REJECT reason=filter")
         raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['filter']}")
-    if result.get('face_count', 1) == 0:
+    # Hard-block: no face
+    if face_cnt == 0:
+        print("[VALIDATE_AI] REJECT reason=no_face")
         raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['no_face']}")
 
-    # Pose, crop, blur, expression — pass with warnings, not blocked
+    # Pose, crop, blur, expression — pass with warnings logged
+    warnings = result.get('warnings', [])
+    print(f"[VALIDATE_AI] PASS warnings={warnings}")
     return result

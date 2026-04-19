@@ -102,34 +102,44 @@ TREATMENTS_EN = [
 
 REPORT_PROMPT_PL = """Na podstawie obserwacji napisz przyjazny raport analizy twarzy dla pacjenta. Ton: ciepły, pozytywny beauty-doradca — nie lekarz.
 
-ZASADY:
-- Mocne strony: konkretne, pozytywne — co naprawdę wygląda dobrze
-- Do poprawy: delikatne, konstruktywne — szansa na poprawę, nie problem
-- Zabiegi: TYLKO nazwy z tej listy, bez opisów: {treatments}
-- Skale 1–10: 10=idealnie, 7-9=dobrze, 5-6=przeciętnie, 3-4=wymaga uwagi, 1-2=pilnie
-- Nie wymyślaj rzeczy niewidocznych na zdjęciu
-- Każdy pacjent ma inny wynik — nie kopiuj szablonów
+KALIBRACJA OBSZARÓW (1-10) — punkty MUSZĄ odzwierciedlać obserwacje:
+- okolica_oczu: wyraźne cienie/worki → 3-4 | łagodne → 6-7 | świeża/brak → 8-10
+- zmarszczki: głębokie statyczne → 2-4 | umiarkowane → 5-6 | drobne dynamiczne → 7-8 | brak → 9-10
+- napiecie: opadanie/jowle → 2-4 | łagodne obniżenie → 5-6 | dobra sprężystość → 8-10
+- jakosc_skory: szorstka+rozszerzone pory → 3-5 | lekkie nierówności → 6-7 | gładka → 9-10
+- przebarwienia: rozległe plamy → 2-4 | kilka drobnych → 5-7 | brak → 9-10
+- naczynka: wyraźne naczynia/rumień → 3-5 | lekkie → 6-7 | brak → 9-10
+- owal_twarzy: jowle/nieokreślony → 3-5 | dobry → 7-8 | wyrazisty → 9-10
+ZAKAZ: dawać 6-7 wszystkim obszarom. Wyniki MUSZĄ być zróżnicowane.
+ZAKAZ: powielać ten sam opis dla różnych pacjentów — każdy opis musi odnosić się do tego konkretnego zdjęcia.
+
+INTRO zależnie od wyników:
+- Większość obszarów 8-10: "Twoja twarz jest w świetnej kondycji — [konkretna cecha]."
+- Mix 6-8: "Masz ładne atuty — [konkretna cecha] — kilka zabiegów pomoże wydobyć je jeszcze bardziej."
+- Kilka obszarów <5: "Warto zadbać o kilka obszarów — masz duży potencjał do poprawy."
+
+Zabiegi: TYLKO nazwy z tej listy: {treatments}
 
 Zwróć TYLKO poprawny JSON (bez markdown):
 
 {{
   "overall_score": <1-10>,
-  "intro": "<jedno zdanie po polsku — ciepłe powitanie i ogólna ocena>",
+  "intro": "<jedno konkretne zdanie — nawiązuj do TEGO zdjęcia, nie szablonu>",
   "strengths": [
-    "<konkretna mocna strona po polsku>",
-    "<konkretna mocna strona po polsku>",
-    "<konkretna mocna strona po polsku>"
+    "<konkretna mocna strona — nazwij co dokładnie wygląda dobrze>",
+    "<konkretna mocna strona>",
+    "<konkretna mocna strona>"
   ],
   "concerns": [
-    "<obszar do poprawy po polsku — delikatnie>",
-    "<obszar do poprawy po polsku — delikatnie>"
+    "<konkretny obszar do poprawy — delikatnie sformułowany>",
+    "<konkretny obszar do poprawy>"
   ],
   "treatments": [
     "<nazwa zabiegu z listy>",
     "<nazwa zabiegu z listy>"
   ],
   "areas": {{
-    "okolica_oczu":  <1-10>,
+    "okolica_oczu":  <1-10 zgodnie z kalibracja>,
     "jakosc_skory":  <1-10>,
     "zmarszczki":    <1-10>,
     "napiecie":      <1-10>,
@@ -141,34 +151,44 @@ Zwróć TYLKO poprawny JSON (bez markdown):
 
 REPORT_PROMPT_EN = """Based on the observations, write a friendly face analysis report for the patient. Tone: warm, positive beauty advisor — not a doctor.
 
-RULES:
-- Strengths: specific, positive — what genuinely looks good
-- Concerns: gentle, constructive — an opportunity to improve, not a problem
-- Treatments: ONLY names from this list, no descriptions: {treatments}
-- Scores 1–10: 10=perfect, 7-9=good, 5-6=average, 3-4=needs attention, 1-2=urgent
-- Do not invent things not visible in the photo
-- Each patient has a different result — do not copy templates
+SCORE CALIBRATION (1-10) — scores MUST match observations:
+- eye_area (okolica_oczu): strong dark circles/bags → 3-4 | mild → 6-7 | fresh/none → 8-10
+- wrinkles (zmarszczki): deep static → 2-4 | moderate → 5-6 | fine dynamic → 7-8 | none → 9-10
+- firmness (napiecie): jowls/descent → 2-4 | mild softening → 5-6 | good firmness → 8-10
+- skin quality (jakosc_skory): rough+pores → 3-5 | minor issues → 6-7 | smooth → 9-10
+- pigmentation (przebarwienia): extensive spots → 2-4 | a few → 5-7 | none → 9-10
+- vascular (naczynka): visible capillaries/redness → 3-5 | mild → 6-7 | none → 9-10
+- face oval (owal_twarzy): jowls/undefined → 3-5 | good → 7-8 | defined → 9-10
+FORBIDDEN: giving 6-7 to all areas. Scores MUST vary.
+FORBIDDEN: copying the same text for different patients.
+
+INTRO based on results:
+- Most areas 8-10: "Your face is in great condition — [specific feature]."
+- Mix 6-8: "You have lovely features — [specific feature] — a few targeted treatments will enhance them further."
+- Several areas <5: "There are a few areas worth addressing — you have great potential for improvement."
+
+Treatments: ONLY names from this list: {treatments}
 
 Return ONLY valid JSON (no markdown):
 
 {{
   "overall_score": <1-10>,
-  "intro": "<one warm sentence in English — welcoming intro and overall impression>",
+  "intro": "<one specific sentence — reference THIS photo, not a template>",
   "strengths": [
-    "<specific strength in English>",
-    "<specific strength in English>",
-    "<specific strength in English>"
+    "<specific strength — name exactly what looks good>",
+    "<specific strength>",
+    "<specific strength>"
   ],
   "concerns": [
-    "<area for improvement in English — gently worded>",
-    "<area for improvement in English — gently worded>"
+    "<specific concern — gently worded>",
+    "<specific concern>"
   ],
   "treatments": [
     "<treatment name from list>",
     "<treatment name from list>"
   ],
   "areas": {{
-    "okolica_oczu":  <1-10>,
+    "okolica_oczu":  <1-10 per calibration>,
     "jakosc_skory":  <1-10>,
     "zmarszczki":    <1-10>,
     "napiecie":      <1-10>,
@@ -177,6 +197,7 @@ Return ONLY valid JSON (no markdown):
     "naczynka":      <1-10>
   }}
 }}"""
+
 
 
 AREA_LABELS_PL = {
@@ -345,13 +366,33 @@ def _validate_result(result: dict, lang: str = 'pl') -> None:
             areas[key] = 6
     result['areas'] = areas
 
-    # overall_score: recompute as area average if areas are present
+    # overall_score: recompute as area average
     area_scores = [areas[k] for k in REQUIRED_AREAS]
     result['overall_score'] = max(1, min(10, int(round(sum(area_scores) / len(area_scores)))))
 
-    # intro: ensure string
-    if not isinstance(result.get('intro'), str) or len(result.get('intro', '')) < 5:
-        result['intro'] = "Oto Twoja indywidualna analiza twarzy." if lang == 'pl' else "Here is your personalised face analysis."
+    # Log per-area scores for comparison across photos
+    area_str = ' '.join(f"{k[:5]}={areas[k]}" for k in REQUIRED_AREAS)
+    print(f"[SCORES] overall={result['overall_score']} | {area_str}")
+
+    # intro: score-range fallback if GPT gave a generic one
+    intro = result.get('intro', '')
+    generic_intros = {'oto twoja', 'here is your', 'twoja twarz', 'your face'}
+    if not isinstance(intro, str) or len(intro) < 10 or any(g in intro.lower() for g in generic_intros):
+        score = result['overall_score']
+        if lang == 'pl':
+            if score >= 8:
+                result['intro'] = "Twoja twarz jest w naprawdę dobrej kondycji — masz piękne atuty, które warto pielęgnować."
+            elif score >= 6:
+                result['intro'] = "Masz ładne cechy twarzy — kilka ukierunkowanych zabiegów pomoże wydobyć je jeszcze bardziej."
+            else:
+                result['intro'] = "Warto zadbać o kilka obszarów — masz duży potencjał, który odpowiednie zabiegi mogą pięknie uwydatnić."
+        else:
+            if score >= 8:
+                result['intro'] = "Your face is in really good shape — you have beautiful features worth maintaining."
+            elif score >= 6:
+                result['intro'] = "You have lovely facial features — a few targeted treatments will enhance them even further."
+            else:
+                result['intro'] = "There are a few areas worth addressing — you have great potential that the right treatments can beautifully enhance."
 
     # Add area labels for template
     labels = AREA_LABELS_PL if lang == 'pl' else AREA_LABELS_EN

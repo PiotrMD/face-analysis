@@ -112,11 +112,12 @@ def validate_faces(files):
         print(f"[VALIDATOR] en_face: size={w}x{h} blur={blur:.1f}")
 
         if blur < 8.0:
+            print(f"[VALIDATOR] REJECT reason=blur value={blur:.1f} threshold=8.0")
             return {"is_valid": False, "errors": ["Zdjęcie jest zbyt niewyraźne do analizy."]}
 
         cc = _get_cascade()
         if cc is None:
-            print("[VALIDATOR] cascade unavailable — skipping face check")
+            print("[VALIDATOR] cascade unavailable — fail-open")
             return {"is_valid": True, "errors": []}
 
         eq = cv2.equalizeHist(gray)
@@ -130,8 +131,7 @@ def validate_faces(files):
             print(f"[VALIDATOR] en_face: face_count (retry)={face_count}")
 
         if face_count == 0:
-            # Fail-open — let GPT-4o validator decide
-            print("[VALIDATOR] en_face: no face by OpenCV — passing to AI validator")
+            print("[VALIDATOR] PASS reason=no_face_opencv — deferring to AI validator")
             return {"is_valid": True, "errors": []}
 
         if face_count > 1:
@@ -139,21 +139,23 @@ def validate_faces(files):
             largest_idx = int(np.argmax(areas))
             largest_area = areas[largest_idx]
             second_area = sorted(areas, reverse=True)[1]
-            if second_area > largest_area * 0.40:
+            ratio = second_area / largest_area
+            print(f"[VALIDATOR] multi-face: second/largest={ratio:.2f} threshold=0.40")
+            if ratio > 0.40:
+                print(f"[VALIDATOR] REJECT reason=multi_face second_ratio={ratio:.2f}")
                 return {"is_valid": False, "errors": ["Na zdjęciu wykryto więcej niż jedną twarz. Załącz zdjęcie przedstawiające wyłącznie Twoją twarz."]}
             faces = [faces[largest_idx]]
-            print(f"[VALIDATOR] en_face: multiple detections, kept largest")
+            print("[VALIDATOR] multi-face: kept largest, filtered false positive")
 
         fx, fy, fw, fh = faces[0]
         face_ratio = (fw * fh) / (w * h) if w * h > 0 else 0.0
-        print(f"[VALIDATOR] en_face: face_ratio={face_ratio:.3f}")
+        print(f"[VALIDATOR] en_face: face_ratio={face_ratio:.3f} threshold=0.008")
 
         if face_ratio < 0.008:
+            print(f"[VALIDATOR] REJECT reason=face_too_small ratio={face_ratio:.3f}")
             return {"is_valid": False, "errors": ["Twarz powinna być wyraźnie widoczna. Zrób zdjęcie bliżej."]}
 
-        # Eye detection removed — unreliable with makeup/lighting; GPT-4o handles this
-
-        print("[VALIDATOR] en_face: PASS")
+        print(f"[VALIDATOR] PASS blur={blur:.1f} face_ratio={face_ratio:.3f}")
         return {"is_valid": True, "errors": []}
 
     except Exception as e:
