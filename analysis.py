@@ -46,13 +46,20 @@ CLINICAL INDEX — overall_score (integer 0–100)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 This is a composite clinical documentation index reflecting the cumulative extent of documented findings across all 7 domains. It is NOT a subjective attractiveness rating — it measures how many and how significant the documented clinical conditions are.
 
-  85–100 : minimal clinical findings; very few conditions documented
-  70–84  : mild findings; 1–2 domains with documented concerns
-  55–69  : moderate findings; multiple documented conditions (typical pre-consultation range)
-  40–54  : significant findings; most domains have documented clinical conditions
-  <40    : extensive multi-domain clinical documentation
+  85–100 : minimal clinical findings — young or very well-preserved skin, 0–1 domain with minor concerns
+  70–84  : mild findings — 1–2 domains with documented concerns, no priority intervention indicated
+  55–69  : moderate findings — multiple documented conditions across 3–4 domains
+  40–54  : significant findings — most domains have documented clinical conditions requiring intervention
+  <40    : extensive multi-domain clinical documentation — advanced aging or multiple significant conditions
 
-Typical pre-consultation patient: 55–68. Do not inflate the index.
+CALIBRATION EXAMPLES:
+  Score 88: person aged 22–28, minimal pores, no lines, excellent symmetry — very few findings
+  Score 74: person aged 30–35, mild nasolabial folds, minor skin texture issues, good symmetry
+  Score 62: person aged 40–48, moderate findings in 3–4 domains, some volume loss
+  Score 48: person aged 50–58, significant findings: volume loss, deep rhytids, tissue descent
+  Score 32: person aged 60+, extensive findings across most domains
+
+Calibrate HONESTLY based on what you actually observe. Do not cluster scores near 62.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FIELD DOCUMENTATION RULES
@@ -403,6 +410,26 @@ def _validate_result(result: dict) -> None:
 
 OBSERVATION_PROMPT = """You are a dermatologist writing clinical observation notes from a patient photograph for pre-consultation records. Document visible anatomical findings only. Be specific and systematic — address every numbered point.
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MANDATORY PRE-CHECK — OCCLUSION ASSESSMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Before anything else, assess whether the photograph is suitable for clinical analysis:
+
+1. Are the subject's eyes FULLY VISIBLE (not covered by sunglasses, tinted lenses, hair, or any occlusion)?
+2. Is the face clearly facing forward (en face), with both eyes visible?
+
+If sunglasses or any opaque occlusion covers the eyes, begin your response with exactly:
+  EYES_BLOCKED: sunglasses or eye occlusion detected — periorbital assessment not possible
+
+If the photo is otherwise unsuitable (extreme angle, severe blur, face mostly obscured), begin with:
+  PHOTO_UNSUITABLE: [reason]
+
+If the photo is suitable, begin your response with:
+  PHOTO_OK: both eyes visible, en face position confirmed
+
+Then proceed with all sections below.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 SECTION A — PERIORBITAL REGION:
 A1. Tear trough (sulcus orbitalis inferior): depth (shallow/moderate/deep), left vs right asymmetry, shadow quality (sharp/diffuse)
 A2. Infraorbital discoloration: absent or present; if present — character: vascular (bluish-purple), pigmentary (brownish), volumetric shadow (grey), or mixed
@@ -482,7 +509,7 @@ def _extract_json(text: str) -> dict:
 
 def _call_raw(openai_client, messages: list, model: str, max_tokens: int) -> str:
     response = openai_client.chat.completions.create(
-        model=model, messages=messages, max_tokens=max_tokens, temperature=0, seed=42,
+        model=model, messages=messages, max_tokens=max_tokens, temperature=0.2,
     )
     choice  = response.choices[0]
     raw     = choice.message.content
@@ -820,6 +847,13 @@ def analyze_face_with_ai(
     # Step 1: observe — gpt-4o (vision)
     observations = _observe(openai_client, images_data, model)
     print(f"[OBSERVE OK] {len(observations)} chars")
+
+    # Block analysis if eyes are occluded (sunglasses etc.)
+    obs_upper = observations[:300].upper()
+    if 'EYES_BLOCKED' in obs_upper:
+        raise ValueError("EYES_BLOCKED: Zdjęcie z okularami przeciwsłonecznymi — analiza okolicy oczu niemożliwa. Wgraj zdjęcie bez okularów.")
+    if 'PHOTO_UNSUITABLE' in obs_upper:
+        raise ValueError("PHOTO_UNSUITABLE: Zdjęcie nieodpowiednie do analizy. Wgraj wyraźne zdjęcie en face.")
 
     # Step 2: report — gpt-4o (reliable JSON, no image)
     result = _report(openai_client, observations, model, lang=lang)

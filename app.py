@@ -115,6 +115,15 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         result = analyze_face_with_ai(saved_paths, client, lang=lang)
         print(f"[OPENAI CALL SUCCESS] token={token}", flush=True)
         return result
+    except ValueError as e:
+        msg = str(e)
+        print(f"[OPENAI CALL BLOCKED] {msg}", flush=True)
+        if msg.startswith("EYES_BLOCKED:") or msg.startswith("PHOTO_UNSUITABLE:"):
+            raise  # re-raise so _analyze_inner can return a proper user error
+        import traceback
+        with open('err.log', 'a', encoding='utf-8') as f:
+            f.write(traceback.format_exc() + '\n---\n')
+        return None
     except Exception as e:
         import traceback
         tb = traceback.format_exc()
@@ -201,7 +210,26 @@ def _analyze_inner():
     else:
         if force: print("[FORCE CACHE BYPASS]")
         else: print(f"[CACHE MISS] token={token}")
-        analysis_result = _run_analysis(token, saved_paths, lang=lang)
+        try:
+            analysis_result = _run_analysis(token, saved_paths, lang=lang)
+        except ValueError as e:
+            msg = str(e)
+            if 'EYES_BLOCKED' in msg:
+                user_msg = ('Photo with sunglasses detected — eye area analysis not possible. Please upload a photo without sunglasses.'
+                            if lang == 'en' else
+                            'Wykryto zdjęcie z okularami przeciwsłonecznymi — analiza okolicy oczu niemożliwa. Wgraj zdjęcie bez okularów.')
+            elif 'PHOTO_UNSUITABLE' in msg:
+                user_msg = ('Photo is unsuitable for analysis. Please upload a clear en face photo.'
+                            if lang == 'en' else
+                            'Zdjęcie nieodpowiednie do analizy. Wgraj wyraźne zdjęcie en face.')
+            else:
+                user_msg = str(e)
+            return jsonify({
+                "success": False,
+                "validation_failed": True,
+                "errors": [user_msg],
+                "validation_errors": [user_msg],
+            }), 422
 
     if analysis_result is None:
         Analysis.save_result(token, None, error="OpenAI call failed")
