@@ -3323,6 +3323,11 @@ a.contact-row__value:hover { text-decoration: underline; }
 /* ════════════════════════════════════════
    CAMERA — open button
    ════════════════════════════════════════ */
+/* hidden on touch/mobile — native file picker already offers camera */
+@media (hover: none) and (pointer: coarse) {
+    .cam-open-btn { display: none !important; }
+}
+
 .cam-open-btn {
     display: inline-flex;
     align-items: center;

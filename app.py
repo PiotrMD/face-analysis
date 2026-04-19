@@ -118,8 +118,8 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
     except ValueError as e:
         msg = str(e)
         print(f"[OPENAI CALL BLOCKED] {msg}", flush=True)
-        if msg.startswith("EYES_BLOCKED:") or msg.startswith("PHOTO_UNSUITABLE:"):
-            raise  # re-raise so _analyze_inner can return a proper user error
+        if any(msg.startswith(p) for p in ("EYES_BLOCKED:", "PHOTO_UNSUITABLE:", "POOR_PHOTO_QUALITY:")):
+            raise  # re-raise so app can return a proper 422 user error
         import traceback
         with open('err.log', 'a', encoding='utf-8') as f:
             f.write(traceback.format_exc() + '\n---\n')

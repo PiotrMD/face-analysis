@@ -24,17 +24,17 @@ B1. More than one face visible in the photo
 B2. Face not fully visible: hairline, eyes, nose, mouth, jawline must all be present
 B3. Eyes covered by sunglasses, opaque glasses, hair, hand, or any occlusion
 B4. Strong beauty filter, skin smoothing filter, or AI-generated appearance detected
-B5. Head yaw (left-right rotation) estimated above 18 degrees
+B5. Head yaw (left-right rotation) estimated above 25 degrees (near-profile)
 B6. Head pitched strongly down (looking at floor) — eyes barely or not visible
 B7. Photo severely blurry (cannot assess skin or eye area), very dark, or badly overexposed
-B8. Face occupies less than 20% of the image area
+B8. Face occupies less than 12% of the image area
 B9. Strong non-neutral expression: wide open smile showing teeth, strong squint, raised eyebrows, open mouth
 B10. Partial face: chin or forehead cut off by frame
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 WARNINGS (do not block, but set warning flags)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-W1. Mild head rotation (8–18 degrees yaw) — allow but note reduced confidence for symmetry/jawline
+W1. Mild head rotation (8–25 degrees yaw) — allow but note reduced confidence for symmetry/jawline
 W2. Single-sided strong shadow — note reduced confidence for volume assessment
 W3. Mild non-neutral expression (subtle smile, slight tension)
 W4. Neck not visible in frame — cannot assess neck region
@@ -45,10 +45,10 @@ W6. Corrective glasses present (non-sunglasses) — may partially obscure upper 
 HEAD POSE ASSESSMENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Estimate rotation in three axes based on facial landmarks:
-  yaw (left/right rotation):  "minimal" <5° | "small" 5–10° | "moderate" 10–18° | "large" >18°
-  pitch (up/down tilt):       "minimal" <5° | "small" 5–10° | "moderate" 10–18° | "large" >18°
-  roll (side tilt):           "minimal" <3° | "small" 3–8°  | "moderate" 8–15°  | "large" >15°
-  acceptable_for_analysis: false if yaw="large" OR pitch="large" OR (yaw="moderate" AND roll="moderate")
+  yaw (left/right rotation):  "minimal" <8° | "small" 8–15° | "moderate" 15–25° | "large" >25°
+  pitch (up/down tilt):       "minimal" <8° | "small" 8–15° | "moderate" 15–25° | "large" >25°
+  roll (side tilt):           "minimal" <5° | "small" 5–10° | "moderate" 10–18° | "large" >18°
+  acceptable_for_analysis: false if yaw="large" OR pitch="large"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OVERALL IMPRESSION — choose 1–2 labels from this list ONLY
