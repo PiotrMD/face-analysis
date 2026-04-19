@@ -718,7 +718,7 @@
 
     /* ── Gauge + counter animation ── */
     (function() {
-        var score  = {{ result.overall_score }};
+        var score  = {{ result.overall_score if result else 0 }};
         var numEl  = document.getElementById('gaugeNum');
         var arcEl  = document.getElementById('gaugeArc');
         var circum = 2 * Math.PI * 88;
@@ -745,7 +745,7 @@
         var ctx = document.getElementById('radarChart');
         if (!ctx || typeof Chart === 'undefined') return;
 
-        var scores = {{ result.category_scores | tojson }};
+        var scores = {{ result.category_scores | tojson if result else '{}' }};
         var labels = {
             symmetry:        _T.radar_symmetry,
             proportions:     _T.radar_proportions,
