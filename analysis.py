@@ -1008,13 +1008,4 @@ def analyze_face_with_ai(
 
     _validate_result(result)
 
-    # Detect degenerate result: score 0-10 + low confidence = photo too poor to analyze
-    score = result.get('overall_score', 50)
-    conf  = result.get('confidence_global', 'umiarkowana')
-    if score <= 10 and conf in ('niska', 'low'):
-        raise ValueError(
-            "POOR_PHOTO_QUALITY: Zdjęcie nie pozwala na rzetelną analizę kliniczną. "
-            "Wgraj wyraźne zbliżenie twarzy en face (twarz prosto, obie oczy widoczne, brak okularów)."
-        )
-
     return result
