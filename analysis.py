@@ -26,10 +26,16 @@ FORBIDDEN generic phrases (these make documentation clinically invalid):
   "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń", "zadowalający",
   "delikatne", "nieznaczne", "subtelne" — unless the clinical grade genuinely warrants it
 
+ANTI-HALLUCINATION RULE — CRITICAL:
+  You may ONLY document findings that were explicitly described in the clinical observations text.
+  If the observations say "CANNOT ASSESS" or do not mention a finding → write "ocena ograniczona — nie uwidocznione na zdjęciu".
+  Do NOT invent wrinkles, pigmentation, or any finding not stated in the observations.
+  A physician who invents findings is clinically dangerous. Document ONLY what was observed.
+
 ANTI-SOFTENING RULE — CRITICAL:
   If the clinical observations report grade 3–4 wrinkles, DO NOT write "łagodne zmarszczki".
   If the observations report significant pigmentation, DO NOT write "nieznaczne przebarwienia".
-  Match your documented severity to what the observations actually describe.
+  Match your documented severity exactly to what the observations describe.
   A physician who softens findings is clinically unreliable. Document honestly.
 
 VOLUME vs. TENSION — MUST BE DOCUMENTED SEPARATELY:
@@ -430,111 +436,146 @@ def _validate_result(result: dict) -> None:
         result['skin_tension'] = None
 
 
-OBSERVATION_PROMPT = """You are a dermatologist writing detailed clinical observation notes from a patient photograph for pre-consultation records. You are preparing HONEST, PRECISE documentation — do NOT soften, understate, or skip visible findings. If you see wrinkles, document them accurately. If they are deep, say they are deep. If pigmentation is present, document it. Never omit visible findings.
+OBSERVATION_PROMPT = """You are a clinical dermatologist completing a structured pre-consultation assessment form based on a patient photograph. Your task is to fill in each field below with what you actually see. You must follow these rules absolutely:
+
+RULE 1 — HONESTY: If you can clearly see a finding, describe it precisely with grade, location, and character.
+RULE 2 — NO FABRICATION: If you cannot clearly see something due to photo angle, blur, or crop, write exactly: "CANNOT ASSESS — [reason]". Never invent a finding.
+RULE 3 — NO SOFTENING: If wrinkles are clearly visible and deep, write "deep". Do not write "mild" for clearly visible grade 3-4 findings.
+RULE 4 — GRADING: Use this scale for ALL wrinkles: Grade 1=barely visible fine lines | Grade 2=clearly visible at rest | Grade 3=moderate depth folds | Grade 4=deep folds with clear shadow | Grade 5=very deep, skin hanging.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MANDATORY PRE-CHECK — OCCLUSION ASSESSMENT
+STEP 0 — PHOTO SUITABILITY CHECK (answer first, before any other section)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Before anything else, assess whether the photograph is suitable for clinical analysis:
+Eyes visible (not covered by sunglasses/hair/occlusion): YES / NO
+Face direction: EN FACE (looking straight at camera) / TILTED / LOOKING DOWN / PROFILE
+Photo quality: ADEQUATE / BLURRY / DARK / CROPPED
 
-1. Are the subject's eyes FULLY VISIBLE (not covered by sunglasses, tinted lenses, hair, or any occlusion)?
-2. Is the face clearly facing forward (en face), with both eyes visible?
+If eyes are covered → write "EYES_BLOCKED: [what is covering them]" and STOP. Do not continue.
+If face is NOT en face (looking down, sideways, profile) → write "PHOTO_UNSUITABLE: face not en face — [direction]" and STOP.
+If photo is OK → write "PHOTO_OK" and continue with all sections below.
 
-If sunglasses or any opaque occlusion covers the eyes, begin your response with exactly:
-  EYES_BLOCKED: sunglasses or eye occlusion detected — periorbital assessment not possible
-
-If the photo is otherwise unsuitable (extreme angle, severe blur, face mostly obscured), begin with:
-  PHOTO_UNSUITABLE: [reason]
-
-If the photo is suitable, begin your response with:
-  PHOTO_OK: both eyes visible, en face position confirmed
-
-Then proceed with all sections below.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — FOREHEAD WRINKLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Horizontal forehead lines:
+  - Number of visible lines: [number or "none visible"]
+  - Grade (1-5): [grade]
+  - Type: static (visible at rest) / dynamic only / both
+  - Distribution: full-width / partial (left/right/central)
+  - Skin texture between lines: [smooth / rough / crepe-like]
 
-WRINKLE GRADING SCALE (use for all wrinkle documentation):
-  Grade 1 — very fine lines, barely visible at rest
-  Grade 2 — fine lines, clearly visible at rest
-  Grade 3 — moderate depth wrinkles, clearly defined folds
-  Grade 4 — deep wrinkles, prominent folds with clear shadow
-  Grade 5 — very deep folds, excess skin hanging
-  Always state: static (present at rest) or dynamic (only with movement) or both.
+Glabellar lines ("11" lines between eyebrows):
+  - Present: YES / NO
+  - If yes — Grade (1-5): [grade], Type: vertical "11" / transverse / both, Static or dynamic
 
-SECTION A — FOREHEAD AND GLABELLA (examine with full attention):
-A1. Horizontal forehead lines: count approximate number of lines; grade each using the 1–5 scale above; state static or dynamic; note full-width vs partial; note skin texture between lines
-A2. Glabellar lines (between eyebrows): absent / grade 1–5; if present — vertical "11 lines" or transverse; static or dynamic
-A3. Forehead skin quality: pore size in forehead zone, surface texture, any discoloration, seborrhea
-A4. Forehead height: low / medium / high; any asymmetry in the hairline
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — EYE AREA (examine carefully)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Crow's feet (lateral canthal lines):
+  - Grade (1-5): [grade or "absent"]
+  - Type: static / dynamic / both
+  - Extent: confined to outer corner / extending onto cheek
+  - Left/right symmetry: [symmetric / left worse / right worse]
 
-SECTION B — PERIORBITAL REGION (examine carefully — critical area):
-B1. Lateral canthal lines ("crow's feet"): grade 1–5; static or dynamic; extent (confined to lateral canthus / extending to cheek); left/right symmetry
-B2. Upper eyelid area: any hooding, ptosis, skin laxity; brow position (normal / descending / elevated)
-B3. Lower eyelid / tear trough (sulcus orbitalis inferior): depth grade 1–4 by Barton scale; shadow quality (sharp/diffuse); left/right asymmetry in mm if possible
-B4. Infraorbital discoloration: absent or present; character: vascular (bluish-purple), pigmentary (brownish), volumetric shadow (grey), or mixed
-B5. Infraorbital puffiness / malar edema: absent / mild / moderate / marked; exact location
-B6. Lower eyelid skin: fine lines, crepiness, visible thinning
-B7. Overall periorbital fatigue score: does this area create a tired or rested impression — state specifically why
+Upper eyelid / brow:
+  - Hooding: none / mild / moderate / significant
+  - Brow position: normal / descending / elevated
+  - Upper eyelid skin laxity: none / mild / significant
 
-SECTION C — MID-FACE VOLUME (document separately from skin tension):
-C1. Malar / zygomatic area: volume maintained / mild loss / moderate loss / significant loss; left/right symmetry
-C2. Submalar / buccal area: volume maintained / mild hollowing / moderate hollowing; location
-C3. Nasolabial folds: grade 1–4 by Lemperle scale; left/right symmetry; character (volumetric vs gravitational)
-C4. Tear trough (volume component): see B3
-C5. Temple area: full / mild hollowing / significant hollowing
+Lower eyelid / tear trough:
+  - Tear trough depth (Barton 1-4): [grade or "not visible"]
+  - Shadow: absent / vascular (bluish) / pigmentary (brownish) / volumetric (grey) / mixed
+  - Infraorbital puffiness: absent / mild / moderate / marked
+  - Lower eyelid skin: normal / fine lines / crepe texture / thinning
+  - Left/right asymmetry: [describe or "symmetric"]
 
-SECTION D — SKIN TENSION AND TISSUE DESCENT (document separately from volume):
-D1. Cheek / malar tissue descent: none / mild / moderate / significant; malar fat pad position
-D2. Jowl formation: absent / early / moderate / significant; left/right symmetry
-D3. Jawline definition: sharply defined / mildly blurred / significantly blurred
-D4. Marionette lines: absent / grade 1–4; if present — depth and left/right symmetry
-D5. Nasolabial fold gravitational component (see C3)
-D6. Neck and submental area: well-defined chin / mild submental fullness / significant submental fat; platysmal laxity if visible
+Overall periorbital impression: TIRED / RESTED / NEUTRAL — because: [specific anatomical reason]
 
-SECTION E — SKIN QUALITY (examine thoroughly):
-E1. T-zone (forehead, nose, chin): pore size (<0.3mm / 0.3–0.4mm / >0.4mm); surface texture; seborrhea or shine; comedones if visible
-E2. Cheeks: texture uniformity; microrelief; roughness; dehydration lines
-E3. Pigmentation — EXAMINE CAREFULLY: document ALL visible discolorations: location (left/right cheek, forehead, perioral, etc.), approximate size in mm, color (brown/grey/red/purple), type if identifiable (melasma pattern / post-inflammatory / lentigo / vascular)
-E4. Vascular changes: visible capillaries, redness, rosacea pattern — location and extent
-E5. Overall skin tone: even / mildly uneven / significantly uneven
-E6. Skin hydration: normal / dehydrated (fine surface lines) / oily (shine pattern)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — SKIN QUALITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+T-zone pores (forehead, nose):
+  - Size: normal (<0.3mm) / enlarged (0.3-0.4mm) / significantly enlarged (>0.4mm)
+  - Seborrhea / oiliness: absent / mild / significant
 
-SECTION F — AGING SIGNS — LOWER FACE:
-F1. Nasolabial depth (see C3 and D4 combined)
-F2. Perioral lines: vertical lip lines — absent / fine / moderate / deep; number if countable
-F3. Oral commissure: level / descending; symmetry
-F4. Mental crease: absent / present — depth
-F5. Lower face skin quality and elasticity vs mid-face
+Cheek skin texture:
+  - Surface: smooth / mildly uneven / rough / irregular microrelief
+  - Fine surface lines on cheeks: absent / present (describe location and density)
+  - Dehydration signs: absent / present
 
-SECTION G — LIPS:
-G1. Upper lip: volume (full/moderate/thin/very thin); philtrum definition (clear/blurred/absent); vermillion border clarity
-G2. Lower lip: volume relative to upper; symmetry
-G3. Lip commissure: level / asymmetric (left/right drop in mm)
+Overall skin tone:
+  - Even / mildly uneven / significantly uneven
 
-SECTION H — SYMMETRY AND PROPORTIONS:
-H1. Facial thirds: forehead : midface : lower face (equal / upper dominant / lower dominant) — approximate ratio
-H2. Facial width-to-height proportions
-H3. Midline alignment: straight / deviated — direction and approximate mm deviation
-H4. Structural left/right asymmetries — list each with anatomical location and estimated magnitude
+Pigmentation — LIST EACH ONE SEPARATELY:
+  - Discoloration 1: location [exact], size [mm], color [brown/grey/red/purple], type [melasma/PIH/lentigo/vascular/other]
+  - Discoloration 2: [or "no additional"]
+  - Vascular changes (redness, visible capillaries, rosacea): [location and extent or "absent"]
 
-SECTION I — HAIRLINE AND HAIR:
-I1. Forehead height (low / medium / high)
-I2. Hairline shape and regularity
-I3. Hair density at temples and frontal zone: full / mild thinning / notable thinning
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — SKIN TENSION AND SAGGING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(Document SEPARATELY from volume loss)
+Cheek/malar descent: none / mild / moderate / significant
+Nasolabial folds (gravitational component): Grade 1-4 Lemperle: [grade], symmetric / left worse / right worse
+Marionette lines: absent / Grade 1-4: [grade]
+Jawline definition: sharp / mildly blurred / significantly blurred / jowl forming
+Lower face overall tension: maintained / mildly reduced / significantly reduced
 
-SECTION J — NECK (examine carefully if visible):
-If the neck IS visible:
-  J1. Skin quality vs facial skin: same / older appearing / younger appearing
-  J2. Skin firmness: tight / mild laxity / moderate laxity / significant laxity
-  J3. Horizontal neck lines: absent / 1–2 fine / multiple moderate / deep
-  J4. Platysma bands: visible or not visible
-  J5. Submental definition: see D6
-  J6. Pigmentation changes vs face
-If not visible: "Neck not visible in frame."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — VOLUME (separately from tension)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Malar/cheek volume: maintained / mild loss / moderate loss / significant loss
+Submalar/buccal area: maintained / mild hollowing / moderate hollowing
+Temple area: full / mild hollowing / significant hollowing
+Nasolabial folds (volumetric component): see Step 4
 
-SECTION K — SKIN LESIONS:
-Document any visible scars, raised spots, pigmented lesions, atypical changes. For each: location, size (mm), morphology. Use: "image suggests", "features consistent with", "requires confirmation at in-person examination."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — LOWER FACE AND LIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Perioral vertical lines: absent / fine (grade 1-2) / moderate (grade 3) / deep (grade 4-5)
+Oral commissures: level / descending left / descending right / both descending
+Mental crease: absent / present (grade: [])
+Upper lip volume: full / moderate / thin / very thin
+Upper lip philtrum: clearly defined / blurred / flat
+Lower lip volume vs upper lip: [describe]
 
-CRITICAL INSTRUCTION: Do NOT soften or omit findings. If forehead wrinkles are clearly visible in the photo, document them precisely. If crow's feet are present, document their grade. If pigmentation is visible, document location and character. A physician reading these notes must be able to know exactly what is present and how severe it is."""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — HAIR AND HAIRLINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Hairline visible: YES / NO (if no, write "CANNOT ASSESS — not in frame")
+If visible:
+  - Forehead height: low / medium / high
+  - Hairline regularity: regular / irregular / receding
+  - Temple density: full / mild thinning / notable thinning / significant thinning
+  - Frontal zone density: full / mild thinning / notable thinning
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — NECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Neck visible in frame: YES / NO
+If YES:
+  - Skin quality vs face: same / worse / better
+  - Firmness: tight / mild laxity / moderate laxity / significant laxity
+  - Horizontal neck lines: absent / 1-2 fine / multiple moderate / deep
+  - Platysma bands: visible / not visible
+  - Submental area: well-defined / mild fullness / significant submental fat
+If NO: write "CANNOT ASSESS — neck not in frame"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — SYMMETRY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Facial thirds ratio (forehead:midface:lower face): [describe ratio]
+Midline: straight / deviated [direction ~Xmm]
+Notable asymmetries: [list each with location and estimated magnitude, or "none significant"]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — SKIN LESIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Any visible scars, raised lesions, atypical pigmented spots: [list each with location, size, morphology — use "image suggests" / "features consistent with" / "requires confirmation"]
+If none visible: "None identified in this photograph."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REMINDER: Use "CANNOT ASSESS — [reason]" for anything genuinely not visible. Do NOT invent findings. Do NOT soften visible findings."""
 
 
 def _extract_json(text: str) -> dict:
@@ -860,12 +901,15 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
     patched_prompt = _patch_prompt_for_lang(base_prompt, lang)
     prompt = (
         f"Format these clinical observation notes into structured {lang_name}-language JSON.\n\n"
+        f"CRITICAL GROUNDING RULE: You may ONLY use findings explicitly stated in the OBSERVATIONS below. "
+        f"If an observation field says 'CANNOT ASSESS' or is absent → write 'ocena ograniczona' in that JSON field. "
+        f"Do NOT invent, assume, or generalize ANY finding. Every JSON value must be directly traceable to the observations.\n\n"
         f"OBSERVATIONS:\n" + observations + "\n\n"
         f"Return ONLY valid JSON. All free-text values must be in {lang_name}.\n\n"
         + patched_prompt
     )
     messages = [
-        {"role": "system", "content": f"You are a physician formatting clinical notes into structured JSON with all text in {lang_name}. Return only valid JSON, no markdown."},
+        {"role": "system", "content": f"You are a physician formatting clinical notes into structured JSON. You may only document findings explicitly stated in the provided observations. Do not invent findings. Return only valid JSON, no markdown. All text in {lang_name}."},
         {"role": "user",   "content": prompt},
     ]
     raw = _call_raw(openai_client, messages, model, max_tokens=4500)

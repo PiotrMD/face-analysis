@@ -148,6 +148,18 @@ def validate_faces(files):
         if face_ratio < 0.015:
             return {"is_valid": False, "errors": ["Twarz powinna być ustawiona przodem do aparatu i wyraźnie widoczna."]}
 
+        # Detect eyes within the face region — rejects head-down or profile photos
+        eye_cc_path = cv2.data.haarcascades + "haarcascade_eye.xml"
+        eye_cc = cv2.CascadeClassifier(eye_cc_path)
+        if not eye_cc.empty():
+            # Search only in the upper 2/3 of the face region
+            face_roi = gray[fy:fy + int(fh * 0.65), fx:fx + fw]
+            eyes = eye_cc.detectMultiScale(face_roi, scaleFactor=1.1, minNeighbors=4, minSize=(20, 20))
+            eye_count = len(eyes)
+            print(f"[VALIDATOR] en_face: eye_count={eye_count}")
+            if eye_count == 0:
+                return {"is_valid": False, "errors": ["Oczy nie są widoczne. Wgraj zdjęcie en face — twarz prosto do aparatu, oba oczy otwarte i widoczne."]}
+
         print("[VALIDATOR] en_face: PASS")
         return {"is_valid": True, "errors": []}
 
