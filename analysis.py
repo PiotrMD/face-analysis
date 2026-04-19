@@ -2,320 +2,488 @@ import json
 import base64
 from typing import Dict
 
-CLINICAL_PROMPT = """You are a board-certified aesthetic medicine physician preparing a structured pre-consultation clinical documentation record. The patient has uploaded a standardized frontal photograph (en face) and consented to a clinical screening assessment to support their upcoming in-person consultation.
+# ═══════════════════════════════════════════════════════════════════
+# OBSERVATION PROMPT — Step 1: image → structured plain-text notes
+# ═══════════════════════════════════════════════════════════════════
+OBSERVATION_PROMPT = """You are a clinical dermatologist completing a structured pre-consultation assessment form based on a patient photograph. Fill in each field with what you actually observe. Follow these rules absolutely.
 
-Your task is to document clinical findings across 7 anatomical domains, identify the primary clinical concern requiring intervention, and outline a treatment priority plan. This is a medical documentation task, not a subjective evaluation of appearance.
+RULE 1 — HONESTY: Describe findings precisely with grade, location, and character.
+RULE 2 — NO FABRICATION: If you cannot clearly see something, write: "CANNOT ASSESS — [reason]". Never invent.
+RULE 3 — NO SOFTENING: If wrinkles are clearly deep, write "deep". Never write "mild" for grade 3–4 findings.
+RULE 4 — BALANCE: Note positive features too — good skin, full volume, sharp jawline, even tone.
+RULE 5 — CONFIDENCE PER STEP: After each step, rate confidence: HIGH / MODERATE / LOW and give reason.
+RULE 6 — WRINKLE GRADES: 1=barely visible | 2=clearly visible at rest | 3=moderate depth | 4=deep shadow | 5=very deep.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-LANGUAGE REQUIREMENT — CRITICAL
+STEP 0 — PHOTO SUITABILITY CHECK (answer first, before any section)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ALL text values in the JSON output MUST be written in Polish (język polski).
-This applies to every string field: summary, findings, skin_tension, fatigue_factors, overall_perception, recommendations, and all others.
-Do NOT use English words in any field value. Use Polish anatomical and clinical terminology.
-Examples of FORBIDDEN English in field values:
-  BAD: "Slight tissue descent" → GOOD: "Niewielkie opadanie tkanek"
-  BAD: "Mild laxity"          → GOOD: "Łagodna wiotkość"
-  BAD: "Mildly blurred"       → GOOD: "Łagodnie zatarta"
+Eyes visible (not covered by sunglasses/hair/occlusion): YES / NO
+Face direction: EN FACE / TILTED / LOOKING DOWN / PROFILE
+Photo quality: ADEQUATE / BLURRY / DARK / CROPPED
+Mimics: NEUTRAL / SMILING / GRIMACING
+
+If eyes are covered → write "EYES_BLOCKED: [cause]" and STOP.
+If face is NOT en face → write "PHOTO_UNSUITABLE: face not en face — [direction]" and STOP.
+If photo quality inadequate → write "PHOTO_UNSUITABLE: [reason]" and STOP.
+If OK → write "PHOTO_OK" and continue.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — POSITIVE FEATURES (document first — do not skip)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+List every clearly positive feature you observe. Be specific. Examples of acceptable observations:
+- "Full malar volume bilaterally, no hollowing"
+- "Sharp, clearly defined jawline without jowl formation"
+- "Even skin tone, no visible pigmentation or redness"
+- "No forehead lines visible at rest"
+- "Good skin firmness in the cheek region"
+- "Symmetric facial thirds, proportions well-balanced"
+DO NOT write "good-looking face" or vague compliments. Only anatomically specific positives.
+Confidence: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FOREHEAD AND GLABELLAR REGION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Horizontal forehead lines:
+  - Number visible: [number or "none visible at rest"]
+  - Grade (1–5): [grade]
+  - Type: static (at rest) / dynamic only / both
+  - Distribution: full-width / partial [location]
+  - Skin texture between lines: smooth / rough / crepe-like
+
+Glabellar lines ("11" between brows):
+  - Present: YES / NO
+  - Grade (1–5): [grade], Type: vertical / transverse / both, Static or dynamic
+
+Confidence for this step: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — EYE AREA (examine carefully — critical for fatigue assessment)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Crow's feet (lateral canthal lines):
+  - Grade (1–5): [grade or "absent"]
+  - Type: static / dynamic / both
+  - Extent: outer corner only / extending onto cheek
+  - Symmetry: symmetric / left worse / right worse
+
+Upper eyelid / brow:
+  - Hooding: none / mild / moderate / significant
+  - Brow position: normal / descending / elevated
+  - Upper eyelid skin laxity: none / mild / significant
+
+Lower eyelid / tear trough:
+  - Tear trough depth (Barton 1–4): [grade or "not visible"]
+  - Shadow character: absent / vascular (bluish) / pigmentary (brownish) / volumetric (grey) / mixed
+  - Infraorbital puffiness: absent / mild / moderate / marked
+  - Lower eyelid skin: normal / fine lines / crepe texture / thinning
+  - Left/right asymmetry: [describe or "symmetric"]
+
+Overall periorbital impression: TIRED / RESTED / NEUTRAL — because: [specific anatomical reason]
+Confidence for this step: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — SKIN QUALITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+T-zone pores (forehead, nose):
+  - Size: normal (<0.3mm) / enlarged (0.3–0.4mm) / significantly enlarged (>0.4mm)
+  - Seborrhea: absent / mild / significant
+
+Cheek skin texture:
+  - Surface: smooth / mildly uneven / rough / irregular microrelief
+  - Fine surface lines: absent / present [location + density]
+  - Dehydration signs: absent / present
+
+Skin tone:
+  - Even / mildly uneven / significantly uneven
+
+Pigmentation (list each separately):
+  - Discoloration 1: location, size [mm], color [brown/grey/red], type [melasma/PIH/lentigo/vascular]
+  - Additional: [or "none visible"]
+  - Vascular changes: [location and extent or "absent"]
+
+Confidence for this step: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — VOLUME (separately from tension/sagging)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Malar/cheek volume: maintained / mild loss / moderate loss / significant loss
+Submalar/buccal area: maintained / mild hollowing / moderate hollowing
+Temple area: full / mild hollowing / significant hollowing
+Midface overall assessment: [one sentence]
+
+Confidence for this step: HIGH / MODERATE / LOW — [reason if LOW: e.g. "difficult lighting"]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — SKIN TENSION AND SAGGING (separately from volume)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cheek/malar descent: none / mild / moderate / significant
+Nasolabial folds: Grade [1–4 Lemperle], symmetric / asymmetric [which worse]
+Marionette lines: absent / Grade [1–4]
+Jawline definition: sharp / mildly blurred / significantly blurred / jowl forming
+Lower face overall tension: maintained / mildly reduced / significantly reduced
+
+Confidence for this step: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — LOWER FACE AND LIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Perioral vertical lines: absent / fine (gr 1–2) / moderate (gr 3) / deep (gr 4–5)
+Oral commissures: level / descending [side]
+Mental crease: absent / present [grade]
+Upper lip volume: full / moderate / thin / very thin
+Upper lip philtrum: clearly defined / blurred / flat
+Lower lip ratio to upper: [describe]
+
+Confidence for this step: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — NECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Neck visible in frame: YES / NO
+If YES:
+  - Skin quality vs face: same / worse / better
+  - Firmness: tight / mild laxity / moderate laxity / significant laxity
+  - Horizontal lines: absent / 1–2 fine / multiple moderate / deep
+  - Platysma bands: visible / not visible
+  - Submental area: well-defined / mild fullness / significant submental fat
+If NO: "CANNOT ASSESS — neck not in frame"
+Confidence: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — HAIR AND HAIRLINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Hairline visible: YES / NO
+If YES:
+  - Forehead height: low / medium / high
+  - Hairline regularity: regular / irregular / receding
+  - Temple density: full / mild thinning / notable thinning / significant thinning
+  - Frontal zone density: full / mild thinning / notable thinning
+If NO: "CANNOT ASSESS — not in frame"
+Confidence: HIGH / MODERATE / LOW — [reason]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — SYMMETRY AND PROPORTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Facial thirds ratio (forehead:midface:lower face): [describe]
+Midline: straight / deviated [direction ~Xmm]
+Notable asymmetries: [list each with location and magnitude, or "none significant"]
+Aesthetic proportions overall: [one sentence]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — SKIN LESIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Visible scars, raised lesions, atypical spots: [list each — location, size, morphology]
+Use "image suggests" / "features consistent with" / "requires confirmation"
+If none: "None identified in this photograph."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — OVERALL IMPRESSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Dominant facial impression (choose 1–2 from this list only):
+  "świeży / wypoczęty" | "zmęczony" | "neutralny" | "napięty / zestresowany" | "smutny / przygaszony" | "surowy / poważny" | "łagodny / pogodny"
+State anatomical reason for chosen impression.
+Estimated age range (with minimum ±4-year band): [XX–XX]
+Confidence of age estimate: HIGH / MODERATE / LOW — [reason]
+Aesthetic harmony: strong / moderate / limited — [specific reason]
+
+REMINDER: Use "CANNOT ASSESS — [reason]" for anything not clearly visible. Document strengths as carefully as concerns."""
+
+
+# ═══════════════════════════════════════════════════════════════════
+# CLINICAL PROMPT — Step 2: observations → structured JSON
+# ═══════════════════════════════════════════════════════════════════
+CLINICAL_PROMPT = """You are a board-certified aesthetic medicine physician formatting clinical observation notes into a structured patient report. Your task is to produce an honest, varied, and clinically grounded JSON document.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LANGUAGE — CRITICAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ALL free-text values in the JSON MUST be in Polish (język polski).
+Enum/code keys (nasilenie, priorytet, kategoria, status, freshness) stay as specified.
+BAD: "Slight tissue descent" → GOOD: "Niewielkie opadanie tkanek"
+BAD: "Mild laxity" → GOOD: "Łagodna wiotkość"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANTI-FABRICATION — ABSOLUTE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You may ONLY document findings explicitly stated in the OBSERVATIONS below.
+If observations say "CANNOT ASSESS" or do not mention a feature → write "ocena ograniczona — niewidoczne na zdjęciu".
+NEVER invent wrinkles, pigmentation, volume loss, or any finding not in the observations.
+NEVER assume a finding is present because it is "typical" for an age group.
+A physician who invents findings is clinically dangerous.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANTI-MONOTONY — CRITICAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FORBIDDEN: assigning "zmęczony" to every face regardless of observations.
+FORBIDDEN: always skewing biological age estimate upward.
+FORBIDDEN: writing about neck or hairline when observations say "CANNOT ASSESS".
+FORBIDDEN: copying the same phrases across reports.
+FORBIDDEN: using vague adjectives like "delikatne", "subtelne" for clearly significant findings.
+REQUIRED: if the face looks rested, fresh, or young — document that clearly and positively.
+REQUIRED: vary the vocabulary, emphasis, and tone based on the actual observations.
+REQUIRED: if confidence is LOW for a feature, write so explicitly and avoid strong conclusions.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRENGTHS-FIRST APPROACH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"strengths" field: list 3–6 concrete positive observations from the photo.
+Each item must name a specific anatomical structure and what is good about it.
+BAD (too vague): "Dobra cera", "Ładna twarz", "Twarz wygląda zdrowo"
+GOOD (anatomically specific):
+  "Zachowana pełna objętość policzków — brak utraty tkanki malarnej"
+  "Wyraźnie zarysowana linia żuchwy bez cech opadania ani formowania się jowli"
+  "Równomierny koloryt skóry bez widocznych ognisk przebarwień"
+  "Brak zmarszczek statycznych czoła w spoczynku — tylko wczesne dynamiczne"
+  "Dobra gęstość włosów w strefie czołowej i skroniowej"
+  "Zachowana definicja łuków jarzmowych"
+  "Symetria strukturalna twarzy — brak istotnych asymetrii"
+  "Dobrze zachowana objętość wargi górnej"
+If observations clearly show NO concerns in a region → always add that region to strengths.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURES — 0–4 granular scoring
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+For each of the 8 features, provide: score (0–4), confidence (wysoka|umiarkowana|niska), notes (Polish)
+Score meaning: 0=brak (no concern), 1=łagodny, 2=umiarkowany, 3=zaawansowany, 4=nasilony (severe)
+CONFIDENCE RULES:
+  - Use "niska" when: part of face not visible, blurry, difficult lighting, CANNOT ASSESS in observations
+  - Use "umiarkowana" when: partially visible or lighting complicates assessment
+  - Use "wysoka" only when clearly visible with good lighting
+
+Features:
+  under_eye: combined score of tear trough depth + shadow intensity + puffiness
+  midface_volume: malar/cheek volume preservation (0=full, 4=significant hollowing)
+  tissue_descent: gravitational sagging of cheeks/lower face (0=none, 4=severe jowls)
+  jawline_jowls: jawline sharpness (0=sharp/clean, 4=blurred with jowl formation)
+  skin_texture: pores + surface quality + microrelief (0=excellent, 4=severe)
+  skin_tone: evenness of color + pigmentation (0=even, 4=severely uneven)
+  neck: neck skin + tension + lines (0=excellent, 4=significant — use niska confidence if not visible)
+  hairline: hairline integrity + density (0=normal, 4=significant loss — use niska confidence if not visible)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BIOLOGICAL AGE ESTIMATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Format: "XX–XX lat — [specific visible sign driving estimate] — pewność: wysoka|umiarkowana|niska"
+NEVER give a single year — always a range (minimum ±4 years).
+NEVER cluster estimates in the 40–50 range by default.
+If skin is very good and lines minimal → estimate may be 25–30 range.
+If confidence is LOW → write that clearly: "pewność: niska — zdjęcie nie pozwala na wiarygodną ocenę"
+Example: "32–38 lat — brak zmarszczek statycznych, pełna objętość policzków, drobne dynamiczne kurze łapki — pewność: umiarkowana"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DOMINANT IMPRESSION — choose 1–2 from this list ONLY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"świeży / wypoczęty" | "zmęczony" | "neutralny" | "napięty / zestresowany" | "smutny / przygaszony" | "surowy / poważny" | "łagodny / pogodny"
+Choose strictly based on anatomical observations — not assumptions about age or gender.
+If the face looks rested → use "świeży / wypoczęty" or "neutralny".
+DO NOT default to "zmęczony" unless tear trough, volume loss, or skin laxity clearly create fatigue signs.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OVERALL_SCORE — composite clinical index 0–100
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Reflects cumulative extent of documented findings. NOT attractiveness.
+85–100: minimal findings — young/well-preserved, 0–1 domains with minor concerns
+70–84: mild findings — 1–2 domains with concerns, no priority intervention
+55–69: moderate findings — multiple documented conditions, 3–4 domains
+40–54: significant findings — most domains have conditions requiring intervention
+<40: extensive multi-domain findings
+
+Calibration reference points:
+  Score 91: 20–28 y/o, no lines at rest, excellent skin, full volume, sharp jawline
+  Score 78: 30–37 y/o, grade 1–2 crow's feet, mild nasolabial folds, minor pore enlargement
+  Score 64: 40–50 y/o, grade 2–3 forehead lines, moderate volume loss, skin laxity in 2–3 zones
+  Score 49: 52–60 y/o, deep wrinkles multiple zones, notable volume loss, blurred jawline
+  Score 34: 62+ y/o, grade 4–5 wrinkles, significant sagging, major volume loss
+
+Calibrate HONESTLY. Do NOT cluster scores near 62. A young person with good skin should score 80+.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DOCUMENTATION STANDARDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FORBIDDEN generic phrases (these make documentation clinically invalid):
-  "zbliżone do normy", "obszary wymagające uwagi", "harmonijne", "dobrze zdefiniowane",
-  "wygląda naturalnie", "ogólnie dobra", "proporcje są dobre", "twarz jest symetryczna",
-  "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń", "zadowalający",
-  "delikatne", "nieznaczne", "subtelne" — unless the clinical grade genuinely warrants it
+FORBIDDEN vague phrases: "zbliżone do normy", "obszary wymagające uwagi", "harmonijne", "wygląda naturalnie", "ogólnie dobra", "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń"
 
-ANTI-HALLUCINATION RULE — CRITICAL:
-  You may ONLY document findings that were explicitly described in the clinical observations text.
-  If the observations say "CANNOT ASSESS" or do not mention a finding → write "ocena ograniczona — nie uwidocznione na zdjęciu".
-  Do NOT invent wrinkles, pigmentation, or any finding not stated in the observations.
-  A physician who invents findings is clinically dangerous. Document ONLY what was observed.
+Every clinical statement MUST contain:
+  1. ANATOMICAL LOCATION (exact structure)
+  2. CLINICAL FINDING (type + grade/measurement where applicable)
 
-ANTI-SOFTENING RULE — CRITICAL:
-  If the clinical observations report grade 3–4 wrinkles, DO NOT write "łagodne zmarszczki".
-  If the observations report significant pigmentation, DO NOT write "nieznaczne przebarwienia".
-  Match your documented severity exactly to what the observations describe.
-  A physician who softens findings is clinically unreliable. Document honestly.
+Use cause → effect → perception chain:
+  BAD: "Obniżone napięcie skóry."
+  GOOD: "Obniżone napięcie skóry policzków powoduje opadanie tkanek, co tworzy wrażenie zmęczenia twarzy."
 
-VOLUME vs. TENSION — MUST BE DOCUMENTED SEPARATELY:
-  Volume loss (utrata objętości) = reduction in fat/soft tissue mass — document in volume_contour findings
-  Skin tension / tissue descent (napięcie / opadanie tkanek) = gravitational laxity — document in skin_tension findings
-  Do NOT conflate these. A patient can have volume loss without laxity, or laxity without volume loss.
+For uncertainty: use "obraz sugeruje", "cechy zgodne z", "wymaga potwierdzenia"
+For lesions: ALWAYS use "obraz sugeruje" — never certain diagnosis.
+For "no significant concern" in a domain: write "brak istotnych nieprawidłowości w [structure]" and note 1–2 minor observations.
 
-DOCUMENTATION STYLE — clinical case notes, not a subjective opinion:
-  - Document findings as a physician would write in a medical chart
-  - Name the anatomical structure, then describe the clinical finding
-  - Use grades and measurements where applicable: "stopień 1 wg skali Barton", "~2mm", ">0.4mm", "stopień 3 wg skali Lemperle"
-  - Do not omit findings or soften them with non-clinical adjectives
-  - TONE: use cause → effect → perception chain. Example:
-      BAD:  "Obniżone napięcie skóry."
-      GOOD: "Obniżone napięcie skóry policzków powoduje opadanie tkanek, co wpływa na odbiór zmęczenia twarzy."
-  - For uncertainty: use "obraz sugeruje", "cechy zgodne z", "wymaga potwierdzenia w konsultacji"
+summary — exactly 3 sentences:
+  Sentence 1: primary structural STRENGTH (anatomical + specific observation)
+  Sentence 2: primary CONCERN (exact location + finding type)
+  Sentence 3: clinical OUTLOOK (what to prioritize at consultation)
 
-WRINKLE DOCUMENTATION REQUIREMENT:
-  For every visible wrinkle type present in the photo, you MUST document:
-  - Exact location (czoło poziome / zmarszczki lwia / kurze łapki / bruzda nosowo-wargowa / etc.)
-  - Grade (1–5 wg skali Lemperle lub 1–4 wg skali Barton)
-  - Character: statyczne (w spoczynku) / dynamiczne (przy ruchu) / mieszane
-  Do NOT write "brak zmarszczek" if wrinkles are clearly described in the observations.
+strongest_asset — one sentence naming the best-preserved structure and why.
 
-PIGMENTATION DOCUMENTATION REQUIREMENT:
-  Any documented pigmentation must include: location, approximate size, color character (brązowe / szare / rumieniowe), and type if identifiable. Do NOT omit.
-
-EVERY clinical statement must contain:
-  1. ANATOMICAL LOCATION — exact structure (e.g. "okolica podoczodołowa lewa", "strefa T nosa", "lewy kąt ust")
-  2. CLINICAL FINDING — specific type and severity (e.g. "utrata objętości stopień 1", "asymetria ~2mm", "pory >0.4mm", "zmarszczki dynamiczne stopień 2")
-
-If no significant pathology is documented in a domain: write "brak istotnych nieprawidłowości klinicznych w [structure]" and still document 2–3 minor deviations observed.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CLINICAL INDEX — overall_score (integer 0–100)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-This is a composite clinical documentation index reflecting the cumulative extent of documented findings across all 7 domains. It is NOT a subjective attractiveness rating — it measures how many and how significant the documented clinical conditions are.
-
-  85–100 : minimal clinical findings — young or very well-preserved skin, 0–1 domain with minor concerns
-  70–84  : mild findings — 1–2 domains with documented concerns, no priority intervention indicated
-  55–69  : moderate findings — multiple documented conditions across 3–4 domains
-  40–54  : significant findings — most domains have documented clinical conditions requiring intervention
-  <40    : extensive multi-domain clinical documentation — advanced aging or multiple significant conditions
-
-CALIBRATION EXAMPLES:
-  Score 88: person aged 22–28, minimal pores, no lines, excellent symmetry — very few findings
-  Score 74: person aged 30–35, mild nasolabial folds, minor skin texture issues, good symmetry
-  Score 62: person aged 40–48, moderate findings in 3–4 domains, some volume loss
-  Score 48: person aged 50–58, significant findings: volume loss, deep wrinkles, tissue descent
-  Score 32: person aged 60+, extensive findings across most domains
-
-Calibrate HONESTLY based on what you actually observe. Do not cluster scores near 62.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FIELD DOCUMENTATION RULES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-summary — exactly 3 sentences for the clinical chart:
-  Sentence 1: primary structural strength — anatomical structure + specific clinical observation
-  Sentence 2: primary clinical concern — exact location + specific finding type
-  Sentence 3: clinical outlook — what the patient should expect or prioritize at the in-person visit
-  BANNED: disclaimers, vague adjectives, flattery, marketing language
-
-biological_age_estimate:
-  Format: "XX–XX lat — [specific clinical sign that drove the estimate]"
-  Example: "37–43 lat — zmarszczki dynamiczne stopień 2 przy kątach oczu i pory >0.4mm w strefie T wskazują na przyspieszone fotostarzenie"
-
-strongest_asset:
-  One sentence. Document the anatomical structure that shows the fewest concerns and explain the specific clinical observation supporting this.
-
-top_priority:
-  1–2 sentences documenting the primary condition requiring earliest clinical attention:
-  (a) exact anatomical location + specific finding type
-  (b) functional or clinical impact on adjacent structures or perceived condition
+top_priority — 1–2 sentences:
+  (a) exact location + finding type
+  (b) clinical impact + perception consequence
   (c) expected progression without treatment
-  Use clinical consequence language:
-    "może nasilać efekt zmęczenia twarzy"
-    "pogłębia cień podoczodołowy i efekt chronicznego zmęczenia"
-    "bez interwencji defekt będzie postępował z wiekiem"
-  BAD: "Poprawa jakości skóry"
-  GOOD: "Utrata objętości w okolicy podoczodołowej lewej (tear trough stopień 1–2 wg skali Barton) pogłębia cień podoczodołowy i wymaga interwencji — bez leczenia defekt będzie narastał i nasilał efekt chronicznego zmęczenia twarzy."
+  Language: "może nasilać efekt zmęczenia twarzy" / "pogłębia cień podoczodołowy" / "bez interwencji defekt będzie postępował"
 
-recommendations — 5 to 7 items, ordered by clinical priority:
-  Format: [CLINICAL INDICATION] + [PROCEDURE/PRODUCT] + [DOSE or FREQUENCY]
-  Rules:
-  - Concise enough to scan in 5 seconds
-  - Medically realistic — standard-of-care interventions
-  - Written as physician's pre-procedure briefing notes
+recommendations — 5–7 items, ordered by priority:
+  Format: [WSKAZANIE]: [PROCEDURA/PREPARAT] [DAWKA/CZĘSTOTLIWOŚĆ]
   BAD: "Stosuj krem z SPF"
-  GOOD: "Fotoprotekcja: mineralny SPF 50+ PA++++ codziennie rano — warunek skuteczności każdej interwencji aktywnej"
+  GOOD: "Fotoprotekcja: mineralny SPF 50+ PA++++ codziennie rano — warunek skuteczności każdej procedury aktywnej"
 
-sections — documentation rules for ALL 7 domains:
-  status: "moderate" = would prescribe or refer at an in-person clinic visit
-  finding: [anatomical structure] + [specific clinical observation with grade or measurement]
-  detail: 3–4 items, each = [location] + [finding type + grade/measurement]
-    - At least 1 item must document a condition or concern
-    - Grades and measurements preferred: "~2mm", "stopień 2 wg skali Lemperle", ">0.4mm"
+sections — 7 domains, each:
+  status: "good" = no intervention needed | "mild" = monitoring/topical | "moderate" = clinical intervention indicated
+  finding: [anatomical structure] + [specific observation with grade/measurement]
+  detail: 3–4 items, each = [location] + [finding + grade/measurement]
+
+category_scores (0–10 per domain):
+  9–10: no clinical concerns
+  7–8: minor findings, no intervention
+  5–6: documented findings, topical/monitoring
+  3–4: conditions requiring clinical intervention
+  1–2: significant priority intervention needed
+  "good" status → score 7–10 | "mild" → 4–6 | "moderate" → 1–4
+
+skin_tension — document SEPARATELY from volume:
+  under_eye, cheeks, jawline, neck (or limitation note if neck not visible)
+  wplyw_estetyczny for skin_tension findings MUST state impact on fatigue perception.
+
+fatigue_factors — if face looks rested:
+  primary: "brak dominujących cech zmęczenia"
+  contributing: []
+  explanation: [explain what gives a fresh/rested appearance]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DOCUMENTATION EXAMPLE — match this specificity and clinical tone
+OUTPUT FORMAT — return ONLY valid JSON, no markdown, no explanations
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Do NOT copy this example. Use it as a calibration reference only.
 
 {
-  "overall_score": 64,
-  "summary": "Łuki jarzmowe wykazują symetryczną projekcję boczną bez utraty objętości, stanowiąc klinicznie korzystną cechę strukturalną środkowej trzeciej twarzy. W okolicy podoczodołowej obustronnie udokumentowano utratę objętości stopień 1 wg skali Barton, z silniejszym cieniem tear trough po lewej stronie, klinicznie istotną dla efektu zmęczenia twarzy. Priorytetem konsultacji jest ocena wskazań do regeneracji okolicy podoczodołowej.",
-  "biological_age_estimate": "37–42 lat — zmarszczki dynamiczne stopień 2 przy zewnętrznych kątach oczu oraz pory >0.4mm w strefie T nosa wskazują na przyspieszone fotostarzenie",
-  "strongest_asset": "Łuki jarzmowe — symetryczna projekcja boczna w okolicy jarzmowo-skroniowej bez dokumentowanych ubytków objętości, rzadka cecha strukturalna w tej grupie wiekowej.",
-  "top_priority": "Utrata objętości w okolicy podoczodołowej lewej (tear trough stopień 1–2 wg skali Barton) pogłębia cień podoczodołowy i efekt chronicznego zmęczenia — bez interwencji defekt będzie narastał i utrwalał cień.",
-  "recommendations": [
-    "Tear trough: fibryna bogatokomórkowa (PRF) lub łagodne stymulatory — regeneracja okolicy podoczodołowej bez ryzyka obrzęku",
-    "Rhytidy dynamiczne okolicy oka: toksyna botulinowa 8–10j w mięsień okrężny oka obustronnie, co 4–5 miesięcy",
-    "Tekstura skóry: tretynoin 0.05% co drugi wieczór przez 6 tygodni, następnie 0.1% codziennie",
-    "Fotoprotekcja: mineralny SPF 50+ PA++++ codziennie rano",
-    "Pory i sebostaza strefy T: niacynamid 10% serum rano i wieczór przez min. 12 tygodni"
+  "overall_score": <integer 0–100>,
+  "confidence_global": "<wysoka|umiarkowana|niska>",
+  "dominant_impression": ["<impression1 from approved list>"],
+  "strengths": [
+    "<specific anatomical positive observation — Polish>",
+    "<specific anatomical positive observation — Polish>",
+    "<specific anatomical positive observation — Polish>"
   ],
-  "sections": {
-    "skin_quality": {
-      "status": "moderate",
-      "finding": "Strefa T nosa i czoła z rozszerzonymi porami >0.4mm i niejednorodnym mikrorelief skóry; policzek lewy z ogniskami hiperpigmentacji pozapalnej.",
-      "detail": [
-        "Strefa T (nos, czoło): pory >0.4mm, cechy sebostazy",
-        "Policzek lewy: 3–4 ogniska hiperpigmentacji pozapalnej ~3–5mm",
-        "Powierzchnia policzków: niejednorodny mikrorelief z lokalnymi nierównościami tekstury"
-      ]
-    }
-  }
-}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OUTPUT FORMAT — return ONLY the JSON object below, no markdown, no explanations
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-{
-  "overall_score": <integer 0-100>,
-  "summary": "<sentence 1: structural asset> <sentence 2: primary concern> <sentence 3: clinical outlook>",
-  "biological_age_estimate": "<XX-XX lat — specific clinical sign>",
-  "strongest_asset": "<anatomical structure + clinical observation>",
-  "top_priority": "<location + finding + progression + intervention>",
+  "features": {
+    "under_eye":      {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"},
+    "midface_volume": {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"},
+    "tissue_descent": {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"},
+    "jawline_jowls":  {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"},
+    "skin_texture":   {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"},
+    "skin_tone":      {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"},
+    "neck":           {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"},
+    "hairline":       {"score": <0–4>, "confidence": "<wysoka|umiarkowana|niska>", "notes": "<Polish>"}
+  },
+  "summary": "<sentence 1: structural strength> <sentence 2: primary concern> <sentence 3: clinical outlook>",
+  "biological_age_estimate": "<XX–XX lat — specific visible sign — pewność: wysoka|umiarkowana|niska>",
+  "strongest_asset": "<anatomical structure + specific observation>",
+  "top_priority": "<location + finding + consequence + progression>",
+  "skin_health_note": "<one sentence in Polish: why skin quality improvement matters for this patient>",
   "recommendations": [
-    "<INDICATION: PROCEDURE DOSE/FREQUENCY>",
-    "<INDICATION: PROCEDURE DOSE/FREQUENCY>",
-    "<INDICATION: PROCEDURE DOSE/FREQUENCY>",
-    "<INDICATION: PROCEDURE DOSE/FREQUENCY>",
-    "<INDICATION: PROCEDURE DOSE/FREQUENCY>"
+    "<WSKAZANIE: PROCEDURA DAWKA/CZĘSTOTLIWOŚĆ>",
+    "<WSKAZANIE: PROCEDURA DAWKA/CZĘSTOTLIWOŚĆ>",
+    "<WSKAZANIE: PROCEDURA DAWKA/CZĘSTOTLIWOŚĆ>",
+    "<WSKAZANIE: PROCEDURA DAWKA/CZĘSTOTLIWOŚĆ>",
+    "<WSKAZANIE: PROCEDURA DAWKA/CZĘSTOTLIWOŚĆ>"
   ],
   "category_scores": {
-    "symmetry": <integer 0-10>,
-    "proportions": <integer 0-10>,
-    "aging_signs": <integer 0-10>,
-    "skin_quality": <integer 0-10>,
-    "eye_area": <integer 0-10>,
-    "lips_lower_face": <integer 0-10>,
-    "hairline_hair": <integer 0-10>
+    "symmetry":        <integer 0–10>,
+    "proportions":     <integer 0–10>,
+    "aging_signs":     <integer 0–10>,
+    "skin_quality":    <integer 0–10>,
+    "eye_area":        <integer 0–10>,
+    "lips_lower_face": <integer 0–10>,
+    "hairline_hair":   <integer 0–10>
   },
   "key_findings": [
-    {"section": "symmetry",       "finding": "<anatomical location + clinical finding>", "status": "<good|mild|moderate>", "score": <0-10>},
-    {"section": "proportions",    "finding": "<anatomical location + clinical finding>", "status": "<good|mild|moderate>", "score": <0-10>},
-    {"section": "aging_signs",    "finding": "<anatomical location + clinical finding>", "status": "<good|mild|moderate>", "score": <0-10>},
-    {"section": "skin_quality",   "finding": "<anatomical location + clinical finding>", "status": "<good|mild|moderate>", "score": <0-10>},
-    {"section": "eye_area",       "finding": "<anatomical location + clinical finding>", "status": "<good|mild|moderate>", "score": <0-10>},
-    {"section": "lips_lower_face","finding": "<anatomical location + clinical finding>", "status": "<good|mild|moderate>", "score": <0-10>},
-    {"section": "hairline_hair",  "finding": "<anatomical location + clinical finding>", "status": "<good|mild|moderate>", "score": <0-10>}
+    {"section": "symmetry",        "finding": "<location + finding>", "status": "<good|mild|moderate>", "score": <0–10>},
+    {"section": "proportions",     "finding": "<location + finding>", "status": "<good|mild|moderate>", "score": <0–10>},
+    {"section": "aging_signs",     "finding": "<location + finding>", "status": "<good|mild|moderate>", "score": <0–10>},
+    {"section": "skin_quality",    "finding": "<location + finding>", "status": "<good|mild|moderate>", "score": <0–10>},
+    {"section": "eye_area",        "finding": "<location + finding>", "status": "<good|mild|moderate>", "score": <0–10>},
+    {"section": "lips_lower_face", "finding": "<location + finding>", "status": "<good|mild|moderate>", "score": <0–10>},
+    {"section": "hairline_hair",   "finding": "<location + finding>", "status": "<good|mild|moderate>", "score": <0–10>}
   ],
   "sections": {
-    "symmetry":       {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
-    "proportions":    {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
-    "aging_signs":    {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
-    "skin_quality":   {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
-    "eye_area":       {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
-    "lips_lower_face":{"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
-    "hairline_hair":  {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]}
+    "symmetry":        {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
+    "proportions":     {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
+    "aging_signs":     {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
+    "skin_quality":    {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
+    "eye_area":        {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
+    "lips_lower_face": {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]},
+    "hairline_hair":   {"status": "<good|mild|moderate>", "finding": "<structure + finding>", "detail": ["<loc + finding>", "<loc + finding>", "<loc + finding>"]}
   },
   "overall_perception": {
-    "freshness": "<świeży|neutralny|zmęczony>",
-    "apparent_age": "<młodszy niż wiek biologiczny|odpowiedni do wieku|starszy niż wiek biologiczny>",
-    "impression": "<one sentence in Polish: what the overall face communicates aesthetically — cause + effect + perception>"
+    "freshness": "<wypoczęty|świeży|neutralny|poważny|napięty|zmęczony|przygnębiony>",
+    "aesthetic_character": "<one Polish word: e.g. elegancki|wyrazisty|klasyczny|delikatny|surowy|ciepły|intensywny|spokojny|dynamiczny|naturalny>",
+    "impression": "<one Polish sentence: what this face communicates aesthetically — cause + effect + perception>"
   },
   "fatigue_factors": {
-    "primary": "<main anatomical factor creating tired appearance, in Polish — or 'brak cech zmęczenia' if face looks fresh>",
-    "contributing": ["<factor in Polish>", "<factor in Polish>"],
-    "explanation": "<one sentence: cause → effect → perceived fatigue, in Polish>"
+    "primary": "<main anatomical factor creating tired appearance — or 'brak dominujących cech zmęczenia' if face looks rested>",
+    "contributing": ["<Polish factor>", "<Polish factor>"],
+    "explanation": "<one Polish sentence: cause → effect → perceived fatigue or freshness>"
   },
   "skin_tension": {
-    "under_eye": "<po polsku: napięcie/wiotkość, efekt percepcyjny>",
-    "cheeks": "<po polsku: napięcie/opadanie tkanek, efekt percepcyjny>",
-    "jawline": "<po polsku: definicja linii żuchwy lub zatarcie przez opadanie tkanek>",
-    "neck": "<po polsku: znalezisko lub 'Ocena szyi ograniczona przez kadr zdjęcia.'>"
+    "under_eye": "<Polish: tension/laxity + perceptual effect>",
+    "cheeks": "<Polish: tension/tissue descent + perceptual effect>",
+    "jawline": "<Polish: jawline definition or blurring>",
+    "neck": "<Polish: finding — or 'Ocena szyi ograniczona przez kadr zdjęcia.' if not visible>"
   },
   "disclaimer": "Dokumentacja kliniczna sporządzona na podstawie fotografii. Nie zastępuje badania lekarskiego.",
-  "skin_health_note": "<one sentence in Polish: why improving skin quality in this patient increases longevity and predictability of aesthetic procedures>",
-  "findings": [
-    {
-      "id": "<unique_snake_case>",
-      "name": "<finding name in Polish>",
-      "area": "<anatomical location in Polish>",
-      "kategoria": "<skin_quality|pigment_vascular|eye_area|volume_contour|forehead_hairline|lesions|neck|skin_tension>",
-      "nasilenie": "<brak|lagodny|umiarkowany|zaawansowany>",
-      "priorytet": "<wysoki|sredni|niski>",
-      "wplyw_estetyczny": "<one sentence in Polish: cause → effect → perception>",
-      "kierunek_postepowania": ["<Polish medical procedure name>"],
-      "wymaga_potwierdzenia": false,
-      "dlaczego_wazne": "<one sentence in Polish>",
-      "co_moze_sie_poglebiac": "<one sentence in Polish>",
-      "co_wdrozyc_najpierw": "<one sentence in Polish>"
-    }
-  ]
-}
+  "findings": []
+}"""
 
-findings: include 6–10 entries. MANDATORY: at least one eye_area entry, at least one skin_tension entry, AND at least one neck entry (if neck visible in photo) — these are REQUIRED, analysis is incomplete without them. If neck not visible, include one neck entry with nasilenie: "brak" and note the frame limitation.
-nasilenie values: brak (no significant finding) | lagodny | umiarkowany | zaawansowany
-priorytet values: wysoki | sredni | niski
-kategoria: skin_quality=pory/tekstura/nawilżenie | pigment_vascular=przebarwienia/naczynka/rumień | eye_area=dolina łez/cienie/obrzęki/zmarszczki okolicy oczu | volume_contour=policzki/owal/żuchwa | forehead_hairline=czoło/linia włosów | lesions=blizny/brodawki (zawsze wymaga_potwierdzenia:true) | neck=skóra szyi/napięcie szyi | skin_tension=napięcie skóry twarzy/policzków/żuchwy
-kierunek_postepowania: napięcie→RF mikroigłowa/mezoterapia/stymulatory/osocze/fibryna | pory/tekstura→peelingi/laser frakcyjny/RF mikroigłowa | przebarwienia→peelingi/laser frakcyjny | naczynka→laser naczyniowy | objętość policzków/owalu→filler HA | okolica podoczodołowa/tear trough→fibryna bogatokomórkowa/łagodne stymulatory (NIE filler HA — ryzyko obrzęku) | zmarszczki dynamiczne→toksyna botulinowa | lesions→elektrokoagulacja | szyja→RF mikroigłowa/mezoterapia/laser frakcyjny
-eye_area finding: ALWAYS document tear trough (depth/grade), dark circles (character), puffiness (if present), and whether the area creates a tired appearance.
-skin_tension finding: wplyw_estetyczny MUST explain the perceptual consequence — e.g. "obniżone napięcie policzków powoduje opadanie tkanek i wpływa na odbiór zmęczenia twarzy"
-lesions: always use "obraz sugeruje" / "cechy zgodne z" / "wymaga potwierdzenia w konsultacji"
-
-SCORING GUIDE for category_scores and key_findings score (0–10 per domain):
-  9–10: no documented clinical concerns in this domain
-  7–8:  minor documented findings, no intervention indicated
-  5–6:  documented findings, monitoring or topical treatment indicated
-  3–4:  documented conditions requiring clinical intervention
-  1–2:  significant multi-focal findings requiring priority intervention
-category_scores must align with domain status: "good" → 7–10, "mild" → 4–6, "moderate" → 1–4.
-key_findings must include all 7 domains, one entry each, score matching category_scores."""
 
 FINDINGS_EXTENSION = """
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EXTENDED FIELDS — dodaj do tego samego JSON
+FINDINGS — complete the "findings" array in the same JSON
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Uwzględnij w obiekcie JSON dwa dodatkowe pola na końcu:
+Include 5–10 findings. Mandatory: at least one eye_area entry, at least one skin_tension entry.
+If neck is visible → include neck entry. If not visible → include one neck entry with nasilenie "brak" and note the frame limitation.
 
-"skin_health_note": "<jedno zdanie po polsku: dlaczego poprawa jakości skóry tej osoby zwiększa trwałość i przewidywalność efektów procedur estetycznych>"
+Each finding object:
+{
+  "id": "<unique_snake_case_id>",
+  "name": "<finding name — Polish>",
+  "area": "<anatomical location — Polish>",
+  "kategoria": "<skin_quality|pigment_vascular|eye_area|volume_contour|forehead_hairline|lesions|neck|skin_tension>",
+  "nasilenie": "<brak|lagodny|umiarkowany|zaawansowany>",
+  "priorytet": "<wysoki|sredni|niski>",
+  "wplyw_estetyczny": "<one Polish sentence: cause → effect → perception>",
+  "kierunek_postepowania": ["<Polish procedure name>"],
+  "wymaga_potwierdzenia": false,
+  "dlaczego_wazne": "<one Polish sentence>",
+  "co_moze_sie_poglebiac": "<one Polish sentence — progression without intervention>",
+  "co_wdrozyc_najpierw": "<one Polish sentence — first step>"
+}
 
-"findings": [
-  {
-    "id": "<unikalne_snake_case>",
-    "name": "<nazwa zmiany po polsku>",
-    "area": "<lokalizacja anatomiczna po polsku>",
-    "kategoria": "<skin_quality|pigment_vascular|eye_area|volume_contour|forehead_hairline|lesions|neck>",
-    "nasilenie": "<brak|lagodny|umiarkowany|zaawansowany>",
-    "priorytet": "<wysoki|sredni|niski>",
-    "wplyw_estetyczny": "<jedno zdanie po polsku — wpływ na wygląd>",
-    "kierunek_postepowania": ["<procedura>"],
-    "wymaga_potwierdzenia": false,
-    "dlaczego_wazne": "<jedno zdanie>",
-    "co_moze_sie_poglebiac": "<jedno zdanie — progresja bez interwencji>",
-    "co_wdrozyc_najpierw": "<jedno zdanie — pierwszy krok>"
-  }
-]
+Category definitions:
+  skin_quality → pory, tekstura, nawilżenie skóry twarzy
+  pigment_vascular → przebarwienia, naczynka, rumień
+  eye_area → dolina łez, cienie, obrzęki, zmarszczki okolicy oczu — ALWAYS document tear trough depth, shadow character, fatigue impact
+  volume_contour → objętość policzków, owal twarzy, linia żuchwy
+  forehead_hairline → linia włosów, gęstość, czoło
+  lesions → blizny, brodawki, włókniaki — ALWAYS wymaga_potwierdzenia: true; use "obraz sugeruje" / "cechy zgodne z"
+  neck → skóra szyi, napięcie, zmarszczki — if not visible: nasilenie "brak", note frame limitation
+  skin_tension → napięcie policzków, żuchwy, opadanie tkanek — wplyw_estetyczny MUST state fatigue impact
 
-Uwzględnij 4–10 findings — tylko rzeczywiście widoczne lub sugerowane zmiany.
+Treatment directions (kierunek_postepowania):
+  skin_tension → RF mikroigłowa, mezoterapia, stymulatory tkankowe, osocze bogatopłytkowe (PRP), fibryna (PRF)
+  pory/tekstura → peelingi chemiczne, laser frakcyjny, RF mikroigłowa
+  przebarwienia → peelingi chemiczne, laser frakcyjny
+  naczynka/rumień → laser naczyniowy
+  eye_area/tear trough → fibryna bogatokomórkowa (PRF), łagodne stymulatory — NIGDY filler HA (ryzyko obrzęku)
+  zmarszczki dynamiczne → toksyna botulinowa
+  objętość policzków/owalu → filler HA, stymulatory tkankowe
+  lesions → elektrokoagulacja
+  szyja → RF mikroigłowa, mezoterapia, laser frakcyjny, stymulatory tkankowe"""
 
-Definicje kategorii:
-skin_quality → pory, tekstura, nawilżenie — skóra twarzy
-pigment_vascular → przebarwienia, naczynka, rumień
-eye_area → dolina łez (tear trough), cienie, obrzęki, zmarszczki okolicy oczu, napięcie powieki dolnej
-  WAŻNE dla eye_area: zawsze udokumentuj tear trough (głębokość), charakter cieni (naczyniowy/objętościowy/pigmentacyjny), czy obszar tworzy efekt zmęczenia
-volume_contour → objętość policzków, owal twarzy, linia żuchwy
-forehead_hairline → linia włosów, gęstość, czoło
-lesions → blizny, brodawki, włókniaki — ZAWSZE wymaga_potwierdzenia: true; użyj: "obraz sugeruje", "cechy zgodne z"
-neck → skóra szyi, napięcie, zmarszczki poziome, przebarwienia — jeśli niewidoczna: dodaj finding z nasilenie: "brak" i note "Ocena ograniczona przez kadr"
-skin_tension → napięcie skóry policzków, napięcie żuchwy, opadanie tkanek — wplyw_estetyczny MUSI zawierać: "wpływa na odbiór zmęczenia twarzy" lub "nie wpływa istotnie na odbiór zmęczenia"
 
-Kierunki postępowania (polskie terminy):
-napięcie/firmness/skin_tension → RF mikroigłowa, mezoterapia, stymulatory, osocze bogatopłytkowe, fibryna
-pory/tekstura → peelingi, laser frakcyjny, RF mikroigłowa
-przebarwienia → peelingi, laser frakcyjny
-naczynka/rumień → laser naczyniowy
-okolica podoczodołowa/tear trough → fibryna bogatokomórkowa (PRF), łagodne stymulatory tkankowe — NIGDY filler HA (ryzyko powikłań obrzękowych)
-zmarszczki dynamiczne → toksyna botulinowa
-objętość policzków/owalu → filler HA, stymulatory
-lesions → elektrokoagulacja
-szyja → RF mikroigłowa, mezoterapia, laser frakcyjny, stymulatory
-
-Ten obszar ma kluczowy wpływ na odbiór zmęczenia twarzy — musi być udokumentowany w każdej analizie: eye_area finding."""
-
+# Required fields for the complete output
 REQUIRED_SECTIONS = [
     'symmetry', 'proportions', 'aging_signs',
     'skin_quality', 'eye_area', 'lips_lower_face', 'hairline_hair'
@@ -327,55 +495,52 @@ REQUIRED_TOP_FIELDS = [
     'strongest_asset', 'top_priority', 'recommendations',
     'category_scores', 'key_findings', 'sections', 'disclaimer'
 ]
-
-
-def _build_messages(images_data: dict) -> list:
-    user_content = []
-    if 'en_face' in images_data:
-        img = images_data['en_face']
-        user_content.append({"type": "image_url", "image_url": {"url": f"data:{img['media_type']};base64,{img['data']}"}})
-    user_content.append({"type": "text", "text": CLINICAL_PROMPT})
-    return [
-        {"role": "system", "content": "You are a physician preparing structured pre-consultation clinical documentation based on patient photographs. Document findings objectively and return structured JSON as instructed."},
-        {"role": "user",   "content": user_content},
-    ]
+VALID_CONFIDENCE = {'wysoka', 'umiarkowana', 'niska'}
+VALID_FEATURES = {'under_eye', 'midface_volume', 'tissue_descent', 'jawline_jowls',
+                  'skin_texture', 'skin_tone', 'neck', 'hairline'}
+VALID_FRESHNESS = {'wypoczęty', 'świeży', 'neutralny', 'poważny', 'napięty', 'zmęczony', 'przygnębiony'}
+VALID_IMPRESSION = {
+    'świeży / wypoczęty', 'zmęczony', 'neutralny',
+    'napięty / zestresowany', 'smutny / przygaszony', 'surowy / poważny', 'łagodny / pogodny'
+}
 
 
 def _validate_result(result: dict) -> None:
+    # Core fields
     for field in REQUIRED_TOP_FIELDS:
         if field not in result:
             raise ValueError(f"Brak wymaganego pola: {field}")
 
     result['overall_score'] = int(round(float(result['overall_score'])))
     if not (0 <= result['overall_score'] <= 100):
-        raise ValueError(f"overall_score poza zakresem 0-100: {result['overall_score']}")
+        raise ValueError(f"overall_score poza zakresem: {result['overall_score']}")
 
     if not isinstance(result['recommendations'], list) or len(result['recommendations']) < 3:
         raise ValueError("recommendations musi być listą z co najmniej 3 elementami")
 
+    # category_scores
     cat = result.get('category_scores', {})
     for sec_name in REQUIRED_SECTIONS:
         if sec_name not in cat:
             raise ValueError(f"Brak category_scores['{sec_name}']")
         result['category_scores'][sec_name] = int(round(float(cat[sec_name])))
 
+    # key_findings — synthesize missing
     kf = result.get('key_findings', [])
     if not isinstance(kf, list):
         result['key_findings'] = []
         kf = []
     kf_sections = {item.get('section') for item in kf if isinstance(item, dict)}
-    missing_kf = set(REQUIRED_SECTIONS) - kf_sections
-    if missing_kf:
-        # Synthesize missing key_findings entries from sections
-        for sec_name in missing_kf:
-            sec = result.get('sections', {}).get(sec_name, {})
-            result['key_findings'].append({
-                'section': sec_name,
-                'finding': sec.get('finding', '—'),
-                'status': sec.get('status', 'mild'),
-                'score': result.get('category_scores', {}).get(sec_name, 5),
-            })
+    for sec_name in set(REQUIRED_SECTIONS) - kf_sections:
+        sec = result.get('sections', {}).get(sec_name, {})
+        result['key_findings'].append({
+            'section': sec_name,
+            'finding': sec.get('finding', '—'),
+            'status': sec.get('status', 'mild'),
+            'score': result.get('category_scores', {}).get(sec_name, 5),
+        })
 
+    # sections
     sections = result.get('sections', {})
     for section_name in REQUIRED_SECTIONS:
         if section_name not in sections:
@@ -385,11 +550,11 @@ def _validate_result(result: dict) -> None:
         if missing:
             raise ValueError(f"Sekcja '{section_name}' brakuje pól: {missing}")
         if sec['status'] not in VALID_STATUSES:
-            raise ValueError(f"Sekcja '{section_name}' ma nieprawidłowy status: {sec['status']}")
+            raise ValueError(f"Sekcja '{section_name}' nieprawidłowy status: {sec['status']}")
         if not isinstance(sec.get('detail'), list):
             sec['detail'] = [sec.get('finding', '—')]
 
-    # Lenient normalization of extended fields — don't fail if missing
+    # findings — normalize
     findings = result.get('findings')
     if isinstance(findings, list):
         valid_nasilenie = {'brak', 'lagodny', 'umiarkowany', 'zaawansowany'}
@@ -410,19 +575,32 @@ def _validate_result(result: dict) -> None:
                 f['kierunek_postepowania'] = []
             if not isinstance(f.get('wymaga_potwierdzenia'), bool):
                 f['wymaga_potwierdzenia'] = f.get('kategoria') == 'lesions'
+            # Filter placeholder "ocena ograniczona" findings that have it in BOTH name and area
+            name_lower = f.get('name', '').lower()
+            area_lower = f.get('area', '').lower()
+            if ('ocena ograniczona' in name_lower or 'cannot assess' in name_lower or 'assessment limited' in name_lower) and \
+               ('ocena ograniczona' in area_lower or 'cannot assess' in area_lower or 'assessment limited' in area_lower):
+                continue
+            # Also filter kierunek_postepowania placeholder values
+            kp = f.get('kierunek_postepowania', [])
+            if isinstance(kp, list):
+                f['kierunek_postepowania'] = [
+                    tag for tag in kp
+                    if isinstance(tag, str) and 'ocena ograniczona' not in tag.lower()
+                       and 'cannot assess' not in tag.lower()
+                ]
             cleaned.append(f)
         result['findings'] = cleaned
 
-    # Normalize overall_perception
+    # overall_perception — normalize
     op = result.get('overall_perception')
     if not isinstance(op, dict):
         result['overall_perception'] = None
     else:
-        valid_freshness = {'świeży', 'neutralny', 'zmęczony'}
-        if op.get('freshness') not in valid_freshness:
-            op['freshness'] = op.get('freshness', 'neutralny')
+        if op.get('freshness') not in VALID_FRESHNESS:
+            op['freshness'] = 'neutralny'
 
-    # Normalize fatigue_factors
+    # fatigue_factors — normalize
     ff = result.get('fatigue_factors')
     if not isinstance(ff, dict):
         result['fatigue_factors'] = None
@@ -430,152 +608,45 @@ def _validate_result(result: dict) -> None:
         if not isinstance(ff.get('contributing'), list):
             ff['contributing'] = []
 
-    # Normalize skin_tension
+    # skin_tension — normalize
     st = result.get('skin_tension')
     if not isinstance(st, dict):
         result['skin_tension'] = None
 
+    # strengths — normalize (lenient)
+    strengths = result.get('strengths')
+    if not isinstance(strengths, list):
+        result['strengths'] = []
+    else:
+        result['strengths'] = [s for s in strengths if isinstance(s, str) and s.strip()]
 
-OBSERVATION_PROMPT = """You are a clinical dermatologist completing a structured pre-consultation assessment form based on a patient photograph. Your task is to fill in each field below with what you actually see. You must follow these rules absolutely:
+    # dominant_impression — normalize
+    di = result.get('dominant_impression')
+    if not isinstance(di, list):
+        result['dominant_impression'] = []
 
-RULE 1 — HONESTY: If you can clearly see a finding, describe it precisely with grade, location, and character.
-RULE 2 — NO FABRICATION: If you cannot clearly see something due to photo angle, blur, or crop, write exactly: "CANNOT ASSESS — [reason]". Never invent a finding.
-RULE 3 — NO SOFTENING: If wrinkles are clearly visible and deep, write "deep". Do not write "mild" for clearly visible grade 3-4 findings.
-RULE 4 — GRADING: Use this scale for ALL wrinkles: Grade 1=barely visible fine lines | Grade 2=clearly visible at rest | Grade 3=moderate depth folds | Grade 4=deep folds with clear shadow | Grade 5=very deep, skin hanging.
+    # confidence_global — normalize
+    if result.get('confidence_global') not in VALID_CONFIDENCE:
+        result['confidence_global'] = 'umiarkowana'
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 0 — PHOTO SUITABILITY CHECK (answer first, before any other section)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Eyes visible (not covered by sunglasses/hair/occlusion): YES / NO
-Face direction: EN FACE (looking straight at camera) / TILTED / LOOKING DOWN / PROFILE
-Photo quality: ADEQUATE / BLURRY / DARK / CROPPED
-
-If eyes are covered → write "EYES_BLOCKED: [what is covering them]" and STOP. Do not continue.
-If face is NOT en face (looking down, sideways, profile) → write "PHOTO_UNSUITABLE: face not en face — [direction]" and STOP.
-If photo is OK → write "PHOTO_OK" and continue with all sections below.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 1 — FOREHEAD WRINKLES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Horizontal forehead lines:
-  - Number of visible lines: [number or "none visible"]
-  - Grade (1-5): [grade]
-  - Type: static (visible at rest) / dynamic only / both
-  - Distribution: full-width / partial (left/right/central)
-  - Skin texture between lines: [smooth / rough / crepe-like]
-
-Glabellar lines ("11" lines between eyebrows):
-  - Present: YES / NO
-  - If yes — Grade (1-5): [grade], Type: vertical "11" / transverse / both, Static or dynamic
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 2 — EYE AREA (examine carefully)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Crow's feet (lateral canthal lines):
-  - Grade (1-5): [grade or "absent"]
-  - Type: static / dynamic / both
-  - Extent: confined to outer corner / extending onto cheek
-  - Left/right symmetry: [symmetric / left worse / right worse]
-
-Upper eyelid / brow:
-  - Hooding: none / mild / moderate / significant
-  - Brow position: normal / descending / elevated
-  - Upper eyelid skin laxity: none / mild / significant
-
-Lower eyelid / tear trough:
-  - Tear trough depth (Barton 1-4): [grade or "not visible"]
-  - Shadow: absent / vascular (bluish) / pigmentary (brownish) / volumetric (grey) / mixed
-  - Infraorbital puffiness: absent / mild / moderate / marked
-  - Lower eyelid skin: normal / fine lines / crepe texture / thinning
-  - Left/right asymmetry: [describe or "symmetric"]
-
-Overall periorbital impression: TIRED / RESTED / NEUTRAL — because: [specific anatomical reason]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 3 — SKIN QUALITY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-T-zone pores (forehead, nose):
-  - Size: normal (<0.3mm) / enlarged (0.3-0.4mm) / significantly enlarged (>0.4mm)
-  - Seborrhea / oiliness: absent / mild / significant
-
-Cheek skin texture:
-  - Surface: smooth / mildly uneven / rough / irregular microrelief
-  - Fine surface lines on cheeks: absent / present (describe location and density)
-  - Dehydration signs: absent / present
-
-Overall skin tone:
-  - Even / mildly uneven / significantly uneven
-
-Pigmentation — LIST EACH ONE SEPARATELY:
-  - Discoloration 1: location [exact], size [mm], color [brown/grey/red/purple], type [melasma/PIH/lentigo/vascular/other]
-  - Discoloration 2: [or "no additional"]
-  - Vascular changes (redness, visible capillaries, rosacea): [location and extent or "absent"]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 4 — SKIN TENSION AND SAGGING
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-(Document SEPARATELY from volume loss)
-Cheek/malar descent: none / mild / moderate / significant
-Nasolabial folds (gravitational component): Grade 1-4 Lemperle: [grade], symmetric / left worse / right worse
-Marionette lines: absent / Grade 1-4: [grade]
-Jawline definition: sharp / mildly blurred / significantly blurred / jowl forming
-Lower face overall tension: maintained / mildly reduced / significantly reduced
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 5 — VOLUME (separately from tension)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Malar/cheek volume: maintained / mild loss / moderate loss / significant loss
-Submalar/buccal area: maintained / mild hollowing / moderate hollowing
-Temple area: full / mild hollowing / significant hollowing
-Nasolabial folds (volumetric component): see Step 4
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 6 — LOWER FACE AND LIPS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Perioral vertical lines: absent / fine (grade 1-2) / moderate (grade 3) / deep (grade 4-5)
-Oral commissures: level / descending left / descending right / both descending
-Mental crease: absent / present (grade: [])
-Upper lip volume: full / moderate / thin / very thin
-Upper lip philtrum: clearly defined / blurred / flat
-Lower lip volume vs upper lip: [describe]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 7 — HAIR AND HAIRLINE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Hairline visible: YES / NO (if no, write "CANNOT ASSESS — not in frame")
-If visible:
-  - Forehead height: low / medium / high
-  - Hairline regularity: regular / irregular / receding
-  - Temple density: full / mild thinning / notable thinning / significant thinning
-  - Frontal zone density: full / mild thinning / notable thinning
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 8 — NECK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Neck visible in frame: YES / NO
-If YES:
-  - Skin quality vs face: same / worse / better
-  - Firmness: tight / mild laxity / moderate laxity / significant laxity
-  - Horizontal neck lines: absent / 1-2 fine / multiple moderate / deep
-  - Platysma bands: visible / not visible
-  - Submental area: well-defined / mild fullness / significant submental fat
-If NO: write "CANNOT ASSESS — neck not in frame"
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 9 — SYMMETRY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Facial thirds ratio (forehead:midface:lower face): [describe ratio]
-Midline: straight / deviated [direction ~Xmm]
-Notable asymmetries: [list each with location and estimated magnitude, or "none significant"]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 10 — SKIN LESIONS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Any visible scars, raised lesions, atypical pigmented spots: [list each with location, size, morphology — use "image suggests" / "features consistent with" / "requires confirmation"]
-If none visible: "None identified in this photograph."
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REMINDER: Use "CANNOT ASSESS — [reason]" for anything genuinely not visible. Do NOT invent findings. Do NOT soften visible findings."""
+    # features — normalize
+    features = result.get('features')
+    if not isinstance(features, dict):
+        result['features'] = {}
+        features = result['features']
+    for feat_key in VALID_FEATURES:
+        feat = features.get(feat_key)
+        if not isinstance(feat, dict):
+            features[feat_key] = {'score': 0, 'confidence': 'niska', 'notes': 'ocena ograniczona'}
+        else:
+            try:
+                feat['score'] = max(0, min(4, int(round(float(feat.get('score', 0))))))
+            except (ValueError, TypeError):
+                feat['score'] = 0
+            if feat.get('confidence') not in VALID_CONFIDENCE:
+                feat['confidence'] = 'niska'
+            if not isinstance(feat.get('notes'), str):
+                feat['notes'] = ''
 
 
 def _extract_json(text: str) -> dict:
@@ -595,7 +666,7 @@ def _extract_json(text: str) -> dict:
 
 def _call_raw(openai_client, messages: list, model: str, max_tokens: int) -> str:
     response = openai_client.chat.completions.create(
-        model=model, messages=messages, max_tokens=max_tokens, temperature=0.2,
+        model=model, messages=messages, max_tokens=max_tokens, temperature=0.5,
     )
     choice  = response.choices[0]
     raw     = choice.message.content
@@ -606,313 +677,254 @@ def _call_raw(openai_client, messages: list, model: str, max_tokens: int) -> str
     return raw
 
 
-def _observe(openai_client, images_data: dict, model: str) -> str:
-    """Step 1: image → plain-text clinical observations."""
+def _observe(openai_client, images_data: dict, model: str, validation_context: dict = None) -> str:
+    """Step 1: image → plain-text structured clinical observations."""
     user_content = []
     if 'en_face' in images_data:
         img = images_data['en_face']
         user_content.append({"type": "image_url", "image_url": {"url": f"data:{img['media_type']};base64,{img['data']}"}})
-    user_content.append({"type": "text", "text": OBSERVATION_PROMPT})
+
+    observation_text = OBSERVATION_PROMPT
+
+    # Inject pre-computed validation context so observer can use it
+    if validation_context:
+        ctx_lines = ["[PRE-VALIDATION CONTEXT — already assessed, use as reference]:"]
+        hp = validation_context.get('head_pose', {})
+        if hp:
+            ctx_lines.append(f"  Head pose: yaw={hp.get('yaw','?')} pitch={hp.get('pitch','?')} roll={hp.get('roll','?')}")
+        if not validation_context.get('neck_visible', True):
+            ctx_lines.append("  Neck: NOT VISIBLE in frame — do not assess neck in observations")
+        if not validation_context.get('hairline_visible', True):
+            ctx_lines.append("  Hairline: NOT VISIBLE in frame — do not assess hairline")
+        imp = validation_context.get('overall_impression', {})
+        if imp.get('labels'):
+            ctx_lines.append(f"  Pre-assessed impression: {imp['labels']} (reasons: {imp.get('reasons', [])})")
+        warns = validation_context.get('warnings', [])
+        if warns:
+            ctx_lines.append(f"  Warnings from validation: {warns}")
+        observation_text = "\n".join(ctx_lines) + "\n\n" + observation_text
+
+    user_content.append({"type": "text", "text": observation_text})
     messages = [
-        {"role": "system", "content": "You are a dermatologist writing clinical observation notes from patient photographs."},
+        {"role": "system", "content": "You are a dermatologist writing structured clinical observation notes from patient photographs. Document both strengths and concerns. Note confidence per section. Be specific and honest."},
         {"role": "user",   "content": user_content},
     ]
-    return _call_raw(openai_client, messages, model, max_tokens=900)
+    return _call_raw(openai_client, messages, model, max_tokens=1200)
 
 
 LANG_REQUIREMENT_EN = """━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-LANGUAGE REQUIREMENT — CRITICAL
+LANGUAGE — CRITICAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ALL text values in the JSON output MUST be written in English.
-This applies to every string field: summary, findings, skin_tension, fatigue_factors, overall_perception, recommendations, disclaimer, and all others.
-Do NOT use Polish words in any free-text field value. Use English anatomical and clinical terminology.
-Examples of REQUIRED English:
-  GOOD: "Mild tissue descent in the malar region"
-  GOOD: "Mild laxity of the lower cheek"
-  GOOD: "Slightly blurred jawline definition"
-ENUM KEYS that must remain as specified fixed values regardless of language:
-  nasilenie: brak | lagodny | umiarkowany | zaawansowany  (these are code values, keep them)
-  priorytet: wysoki | sredni | niski  (code values, keep them)
-  kategoria: skin_quality | pigment_vascular | eye_area | volume_contour | forehead_hairline | lesions | neck | skin_tension
-  status: good | mild | moderate
-  overall_perception.freshness: swiezy | neutralny | zmeczony  (code values, keep them)"""
+ALL free-text values in the JSON MUST be in English.
+Enum/code keys (nasilenie, priorytet, kategoria, status) stay as specified.
+GOOD: "Mild tissue descent in the malar region"
+GOOD: "Mild laxity of the lower cheek"
+ENUM KEYS that stay as fixed values: nasilenie (brak|lagodny|umiarkowany|zaawansowany), priorytet (wysoki|sredni|niski), kategoria, status (good|mild|moderate)"""
 
 LANG_REQUIREMENT_PL = """━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-LANGUAGE REQUIREMENT — CRITICAL
+LANGUAGE — CRITICAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ALL text values in the JSON output MUST be written in Polish (język polski).
-This applies to every string field: summary, findings, skin_tension, fatigue_factors, overall_perception, recommendations, and all others.
-Do NOT use English words in any field value. Use Polish anatomical and clinical terminology.
-Examples of FORBIDDEN English in field values:
-  BAD: "Slight tissue descent" → GOOD: "Niewielkie opadanie tkanek"
-  BAD: "Mild laxity"          → GOOD: "Łagodna wiotkość"
-  BAD: "Mildly blurred"       → GOOD: "Łagodnie zatarta\""""
+ALL free-text values in the JSON MUST be in Polish (język polski).
+Enum/code keys (nasilenie, priorytet, kategoria, status) stay as specified.
+BAD: "Slight tissue descent" → GOOD: "Niewielkie opadanie tkanek"
+BAD: "Mild laxity" → GOOD: "Łagodna wiotkość\""""
 
 
 def _patch_prompt_for_lang(prompt: str, lang: str) -> str:
-    """Swap language requirement block and all Polish-language examples for English output."""
+    """Swap language-specific blocks for English output."""
     if lang != 'en':
         return prompt
 
-    # 1. Language requirement block
     prompt = prompt.replace(LANG_REQUIREMENT_PL, LANG_REQUIREMENT_EN)
-
-    # 2. Generic "in Polish" / "po polsku" labels
     prompt = prompt.replace("in Polish", "in English")
     prompt = prompt.replace("po polsku", "in English")
+    prompt = prompt.replace("— Polish", "— English")
     prompt = prompt.replace("(język polski)", "(English)")
-    prompt = prompt.replace("Polish medical procedure name", "English medical procedure name")
-    prompt = prompt.replace("po angielsku", "in English")
+    prompt = prompt.replace("Polish procedure name", "English medical procedure name")
 
-    # 2b. Output format field templates — replace Polish directives with English
+    # New fields — Polish placeholders → English
     prompt = prompt.replace(
-        '"biological_age_estimate": "<XX-XX lat — specific clinical sign>",',
-        '"biological_age_estimate": "<XX-XX years — specific clinical sign>",')
+        '"<specific anatomical positive observation — Polish>"',
+        '"<specific anatomical positive observation — English>"')
     prompt = prompt.replace(
-        '"freshness": "<świeży|neutralny|zmęczony>",',
-        '"freshness": "<swiezy|neutralny|zmeczony>",')
+        '"notes": "<Polish>"',
+        '"notes": "<English>"')
     prompt = prompt.replace(
-        '"apparent_age": "<młodszy niż wiek biologiczny|odpowiedni do wieku|starszy niż wiek biologiczny>",',
-        '"apparent_age": "<younger than biological age|age-appropriate|older than biological age>",')
+        '"<one Polish sentence: what this face communicates aesthetically — cause + effect + perception>"',
+        '"<one English sentence: what this face communicates aesthetically — cause + effect + perception>"')
     prompt = prompt.replace(
-        '"impression": "<one sentence in Polish: what the overall face communicates aesthetically — cause + effect + perception>"',
-        '"impression": "<one sentence in English: what the overall face communicates aesthetically — cause + effect + perception>"')
+        '"<main anatomical factor creating tired appearance — or \'brak dominujących cech zmęczenia\' if face looks rested>"',
+        '"<main anatomical factor creating tired appearance — or \'no dominant fatigue signs\' if face looks rested>"')
     prompt = prompt.replace(
-        '"primary": "<main anatomical factor creating tired appearance, in Polish — or \'brak cech zmęczenia\' if face looks fresh>",',
-        '"primary": "<main anatomical factor creating tired appearance, in English — or \'no signs of fatigue\' if face looks fresh>",')
+        '"<one Polish sentence: cause → effect → perceived fatigue or freshness>"',
+        '"<one English sentence: cause → effect → perceived fatigue or freshness>"')
     prompt = prompt.replace(
-        '"contributing": ["<factor in Polish>", "<factor in Polish>"],',
-        '"contributing": ["<factor in English>", "<factor in English>"],')
+        '"<Polish: tension/laxity + perceptual effect>"',
+        '"<English: tension/laxity + perceptual effect>"')
     prompt = prompt.replace(
-        '"explanation": "<one sentence: cause → effect → perceived fatigue, in Polish>"',
-        '"explanation": "<one sentence: cause → effect → perceived fatigue, in English>"')
+        '"<Polish: tension/tissue descent + perceptual effect>"',
+        '"<English: tension/tissue descent + perceptual effect>"')
     prompt = prompt.replace(
-        '"under_eye": "<po polsku: napięcie/wiotkość, efekt percepcyjny>",',
-        '"under_eye": "<in English: tension/laxity, perceptual effect>",')
+        '"<Polish: jawline definition or blurring>"',
+        '"<English: jawline definition or blurring>"')
     prompt = prompt.replace(
-        '"cheeks": "<po polsku: napięcie/opadanie tkanek, efekt percepcyjny>",',
-        '"cheeks": "<in English: tension/tissue descent, perceptual effect>",')
-    prompt = prompt.replace(
-        '"jawline": "<po polsku: definicja linii żuchwy lub zatarcie przez opadanie tkanek>",',
-        '"jawline": "<in English: jawline definition or blurring by tissue descent>",')
-    prompt = prompt.replace(
-        '"neck": "<po polsku: znalezisko lub \'Ocena szyi ograniczona przez kadr zdjęcia.\'>"',
-        '"neck": "<in English: finding or \'Neck assessment limited by photo frame.\'>"')
-    prompt = prompt.replace(
-        '"disclaimer": "Dokumentacja kliniczna sporządzona na podstawie fotografii. Nie zastępuje badania lekarskiego.",',
-        '"disclaimer": "Clinical documentation based on a photograph. Does not replace a medical examination.",')
-    prompt = prompt.replace(
-        '"name": "<finding name in Polish>",',
-        '"name": "<finding name in English>",')
-    prompt = prompt.replace(
-        '"area": "<anatomical location in Polish>",',
-        '"area": "<anatomical location in English>",')
-    prompt = prompt.replace(
-        '"wplyw_estetyczny": "<one sentence in Polish: cause → effect → perception>",',
-        '"wplyw_estetyczny": "<one sentence in English: cause → effect → perception>",')
-    prompt = prompt.replace(
-        '"dlaczego_wazne": "<one sentence in Polish>",',
-        '"dlaczego_wazne": "<one sentence in English>",')
-    prompt = prompt.replace(
-        '"co_moze_sie_poglebiac": "<one sentence in Polish — progresja bez interwencji>",',
-        '"co_moze_sie_poglebiac": "<one sentence in English — progression without intervention>",')
-    prompt = prompt.replace(
-        '"co_wdrozyc_najpierw": "<one sentence in Polish — pierwszy krok>"',
-        '"co_wdrozyc_najpierw": "<one sentence in English — first step>"')
+        '"<Polish: finding — or \'Ocena szyi ograniczona przez kadr zdjęcia.\' if not visible>"',
+        '"<English: finding — or \'Neck assessment limited by photo frame.\' if not visible>"')
 
-    # 2c. FINDINGS_EXTENSION Polish section headers
+    # Biological age format
     prompt = prompt.replace(
-        "EXTENDED FIELDS — dodaj do tego samego JSON",
-        "EXTENDED FIELDS — add to the same JSON")
+        '"biological_age_estimate": "<XX–XX lat — specific visible sign — pewność: wysoka|umiarkowana|niska>"',
+        '"biological_age_estimate": "<XX–XX years — specific visible sign — confidence: high|moderate|low>"')
     prompt = prompt.replace(
-        "Uwzględnij w obiekcie JSON dwa dodatkowe pola na końcu:",
-        "Include in the JSON object two additional fields at the end:")
+        'Format: "XX–XX lat — [specific visible sign driving estimate] — pewność: wysoka|umiarkowana|niska"',
+        'Format: "XX–XX years — [specific visible sign driving estimate] — confidence: high|moderate|low"')
     prompt = prompt.replace(
-        '"nazwa zmiany po polsku"', '"finding name in English"')
+        '"pewność: niska — zdjęcie nie pozwala na wiarygodną ocenę"',
+        '"confidence: low — photo does not allow reliable assessment"')
     prompt = prompt.replace(
-        '"lokalizacja anatomiczna po polsku"', '"anatomical location in English"')
-    prompt = prompt.replace(
-        '"jedno zdanie po polsku — wpływ na wygląd"', '"one sentence in English — aesthetic impact"')
-    prompt = prompt.replace(
-        '"jedno zdanie"', '"one sentence in English"')
-    prompt = prompt.replace(
-        '"jedno zdanie — progresja bez interwencji"', '"one sentence — progression without intervention"')
-    prompt = prompt.replace(
-        '"jedno zdanie — pierwszy krok"', '"one sentence — first step"')
-    prompt = prompt.replace(
-        "Uwzględnij 4–10 findings — tylko rzeczywiście widoczne lub sugerowane zmiany.",
-        "Include 4–10 findings — only actually visible or suggested changes.")
+        '"32–38 lat — brak zmarszczek statycznych, pełna objętość policzków, drobne dynamiczne kurze łapki — pewność: umiarkowana"',
+        '"32–38 years — no static wrinkles, full cheek volume, fine dynamic crow\'s feet — confidence: moderate"')
 
-    # 3. Procedure / treatment direction examples  (CLINICAL_PROMPT line)
-    prompt = prompt.replace(
-        "kierunek_postepowania: napięcie→RF mikroigłowa/mezoterapia/stymulatory/osocze/fibryna | pory/tekstura→peelingi/laser frakcyjny/RF mikroigłowa | przebarwienia→peelingi/laser frakcyjny | naczynka→laser naczyniowy | objętość policzków/owalu→filler HA | okolica podoczodołowa/tear trough→fibryna bogatokomórkowa/łagodne stymulatory (NIE filler HA — ryzyko obrzęku) | zmarszczki dynamiczne→toksyna botulinowa | lesions→elektrokoagulacja | szyja→RF mikroigłowa/mezoterapia/laser frakcyjny",
-        "kierunek_postepowania: skin tension→microneedling RF/mesotherapy/biostimulators/PRP/PRF | pores/texture→chemical peels/fractional laser/microneedling RF | pigmentation→chemical peels/fractional laser | vascular/redness→vascular laser | cheek/oval volume→HA filler/biostimulators | periorbital/tear trough→platelet-rich fibrin (PRF)/gentle biostimulators (NOT HA filler — oedema risk) | dynamic wrinkles→botulinum toxin | lesions→electrocoagulation | neck→microneedling RF/mesotherapy/fractional laser"
-    )
+    # Confidence values
+    prompt = prompt.replace('pewność: wysoka|umiarkowana|niska', 'confidence: high|moderate|low')
+    prompt = prompt.replace('"confidence": "<wysoka|umiarkowana|niska>"', '"confidence": "<high|moderate|low>"')
+    prompt = prompt.replace('"confidence_global": "<wysoka|umiarkowana|niska>"', '"confidence_global": "<high|moderate|low>"')
 
-    # 4. Kierunki postępowania block (FINDINGS_EXTENSION)
+    # Dominant impression list
     prompt = prompt.replace(
-        "Kierunki postępowania (polskie terminy):\n"
-        "napięcie/firmness/skin_tension → RF mikroigłowa, mezoterapia, stymulatory, osocze bogatopłytkowe, fibryna\n"
-        "pory/tekstura → peelingi, laser frakcyjny, RF mikroigłowa\n"
-        "przebarwienia → peelingi, laser frakcyjny\n"
-        "naczynka/rumień → laser naczyniowy\n"
-        "okolica podoczodołowa/tear trough → fibryna bogatokomórkowa (PRF), łagodne stymulatory tkankowe — NIGDY filler HA (ryzyko powikłań obrzękowych)\n"
-        "zmarszczki dynamiczne → toksyna botulinowa\n"
-        "objętość policzków/owalu → filler HA, stymulatory\n"
-        "lesions → elektrokoagulacja\n"
-        "szyja → RF mikroigłowa, mezoterapia, laser frakcyjny, stymulatory",
-        "Treatment directions:\n"
-        "skin tension/skin_tension → microneedling RF, mesotherapy, biostimulators, PRP, platelet-rich fibrin (PRF)\n"
-        "pores/texture → chemical peels, fractional laser, microneedling RF\n"
-        "pigmentation → chemical peels, fractional laser\n"
-        "vascular/redness → vascular laser\n"
-        "periorbital/tear trough → platelet-rich fibrin (PRF), gentle biostimulators — NEVER HA filler (oedema risk)\n"
-        "dynamic wrinkles → botulinum toxin\n"
-        "cheek/oval volume → HA filler, biostimulators\n"
-        "lesions → electrocoagulation\n"
-        "neck → microneedling RF, mesotherapy, fractional laser, biostimulators"
-    )
+        '"świeży / wypoczęty" | "zmęczony" | "neutralny" | "napięty / zestresowany" | "smutny / przygaszony" | "surowy / poważny" | "łagodny / pogodny"',
+        '"fresh / rested" | "tired" | "neutral" | "tense / stressed" | "sad / subdued" | "stern / serious" | "gentle / cheerful"')
 
-    # 5. Recommendations example (CLINICAL_PROMPT)
+    # Freshness values
     prompt = prompt.replace(
-        '  BAD: "Stosuj krem z SPF"\n  GOOD: "Fotoprotekcja: mineralny SPF 50+ PA++++ codziennie rano — warunek skuteczności każdej interwencji aktywnej"',
-        '  BAD: "Use sunscreen"\n  GOOD: "Photoprotection: mineral SPF 50+ PA++++ every morning — prerequisite for effectiveness of any active intervention"'
-    )
+        '"freshness": "<wypoczęty|świeży|neutralny|poważny|napięty|zmęczony|przygnębiony>"',
+        '"freshness": "<rested|fresh|neutral|serious|tense|tired|subdued>"')
 
-    # 6. Example JSON block with Polish content — replace with English
-    prompt = prompt.replace(
-        '"summary": "Łuki jarzmowe wykazują symetryczną projekcję boczną bez utraty objętości, stanowiąc klinicznie korzystną cechę strukturalną środkowej trzeciej twarzy. W okolicy podoczodołowej obustronnie udokumentowano utratę objętości stopień 1 wg skali Barton, z silniejszym cieniem tear trough po lewej stronie, klinicznie istotną dla efektu zmęczenia twarzy. Priorytetem konsultacji jest ocena wskazań do regeneracji okolicy podoczodołowej."',
-        '"summary": "The zygomatic arches demonstrate symmetric lateral projection without volume loss, representing a clinically favourable structural feature of the middle facial third. Bilateral periorbital volume loss grade 1 by the Barton scale is documented, with a more pronounced tear trough shadow on the left, clinically significant for the tired-face appearance. The consultation priority is assessment of indications for periorbital regeneration."'
-    )
-    prompt = prompt.replace(
-        '"biological_age_estimate": "37–42 lat — zmarszczki dynamiczne stopień 2 przy zewnętrznych kątach oczu oraz pory >0.4mm w strefie T nosa wskazują na przyspieszone fotostarzenie"',
-        '"biological_age_estimate": "37–42 years — dynamic wrinkles grade 2 at the lateral canthi and pores >0.4 mm in the T-zone indicate accelerated photoageing"'
-    )
-    prompt = prompt.replace(
-        '"strongest_asset": "Łuki jarzmowe — symetryczna projekcja boczna w okolicy jarzmowo-skroniowej bez dokumentowanych ubytków objętości, rzadka cecha strukturalna w tej grupie wiekowej."',
-        '"strongest_asset": "Zygomatic arches — symmetric lateral projection in the zygomatic-temporal region without documented volume deficits, a rare structural feature in this age group."'
-    )
-    prompt = prompt.replace(
-        '"top_priority": "Utrata objętości w okolicy podoczodołowej lewej (tear trough stopień 1–2 wg skali Barton) pogłębia cień podoczodołowy i efekt chronicznego zmęczenia — bez interwencji defekt będzie narastał i utrwalał cień."',
-        '"top_priority": "Volume loss in the left periorbital region (tear trough grade 1–2 by Barton scale) deepens the infraorbital shadow and chronic tired-face appearance — without intervention the defect will progress and the shadow will become permanent."'
-    )
-    prompt = prompt.replace(
-        '"recommendations": [\n    "Tear trough: fibryna bogatokomórkowa (PRF) lub łagodne stymulatory — regeneracja okolicy podoczodołowej bez ryzyka obrzęku",\n    "Rhytidy dynamiczne okolicy oka: toksyna botulinowa 8–10j w mięsień okrężny oka obustronnie, co 4–5 miesięcy",\n    "Tekstura skóry: tretynoin 0.05% co drugi wieczór przez 6 tygodni, następnie 0.1% codziennie",\n    "Fotoprotekcja: mineralny SPF 50+ PA++++ codziennie rano",\n    "Pory i sebostaza strefy T: niacynamid 10% serum rano i wieczór przez min. 12 tygodni"\n  ]',
-        '"recommendations": [\n    "Tear trough: platelet-rich fibrin (PRF) or gentle biostimulators — periorbital regeneration without oedema risk",\n    "Periorbital dynamic wrinkles: botulinum toxin 8–10 U into orbicularis oculi bilaterally, every 4–5 months",\n    "Skin texture: tretinoin 0.05% every other evening for 6 weeks, then 0.1% daily",\n    "Photoprotection: mineral SPF 50+ PA++++ every morning",\n    "Pores and T-zone sebostasis: niacinamide 10% serum morning and evening for min. 12 weeks"\n  ]'
-    )
-    prompt = prompt.replace(
-        '"finding": "Strefa T nosa i czoła z rozszerzonymi porami >0.4mm i niejednorodnym mikrorelief skóry; policzek lewy z ogniskami hiperpigmentacji pozapalnej."',
-        '"finding": "T-zone of nose and forehead with enlarged pores >0.4 mm and uneven skin microrelief; left cheek with foci of post-inflammatory hyperpigmentation."'
-    )
-    prompt = prompt.replace(
-        '"detail": [\n        "Strefa T (nos, czoło): pory >0.4mm, cechy sebostazy",\n        "Policzek lewy: 3–4 ogniska hiperpigmentacji pozapalnej ~3–5mm",\n        "Powierzchnia policzków: niejednorodny mikrorelief z lokalnymi nierównościami tekstury"\n      ]',
-        '"detail": [\n        "T-zone (nose, forehead): pores >0.4 mm, signs of sebostasis",\n        "Left cheek: 3–4 foci of post-inflammatory hyperpigmentation ~3–5 mm",\n        "Cheek surface: uneven microrelief with local texture irregularities"\n      ]'
-    )
-
-    # 7. disclaimer
+    # disclaimer
     prompt = prompt.replace(
         '"disclaimer": "Dokumentacja kliniczna sporządzona na podstawie fotografii. Nie zastępuje badania lekarskiego."',
-        '"disclaimer": "Clinical documentation based on a photograph. Does not replace a medical examination."'
-    )
+        '"disclaimer": "Clinical documentation based on a photograph. Does not replace a medical examination."')
 
-    # 8. top_priority consequence language examples
+    # findings fields
+    prompt = prompt.replace('"name": "<finding name — Polish>"', '"name": "<finding name — English>"')
+    prompt = prompt.replace('"area": "<anatomical location — Polish>"', '"area": "<anatomical location — English>"')
     prompt = prompt.replace(
-        '    "może nasilać efekt zmęczenia twarzy"\n    "pogłębia cień podoczodołowy i efekt chronicznego zmęczenia"\n    "bez interwencji defekt będzie postępował z wiekiem"',
-        '    "may intensify the tired-face appearance"\n    "deepens the infraorbital shadow and chronic tired-face effect"\n    "without intervention the defect will progress with age"'
-    )
+        '"wplyw_estetyczny": "<one Polish sentence: cause → effect → perception>"',
+        '"wplyw_estetyczny": "<one English sentence: cause → effect → perception>"')
+    prompt = prompt.replace('"dlaczego_wazne": "<one Polish sentence>"', '"dlaczego_wazne": "<one English sentence>"')
     prompt = prompt.replace(
-        '  BAD: "Poprawa jakości skóry"\n  GOOD: "Utrata objętości w okolicy podoczodołowej lewej (tear trough stopień 1–2 wg skali Barton) pogłębia cień podoczodołowy i wymaga interwencji — bez leczenia defekt będzie narastał i nasilał efekt chronicznego zmęczenia twarzy."',
-        '  BAD: "Improvement of skin quality"\n  GOOD: "Volume loss in the left periorbital region (tear trough grade 1–2 Barton) deepens the infraorbital shadow and requires intervention — without treatment the defect will progress and the chronic tired-face appearance will worsen."'
-    )
+        '"co_moze_sie_poglebiac": "<one Polish sentence — progression without intervention>"',
+        '"co_moze_sie_poglebiac": "<one English sentence — progression without intervention>"')
+    prompt = prompt.replace(
+        '"co_wdrozyc_najpierw": "<one Polish sentence — first step>"',
+        '"co_wdrozyc_najpierw": "<one English sentence — first step>"')
 
-    # 9. summary sentence examples
+    # Forbidden phrases → English
     prompt = prompt.replace(
-        '  BAD:  "Obniżone napięcie skóry."\n      GOOD: "Obniżone napięcie skóry policzków powoduje opadanie tkanek, co wpływa na odbiór zmęczenia twarzy."',
-        '  BAD:  "Reduced skin tension."\n      GOOD: "Reduced cheek skin tension causes tissue descent, affecting the perceived tired-face appearance."'
-    )
+        'FORBIDDEN vague phrases: "zbliżone do normy", "obszary wymagające uwagi", "harmonijne", "wygląda naturalnie", "ogólnie dobra", "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń"',
+        'FORBIDDEN vague phrases: "within normal limits", "areas requiring attention", "harmonious", "looks natural", "generally good", "looks healthy", "normal", "no concerns"')
 
-    # 10. "brak istotnych nieprawidłowości" fallback instruction
+    # Procedure examples
     prompt = prompt.replace(
-        'write "brak istotnych nieprawidłowości klinicznych w [structure]"',
-        'write "no significant clinical abnormalities in [structure]"'
-    )
+        '  BAD: "Stosuj krem z SPF"\n  GOOD: "Fotoprotekcja: mineralny SPF 50+ PA++++ codziennie rano — warunek skuteczności każdej procedury aktywnej"',
+        '  BAD: "Apply sunscreen"\n  GOOD: "Photoprotection: mineral SPF 50+ PA++++ every morning — prerequisite for effectiveness of any active procedure"')
 
-    # 11. FINDINGS_EXTENSION — definicje kategorii (Polish category definitions)
+    # Tone examples
     prompt = prompt.replace(
-        "Definicje kategorii:\n"
-        "skin_quality → pory, tekstura, nawilżenie — skóra twarzy\n"
-        "pigment_vascular → przebarwienia, naczynka, rumień\n"
-        "eye_area → dolina łez (tear trough), cienie, obrzęki, zmarszczki okolicy oczu, napięcie powieki dolnej\n"
-        "  WAŻNE dla eye_area: zawsze udokumentuj tear trough (głębokość), charakter cieni (naczyniowy/objętościowy/pigmentacyjny), czy obszar tworzy efekt zmęczenia\n"
-        "volume_contour → objętość policzków, owal twarzy, linia żuchwy\n"
-        "forehead_hairline → linia włosów, gęstość, czoło\n"
-        "lesions → blizny, brodawki, włókniaki — ZAWSZE wymaga_potwierdzenia: true; użyj: \"obraz sugeruje\", \"cechy zgodne z\"\n"
-        "neck → skóra szyi, napięcie, zmarszczki poziome, przebarwienia — jeśli niewidoczna: dodaj finding z nasilenie: \"brak\" i note \"Ocena ograniczona przez kadr\"\n"
-        "skin_tension → napięcie skóry policzków, napięcie żuchwy, opadanie tkanek — wplyw_estetyczny MUSI zawierać: \"wpływa na odbiór zmęczenia twarzy\" lub \"nie wpływa istotnie na odbiór zmęczenia\"",
-        "Category definitions:\n"
-        "skin_quality → pores, texture, hydration — facial skin\n"
-        "pigment_vascular → pigmentation, vascular changes, redness\n"
-        "eye_area → tear trough, shadows, puffiness, periorbital lines, lower eyelid laxity\n"
-        "  IMPORTANT for eye_area: always document tear trough (depth), shadow character (vascular/volumetric/pigmentary), whether area creates tired appearance\n"
-        "volume_contour → cheek volume, facial oval, jawline\n"
-        "forehead_hairline → hairline, density, forehead\n"
-        "lesions → scars, warts, fibromas — ALWAYS wymaga_potwierdzenia: true; use: \"image suggests\", \"features consistent with\"\n"
-        "neck → neck skin, tension, horizontal lines, pigmentation — if not visible: add finding with nasilenie: \"brak\" and note \"Assessment limited by frame\"\n"
-        "skin_tension → cheek skin tension, jawline tension, tissue descent — wplyw_estetyczny MUST include: \"affects the tired-face appearance\" or \"does not significantly affect tired-face appearance\""
-    )
+        '  BAD: "Obniżone napięcie skóry."\n  GOOD: "Obniżone napięcie skóry policzków powoduje opadanie tkanek, co tworzy wrażenie zmęczenia twarzy."',
+        '  BAD: "Reduced skin tension."\n  GOOD: "Reduced cheek skin tension causes tissue descent, creating an impression of facial fatigue."')
 
-    # 12. skin_health_note description
+    # No-concern fallback
     prompt = prompt.replace(
-        '"skin_health_note": "<jedno zdanie po polsku: dlaczego poprawa jakości skóry tej osoby zwiększa trwałość i przewidywalność efektów procedur estetycznych>"',
-        '"skin_health_note": "<one sentence in English: why improving skin quality in this patient increases longevity and predictability of aesthetic procedures>"'
-    )
+        'write "brak istotnych nieprawidłowości w [structure]"',
+        'write "no significant concerns in [structure]"')
 
-    # 13. Final Polish note about eye_area
+    # "brak dominujących cech zmęczenia" example
     prompt = prompt.replace(
-        "Ten obszar ma kluczowy wpływ na odbiór zmęczenia twarzy — musi być udokumentowany w każdej analizie: eye_area finding.",
-        "This area has a key impact on the tired-face appearance — must be documented in every analysis: eye_area finding."
-    )
+        '"brak dominujących cech zmęczenia"',
+        '"no dominant fatigue signs"')
 
-    # 14. CLINICAL_PROMPT forbidden phrases (Polish) — add English context
+    # Category definitions
     prompt = prompt.replace(
-        'FORBIDDEN generic phrases (these make documentation clinically invalid):\n'
-        '  "zbliżone do normy", "obszary wymagające uwagi", "harmonijne", "dobrze zdefiniowane",\n'
-        '  "wygląda naturalnie", "ogólnie dobra", "proporcje są dobre", "twarz jest symetryczna",\n'
-        '  "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń", "zadowalający"',
-        'FORBIDDEN generic phrases (these make documentation clinically invalid):\n'
-        '  "within normal limits", "areas requiring attention", "harmonious", "well-defined",\n'
-        '  "looks natural", "generally good", "proportions are good", "face is symmetric",\n'
-        '  "looks healthy", "normal", "no concerns", "satisfactory"'
-    )
+        '  skin_quality → pory, tekstura, nawilżenie skóry twarzy',
+        '  skin_quality → pores, texture, skin hydration')
+    prompt = prompt.replace(
+        '  pigment_vascular → przebarwienia, naczynka, rumień',
+        '  pigment_vascular → pigmentation, vascular changes, redness')
+    prompt = prompt.replace(
+        '  eye_area → dolina łez, cienie, obrzęki, zmarszczki okolicy oczu — ALWAYS document tear trough depth, shadow character, fatigue impact',
+        '  eye_area → tear trough, shadows, puffiness, periorbital lines — ALWAYS document tear trough depth, shadow character, fatigue impact')
+    prompt = prompt.replace(
+        '  volume_contour → objętość policzków, owal twarzy, linia żuchwy',
+        '  volume_contour → cheek volume, facial oval, jawline')
+    prompt = prompt.replace(
+        '  forehead_hairline → linia włosów, gęstość, czoło',
+        '  forehead_hairline → hairline, density, forehead')
+    prompt = prompt.replace(
+        '  neck → skóra szyi, napięcie, zmarszczki — if not visible: nasilenie "brak", note frame limitation',
+        '  neck → neck skin, tension, horizontal lines — if not visible: nasilenie "brak", note frame limitation')
+    prompt = prompt.replace(
+        '  skin_tension → napięcie policzków, żuchwy, opadanie tkanek — wplyw_estetyczny MUST state fatigue impact',
+        '  skin_tension → cheek tension, jawline tension, tissue descent — wplyw_estetyczny MUST state fatigue impact')
 
-    # 15. Overall_perception and skin_health_note format placeholders
+    # skin_health_note
     prompt = prompt.replace(
-        '"impression": "<one sentence in English: what the overall face communicates aesthetically — cause + effect + perception>"',
-        '"impression": "<one sentence: what the overall face communicates aesthetically — cause + effect + perception>"'
-    )
+        '"skin_health_note": "<one sentence in Polish: why skin quality improvement matters for this patient>"',
+        '"skin_health_note": "<one sentence in English: why skin quality improvement matters for this patient>"')
+
+    # Strengths examples
+    prompt = prompt.replace(
+        '  "Zachowana pełna objętość policzków — brak utraty tkanki malarnej"',
+        '  "Preserved full cheek volume — no malar tissue loss"')
+    prompt = prompt.replace(
+        '  "Wyraźnie zarysowana linia żuchwy bez cech opadania ani formowania się jowli"',
+        '  "Sharply defined jawline without tissue descent or jowl formation"')
+    prompt = prompt.replace(
+        '  "Równomierny koloryt skóry bez widocznych ognisk przebarwień"',
+        '  "Even skin tone without visible pigmentation foci"')
+    prompt = prompt.replace(
+        '  "Brak zmarszczek statycznych czoła w spoczynku — tylko wczesne dynamiczne"',
+        '  "No static forehead lines at rest — only early dynamic"')
+
+    # Features notes in English
+    prompt = prompt.replace(
+        '"notes": "ocena ograniczona"',
+        '"notes": "assessment limited"')
 
     return prompt
 
 
 def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> dict:
-    """Step 2: observations text → structured JSON."""
+    """Step 2: observations text → structured JSON report."""
     lang_name = 'English' if lang == 'en' else 'Polish'
     base_prompt = CLINICAL_PROMPT + FINDINGS_EXTENSION
     patched_prompt = _patch_prompt_for_lang(base_prompt, lang)
+
     prompt = (
-        f"Format these clinical observation notes into structured {lang_name}-language JSON.\n\n"
+        f"Format these clinical observation notes into a structured {lang_name}-language JSON report.\n\n"
         f"CRITICAL GROUNDING RULE: You may ONLY use findings explicitly stated in the OBSERVATIONS below. "
-        f"If an observation field says 'CANNOT ASSESS' or is absent → write 'ocena ograniczona' in that JSON field. "
-        f"Do NOT invent, assume, or generalize ANY finding. Every JSON value must be directly traceable to the observations.\n\n"
-        f"OBSERVATIONS:\n" + observations + "\n\n"
-        f"Return ONLY valid JSON. All free-text values must be in {lang_name}.\n\n"
+        f"If an observation says 'CANNOT ASSESS' or is absent → write 'ocena ograniczona — niewidoczne na zdjęciu' in that field. "
+        f"NEVER invent, assume, or generalize any finding. Every JSON value must trace to the observations.\n\n"
+        f"STRENGTHS RULE: The 'strengths' array MUST list 3–6 concrete positive features observed. "
+        f"These must be specific anatomical observations, not vague compliments.\n\n"
+        f"OBSERVATIONS:\n{observations}\n\n"
+        f"Return ONLY valid JSON. All free-text values in {lang_name}.\n\n"
         + patched_prompt
     )
     messages = [
-        {"role": "system", "content": f"You are a physician formatting clinical notes into structured JSON. You may only document findings explicitly stated in the provided observations. Do not invent findings. Return only valid JSON, no markdown. All text in {lang_name}."},
-        {"role": "user",   "content": prompt},
+        {
+            "role": "system",
+            "content": (
+                f"You are a physician formatting clinical observation notes into structured JSON. "
+                f"Document only what is stated in the observations — never invent findings. "
+                f"Identify and document STRENGTHS first. Use varied vocabulary. "
+                f"Do not default to 'tired' impression for every face. "
+                f"Return only valid JSON, no markdown. All free text in {lang_name}."
+            )
+        },
+        {"role": "user", "content": prompt},
     ]
-    raw = _call_raw(openai_client, messages, model, max_tokens=4500)
+    raw = _call_raw(openai_client, messages, model, max_tokens=5000)
     return _extract_json(raw)
 
 
@@ -922,6 +934,8 @@ def analyze_face_with_ai(
     model: str = "gpt-4o",
     lang: str = 'pl'
 ) -> Dict:
+    from face_validator_ai import validate_face_ai
+
     images_data = {}
     for key, file_path in file_paths_dict.items():
         with open(file_path, 'rb') as f:
@@ -933,18 +947,64 @@ def analyze_face_with_ai(
         }.get(ext, 'image/jpeg')
         images_data[key] = {'data': image_data, 'media_type': media_type}
 
-    # Step 1: observe — gpt-4o (vision)
-    observations = _observe(openai_client, images_data, model)
+    # ─── Step 0: AI validation ───────────────────────────────────────────────
+    # Raises ValueError('EYES_BLOCKED:…') or ValueError('PHOTO_UNSUITABLE:…') on failure.
+    en_face_path = file_paths_dict.get('en_face', '')
+    validation = {}
+    if en_face_path:
+        try:
+            validation = validate_face_ai(en_face_path, openai_client, model)
+            print(f"[VALIDATE_AI OK] head_pose={validation['head_pose']['yaw']} "
+                  f"impression={validation['overall_impression']['labels']} "
+                  f"harmony={validation['harmony']['level']}")
+        except ValueError:
+            raise  # re-raise EYES_BLOCKED / PHOTO_UNSUITABLE to caller
+        except Exception as e:
+            # Fail-open: log and continue if validation has unexpected error
+            print(f"[VALIDATE_AI WARN] non-blocking error: {e}")
+            validation = {}
+
+    # ─── Step 1: Detailed clinical observation ───────────────────────────────
+    # Inject validation context so the observer knows what's already assessed.
+    observations = _observe(openai_client, images_data, model, validation_context=validation)
     print(f"[OBSERVE OK] {len(observations)} chars")
 
-    # Block analysis if eyes are occluded (sunglasses etc.)
-    obs_upper = observations[:300].upper()
+    # Backup suitability check (safety net in case Step 0 missed something)
+    obs_upper = observations[:400].upper()
     if 'EYES_BLOCKED' in obs_upper:
-        raise ValueError("EYES_BLOCKED: Zdjęcie z okularami przeciwsłonecznymi — analiza okolicy oczu niemożliwa. Wgraj zdjęcie bez okularów.")
+        raise ValueError("EYES_BLOCKED: Zdjęcie z okularami lub zasłoniętymi oczami — analiza niemożliwa. Wgraj zdjęcie bez okularów.")
     if 'PHOTO_UNSUITABLE' in obs_upper:
-        raise ValueError("PHOTO_UNSUITABLE: Zdjęcie nieodpowiednie do analizy. Wgraj wyraźne zdjęcie en face.")
+        raise ValueError("PHOTO_UNSUITABLE: Zdjęcie nieodpowiednie do analizy. Wgraj wyraźne zdjęcie en face, patrzące prosto w aparat.")
 
-    # Step 2: report — gpt-4o (reliable JSON, no image)
+    # ─── Step 2: Format → structured JSON report ────────────────────────────
     result = _report(openai_client, observations, model, lang=lang)
+
+    # ─── Merge validation context into result ────────────────────────────────
+    if validation:
+        result['validation'] = validation
+        # Use AI impression if main report didn't produce one
+        if not result.get('dominant_impression') and validation.get('overall_impression', {}).get('labels'):
+            result['dominant_impression'] = validation['overall_impression']['labels']
+        # Add harmony assessment
+        if validation.get('harmony'):
+            result['harmony'] = validation['harmony']
+        # Add structural warnings
+        if validation.get('warnings'):
+            result.setdefault('analysis_warnings', [])
+            result['analysis_warnings'].extend(validation['warnings'])
+        # Note frame limitations
+        result['neck_visible']     = validation.get('neck_visible', True)
+        result['hairline_visible'] = validation.get('hairline_visible', True)
+
     _validate_result(result)
+
+    # Detect degenerate result: score 0-10 + low confidence = photo too poor to analyze
+    score = result.get('overall_score', 50)
+    conf  = result.get('confidence_global', 'umiarkowana')
+    if score <= 10 and conf in ('niska', 'low'):
+        raise ValueError(
+            "POOR_PHOTO_QUALITY: Zdjęcie nie pozwala na rzetelną analizę kliniczną. "
+            "Wgraj wyraźne zbliżenie twarzy en face (twarz prosto, obie oczy widoczne, brak okularów)."
+        )
+
     return result

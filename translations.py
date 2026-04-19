@@ -36,6 +36,12 @@ TRANSLATIONS = {
         'validation_guide_2':    'zdjęcie jest wyraźne i dobrze oświetlone',
         'validation_guide_3':    'widok en face: oba oczy widoczne, głowa prosto',
         'analyze_btn':           'Rozpocznij analizę',
+        'cam_btn':               'Zrób zdjęcie',
+        'cam_title':             'Zrób zdjęcie',
+        'cam_capture':           'Zrób zdjęcie',
+        'cam_retake':            'Ponów',
+        'cam_confirm':           'Użyj tego zdjęcia',
+        'cam_error':             'Nie można uzyskać dostępu do kamery. Sprawdź uprawnienia w przeglądarce.',
         'demo_link':             'Zobacz przykładową analizę →',
         'trust_no_storage':      'Zdjęcia nie są przechowywane',
         'trust_preliminary':     'Wstępna analiza przed ostateczną konsultacją lekarską',
@@ -106,8 +112,16 @@ TRANSLATIONS = {
         'hero_normalize':'Podobny profil zmian obserwujemy bardzo cz\u0119sto u pacjent\u00f3w zg\u0142aszaj\u0105cych si\u0119 na pierwsz\u0105 konsultacj\u0119.',
 
         # Sections
+        'section_strengths':   'Co wygląda korzystnie',
+        'strengths_sub':       'Mocne strony Twojej twarzy zaobserwowane na zdjęciu',
+        'confidence_label':    'Pewność oceny',
+        'val_head_pose':       'Pozycja głowy',
+        'val_pose_ok':         'optymalna',
+        'val_pose_warn':       'z odchyleniem',
+        'val_harmony':         'Harmonia',
         'section_overall':     'Og\u00f3lny odbi\u00f3r twarzy',
-        'section_priorities':  '\u2691 Priorytety kliniczne',
+        'section_aesthetic':   'Estetyczny odbi\u00f3r twarzy',
+        'section_priorities':  'Priorytety kliniczne',
         'section_impact':      'Co to oznacza dla Ciebie',
         'impact_urgency':      'Na tym etapie interwencja jest mniej inwazyjna i daje bardziej przewidywalne efekty ni\u017c w przypadku dalszego odk\u0142adania leczenia.',
         'section_fatigue':     'Co wp\u0142ywa na odbi\u00f3r zm\u0119czenia',
@@ -171,7 +185,12 @@ TRANSLATIONS = {
         'verdict_early':     'Wczesny \u2014 zmiany \u0142atwe do odwr\u00f3cenia przy wczesnej interwencji',
         'verdict_mid_stage': 'Umiarkowany \u2014 typowy zakres wskaza\u0144 u pacjent\u00f3w na pierwszej konsultacji',
         'verdict_advanced':  'Zaawansowany \u2014 wskazany priorytetowy plan post\u0119powania',
-        'verdict_rec':       'Nast\u0119pny krok to konsultacja w gabinecie \u2014 potwierdzimy obserwacje, odpowiemy na pytania i dobierzemy indywidualny plan post\u0119powania. Zadzwo\u0144 pod <strong>+48\u202f695\u202f84\u202f584</strong> lub zostaw numer \u2014 odzwonimy. Mo\u017cesz te\u017c wype\u0142ni\u0107 formularz poni\u017cej.',
+        'verdict_rec':       'Zadzwo\u0144 pod <strong>+48\u202f690\u202f584\u202f584</strong> lub zostaw numer \u2014 odzwonimy.',
+        'section_feedback':  'Pom\u00f3\u017c nam ulepsza\u0107 aplikacj\u0119',
+        'feedback_sub':      'Zauwa\u017cy\u0142e\u015b b\u0142\u0105d w analizie? Masz uwag\u0119? Napisz — ka\u017cda informacja pomaga nam poprawi\u0107 jako\u015b\u0107 ocen.',
+        'feedback_placeholder': 'Np. analiza nie wykry\u0142a zmarszczek na czole, cho\u0107 by\u0142y wyra\u017anie widoczne...',
+        'feedback_btn':      'Wy\u015blij uwag\u0119',
+        'feedback_success':  'Dzi\u0119kujemy za uwag\u0119 \u2014 to pomaga nam ulepsza\u0107 aplikacj\u0119.',
 
         # CTA
         'cta_heading':    'Co dalej?',
@@ -184,6 +203,7 @@ TRANSLATIONS = {
         # Inline form
         'section_consult_inline':'Um\u00f3w konsultacj\u0119 lekarsk\u0105',
         'consult_inline_sub':    'Wype\u0142nij formularz \u2014 odezwiemy si\u0119 w godzinach pracy kliniki',
+        'or_leave_number':       'lub zostaw numer \u2014 oddzwonimy',
         'ic_trust':              'Konsultacja prowadzona jest osobi\u015bcie przez lekarza. Ka\u017cdy plan post\u0119powania opiera si\u0119 na indywidualnej ocenie klinicznej.',
 
         # Doctor card
@@ -277,6 +297,12 @@ TRANSLATIONS = {
         'validation_guide_2':     'the photo is sharp and well-lit',
         'validation_guide_3':     'en face view: both eyes visible, head straight',
         'analyze_btn':            'Start analysis',
+        'cam_btn':                'Take a photo',
+        'cam_title':              'Take a photo',
+        'cam_capture':            'Capture',
+        'cam_retake':             'Retake',
+        'cam_confirm':            'Use this photo',
+        'cam_error':              'Cannot access camera. Check browser permissions.',
         'demo_link':              'See a sample analysis \u2192',
         'trust_no_storage':       'Photos are not stored',
         'trust_preliminary':      'Preliminary analysis before final medical consultation',
@@ -347,8 +373,16 @@ TRANSLATIONS = {
         'hero_normalize':'We observe a similar pattern of changes very often in patients presenting for their first consultation.',
 
         # Sections
+        'section_strengths':    'What looks good',
+        'strengths_sub':        'Positive features observed in your photo',
+        'confidence_label':     'Assessment confidence',
+        'val_head_pose':        'Head position',
+        'val_pose_ok':          'optimal',
+        'val_pose_warn':        'with deviation',
+        'val_harmony':          'Harmony',
         'section_overall':      'Overall facial impression',
-        'section_priorities':   '\u2691 Clinical priorities',
+        'section_aesthetic':    'Aesthetic impression',
+        'section_priorities':   'Clinical priorities',
         'section_impact':       'What this means for you',
         'impact_urgency':       'At this stage, intervention is less invasive and provides more predictable results than if treatment is further delayed.',
         'section_fatigue':      'What affects the tired appearance',
@@ -412,7 +446,12 @@ TRANSLATIONS = {
         'verdict_early':      'Early \u2014 changes easy to reverse with timely intervention',
         'verdict_mid_stage':  'Moderate \u2014 typical range of indications in patients at first consultation',
         'verdict_advanced':   'Advanced \u2014 priority treatment plan indicated',
-        'verdict_rec':        'The next step is an in-clinic consultation \u2014 we will confirm the findings, answer questions and devise an individual treatment plan. Call <strong>+48\u202f695\u202f84\u202f584</strong> or leave your number \u2014 we will call back. You can also fill in the form below.',
+        'verdict_rec':        'Call <strong>+48\u202f690\u202f584\u202f584</strong> or leave your number \u2014 we will call back.',
+        'section_feedback':   'Help us improve the app',
+        'feedback_sub':       'Noticed an error in the analysis? Have a comment? Write to us \u2014 every piece of feedback helps us improve the quality of assessments.',
+        'feedback_placeholder': 'E.g. the analysis did not detect forehead wrinkles that were clearly visible...',
+        'feedback_btn':       'Send feedback',
+        'feedback_success':   'Thank you for your feedback \u2014 it helps us improve the app.',
 
         # CTA
         'cta_heading':   "What's next?",
@@ -425,6 +464,7 @@ TRANSLATIONS = {
         # Inline form
         'section_consult_inline':'Book a medical consultation',
         'consult_inline_sub':    'Fill in the form \u2014 we will respond during clinic hours',
+        'or_leave_number':       'or leave your number \u2014 we\u2019ll call back',
         'ic_trust':              'Consultation is conducted personally by the doctor. Every treatment plan is based on an individual clinical assessment.',
 
         # Doctor card

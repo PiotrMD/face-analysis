@@ -1,5 +1,73 @@
 DEMO_RESULT = {
     "overall_score": 68,
+    "confidence_global": "umiarkowana",
+    "dominant_impression": ["neutralny"],
+    "strengths": [
+        "Zachowana pełna objętość policzków — brak utraty tkanki malarnej w rejonie jarzmowym",
+        "Symetria strukturalna twarzy dobrze zachowana — brak istotnych asymetrii morfologicznych",
+        "Wyraźnie zarysowana linia żuchwy bez cech opadania tkanek ani formowania się jowli",
+        "Dobra gęstość włosów w strefie czołowej i skroniowej — linia włosów regularna",
+        "Wargi symetryczne z zachowaną objętością — brak zmarszczek periorbitalnych",
+    ],
+    "features": {
+        "under_eye":      {"score": 2, "confidence": "wysoka",      "notes": "Tear trough stopień 1 obustronnie — cień objętościowy, wyraźniejszy po lewej"},
+        "midface_volume": {"score": 1, "confidence": "umiarkowana", "notes": "Objętość policzków zachowana, minimalne spłaszczenie podjarzmowe"},
+        "tissue_descent": {"score": 1, "confidence": "umiarkowana", "notes": "Mildnie obniżone napięcie policzków, bez istotnego opadania tkanek"},
+        "jawline_jowls":  {"score": 0, "confidence": "wysoka",      "notes": "Linia żuchwy wyraźna, brak jowli"},
+        "skin_texture":   {"score": 2, "confidence": "wysoka",      "notes": "Pory >0.4mm w strefie T, niejednorodny mikrorelief policzków"},
+        "skin_tone":      {"score": 1, "confidence": "umiarkowana", "notes": "Koloryt ogólnie równy, cechy dehydratacji powierzchniowej"},
+        "neck":           {"score": 0, "confidence": "niska",       "notes": "Ocena ograniczona — szyja poza kadrem zdjęcia"},
+        "hairline":       {"score": 0, "confidence": "wysoka",      "notes": "Linia włosów regularna, gęstość prawidłowa"},
+    },
+    "validation": {
+        "image_valid": True,
+        "face_count": 1,
+        "face_fully_visible": True,
+        "frontal_face": True,
+        "neutral_expression": True,
+        "eyes_visible": True,
+        "occlusion_detected": False,
+        "occlusion_type": None,
+        "filter_detected": False,
+        "lighting_ok": True,
+        "sharpness_ok": True,
+        "neck_visible": False,
+        "hairline_visible": True,
+        "warnings": [],
+        "head_pose": {
+            "yaw": "minimal",
+            "pitch": "minimal",
+            "roll": "minimal",
+            "acceptable_for_analysis": True,
+            "note": None,
+        },
+        "overall_impression": {
+            "labels": ["neutralny"],
+            "confidence": "umiarkowana",
+            "reasons": [
+                "delikatnie obciążona okolica podoczodołowa z cieniem tear trough",
+                "zachowana objętość policzków i spokojna linia żuchwy",
+            ],
+        },
+        "harmony": {
+            "level": "umiarkowana",
+            "confidence": "umiarkowana",
+            "notes": [
+                "Zachowana proporcja trzech pięter twarzy i wyraźna linia żuchwy",
+                "Nieznacznie obciążona okolica podoczodołowa zaburza spójność górno-środkowej części twarzy",
+            ],
+        },
+    },
+    "harmony": {
+        "level": "umiarkowana",
+        "confidence": "umiarkowana",
+        "notes": [
+            "Zachowana proporcja trzech pięter twarzy i wyraźna linia żuchwy",
+            "Nieznacznie obciążona okolica podoczodołowa zaburza spójność górno-środkowej części twarzy",
+        ],
+    },
+    "neck_visible": False,
+    "hairline_visible": True,
     "summary": (
         "Łuki jarzmowe wykazują symetryczną projekcję boczną bez udokumentowanej utraty objętości, "
         "stanowiąc klinicznie korzystną cechę strukturalną środkowej trzeciej twarzy. "

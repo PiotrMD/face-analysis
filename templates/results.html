@@ -129,19 +129,101 @@
                     </div>
                     <p class="hero__cta-line">{{ t.hero_cta_line }}</p>
                     <p class="hero__normalize">{{ t.hero_normalize }}</p>
+
+                    <!-- Validation meta strip -->
+                    {% if result.validation or result.harmony %}
+                    <div class="val-strip">
+                        {% set vd = result.validation or {} %}
+                        {% set hp = vd.get('head_pose', {}) %}
+                        {% set oi = vd.get('overall_impression', {}) %}
+                        {% set hm = result.harmony or vd.get('harmony', {}) %}
+
+                        <!-- Head pose chip -->
+                        {% if hp %}
+                        {% set pose_ok = hp.get('acceptable_for_analysis', True) %}
+                        <div class="val-chip val-chip--{{ 'ok' if pose_ok else 'warn' }}">
+                            <span class="val-chip__icon">{% if pose_ok %}✓{% else %}⚠{% endif %}</span>
+                            <span class="val-chip__label">{{ t.val_head_pose }}</span>
+                            <span class="val-chip__val">{{ t.val_pose_ok if pose_ok else t.val_pose_warn }}</span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Harmony chip -->
+                        {% if hm and hm.get('level') %}
+                        {% set hml = hm.level %}
+                        <div class="val-chip val-chip--{{ 'ok' if hml == 'wysoka' else ('mid' if hml == 'umiarkowana' else 'warn') }}">
+                            <span class="val-chip__icon">◈</span>
+                            <span class="val-chip__label">{{ t.val_harmony }}</span>
+                            <span class="val-chip__val">{{ hml }}</span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Analysis confidence chip -->
+                        {% if result.confidence_global %}
+                        {% set cg = result.confidence_global %}
+                        <div class="val-chip val-chip--{{ 'ok' if cg in ('wysoka', 'high') else ('mid' if cg in ('umiarkowana', 'moderate') else 'warn') }}">
+                            <span class="val-chip__icon">◎</span>
+                            <span class="val-chip__label">{{ t.confidence_label }}</span>
+                            <span class="val-chip__val">{{ cg }}</span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Harmony detail note -->
+                        {% if hm and hm.get('notes') %}
+                        <div class="val-notes">
+                            {% for note in hm.notes[:2] %}
+                            <span class="val-note">{{ note }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- ══════════════════════════════
-                     1b. OGÓLNY ODBIÓR TWARZY
+                     1b. CO WYGLĄDA KORZYSTNIE
+                ══════════════════════════════ -->
+                {% if result.strengths %}
+                <div class="band band--strengths">
+                    <h2 class="band__title">{{ t.section_strengths }}</h2>
+                    <p class="band__sub">{{ t.strengths_sub }}</p>
+                    <ul class="strengths-list">
+                        {% for s in result.strengths %}
+                        <li class="strengths-item">
+                            <span class="strengths-item__icon">✓</span>
+                            <span class="strengths-item__text">{{ s }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% if result.confidence_global %}
+                    <div class="strengths-confidence">
+                        <span class="strengths-confidence__label">{{ t.confidence_label }}:</span>
+                        <span class="strengths-confidence__val strengths-confidence__val--{{ result.confidence_global | replace('ę','e') | replace('ó','o') | replace('ś','s') | replace('ą','a') }}">{{ result.confidence_global }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     1c. OGÓLNY ODBIÓR TWARZY
                 ══════════════════════════════ -->
                 {% if result.overall_perception %}
                 <div class="band band--overall-perception">
                     <h2 class="band__title">{{ t.section_overall }}</h2>
                     <div class="op-tags">
-                        {% if result.overall_perception.freshness %}
-                        <span class="op-tag op-tag--freshness op-tag--{{ result.overall_perception.freshness | replace('ę','e') | replace('ó','o') | replace(' ','_') }}">
+                        {% if result.dominant_impression %}
+                            {% for imp in result.dominant_impression %}
+                            {% if 'ograniczona' not in imp|lower and 'cannot' not in imp|lower %}
+                            <span class="op-tag op-tag--impression">{{ imp }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        {% elif result.overall_perception.freshness %}
+                        <span class="op-tag op-tag--freshness op-tag--{{ result.overall_perception.freshness | replace('ę','e') | replace('ó','o') | replace(' ','_') | replace('ą','a') | replace('ś','s') | replace('ż','z') }}">
                             {{ result.overall_perception.freshness }}
                         </span>
+                        {% endif %}
+                        {% if result.overall_perception.aesthetic_character %}
+                        <span class="op-tag op-tag--character">{{ result.overall_perception.aesthetic_character }}</span>
                         {% endif %}
                     </div>
                     {% if result.overall_perception.impression %}
@@ -151,7 +233,7 @@
                 {% endif %}
 
                 <!-- ══════════════════════════════
-                     2. TOP PRIORITY
+                     2. PRIORYTETY KLINICZNE
                 ══════════════════════════════ -->
                 {% if result.findings or result.top_priority %}
                 {% if result.findings %}
@@ -159,22 +241,19 @@
                 {% if not top_f %}{% set top_f = result.findings | list %}{% endif %}
                 {% endif %}
                 <div class="band band--top-priority">
-                    <div class="tp-eyebrow">{{ t.section_priorities }}</div>
-                    {% if result.top_priority %}
+                    <h2 class="band__title">{{ t.section_priorities }}</h2>
+                    {% if result.top_priority and 'ograniczona' not in result.top_priority|lower %}
                     <p class="tp-main">{{ result.top_priority }}</p>
                     {% endif %}
                     {% if result.findings and top_f %}
                     <div class="tp-cards">
-                        {% for f in top_f[:2] %}
+                        {% for f in top_f[:3] %}
                         <div class="tp-card">
                             <div class="tp-card__header">
                                 <span class="tp-card__area">{{ f.area }}</span>
                                 <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
                             </div>
                             <div class="tp-card__name">{{ f.name }}</div>
-                            {% if f.dlaczego_wazne %}
-                            <p class="tp-card__why">{{ f.dlaczego_wazne }}</p>
-                            {% endif %}
                             {% if f.kierunek_postepowania %}
                             <div class="tp-card__tags">
                                 {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
@@ -188,27 +267,47 @@
                 {% endif %}
 
                 <!-- ══════════════════════════════
-                     3. CLINICAL INTERPRETATION
+                     2b. WNIOSEK LEKARSKI (zaraz po priorytetach)
+                ══════════════════════════════ -->
+                <div class="band band--verdict">
+                    <h2 class="band__title">{{ t.section_verdict }}</h2>
+                    <div class="verdict__body">
+                        <div class="verdict__stage-row">
+                            <span class="verdict__stage-label">{{ t.verdict_stage_label }}</span>
+                            <span class="verdict__stage-val
+                                {% if result.overall_score >= 75 %} verdict__stage-val--early
+                                {% elif result.overall_score >= 55 %} verdict__stage-val--mid
+                                {% else %} verdict__stage-val--advanced{% endif %}">
+                                {% if result.overall_score >= 75 %}{{ t.verdict_early }}
+                                {% elif result.overall_score >= 55 %}{{ t.verdict_mid_stage }}
+                                {% else %}{{ t.verdict_advanced }}{% endif %}
+                            </span>
+                        </div>
+                        <p class="verdict__rec">{{ t.verdict_rec | safe }}</p>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════
+                     3. INTERPRETACJA KLINICZNA
                 ══════════════════════════════ -->
                 <div class="band band--clinical-interp">
                     <h2 class="band__title">{{ t.section_clinical }}</h2>
                     {% if result.summary %}
                     <p class="ci__note">{{ result.summary }}</p>
                     {% endif %}
-                    {% if result.skin_health_note %}
-                    <p class="ci__note">{{ result.skin_health_note }}</p>
-                    {% endif %}
-                    <p class="ci__principle">{{ t.ci_principle }}</p>
                     {% if result.strongest_asset %}
                     <div class="ci__asset">
                         <span class="ci__asset-label">{{ t.ci_asset_label }}</span>
                         <span class="ci__asset-text">{{ result.strongest_asset }}</span>
                     </div>
                     {% endif %}
+                    {% if result.skin_health_note %}
+                    <p class="ci__note ci__note--secondary">{{ result.skin_health_note }}</p>
+                    {% endif %}
                 </div>
 
                 <!-- ══════════════════════════════
-                     3b. FATIGUE + NAPIĘCIE
+                     3b. CO WPŁYWA NA ZMĘCZENIE
                 ══════════════════════════════ -->
                 {% if result.fatigue_factors or result.skin_tension %}
                 <div class="band band--fatigue">
@@ -331,166 +430,24 @@
                 {% endif %}
 
                 <!-- ══════════════════════════════
-                     5. WNIOSEK LEKARSKI
-                ══════════════════════════════ -->
-                <div class="band band--verdict">
-                    <h2 class="band__title">{{ t.section_verdict }}</h2>
-                    <div class="verdict__body">
-                        {% if result.top_priority %}
-                        <p class="verdict__finding">{{ result.top_priority }}</p>
-                        {% elif result.summary %}
-                        <p class="verdict__finding">{{ result.summary }}</p>
-                        {% endif %}
-                        <div class="verdict__stage-row">
-                            <span class="verdict__stage-label">{{ t.verdict_stage_label }}</span>
-                            <span class="verdict__stage-val
-                                {% if result.overall_score >= 75 %} verdict__stage-val--early
-                                {% elif result.overall_score >= 55 %} verdict__stage-val--mid
-                                {% else %} verdict__stage-val--advanced{% endif %}">
-                                {% if result.overall_score >= 75 %}{{ t.verdict_early }}
-                                {% elif result.overall_score >= 55 %}{{ t.verdict_mid_stage }}
-                                {% else %}{{ t.verdict_advanced }}{% endif %}
-                            </span>
-                        </div>
-                        <p class="verdict__rec">{{ t.verdict_rec | safe }}</p>
-                    </div>
-                </div>
-
-                <!-- ══════════════════════════════
-                     6. TREATMENT PLAN — 3 ETAPY
+                     5. PLAN POSTĘPOWANIA (krótki)
                 ══════════════════════════════ -->
                 {% if result.findings %}
-                {% set stage1 = (result.findings | selectattr('kategoria', 'equalto', 'skin_quality') | list) + (result.findings | selectattr('kategoria', 'equalto', 'pigment_vascular') | list) %}
-                {% set stage2 = (result.findings | selectattr('kategoria', 'equalto', 'volume_contour') | list) + (result.findings | selectattr('kategoria', 'equalto', 'eye_area') | list) %}
-                {% set stage3 = (result.findings | selectattr('kategoria', 'equalto', 'forehead_hairline') | list) + (result.findings | selectattr('kategoria', 'equalto', 'neck') | list) + (result.findings | selectattr('kategoria', 'equalto', 'lesions') | list) %}
                 <div class="band band--plan">
                     <h2 class="band__title">{{ t.section_plan }}</h2>
                     <p class="band__sub">{{ t.plan_sub }}</p>
-                    <div class="plan-stages">
-
-                        <!-- ETAP 1 -->
-                        <div class="plan-stage">
-                            <div class="plan-stage__header">
-                                <div class="plan-stage__badge">{{ t.stage_label }} 1</div>
-                                <div class="plan-stage__meta">
-                                    <div class="plan-stage__title">{{ t.stage1_title }}</div>
-                                    <div class="plan-stage__sub">{{ t.stage1_sub }}</div>
-                                </div>
+                    <div class="plan-list">
+                        {% for f in result.findings %}
+                        <div class="plan-row">
+                            <div class="plan-row__left">
+                                <span class="plan-row__name">{{ f.name }}</span>
+                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
                             </div>
-                            <div class="plan-stage__effect">
-                                <span class="plan-stage__effect-label">{{ t.effect_label }}</span>
-                                <span class="plan-stage__effect-text">{{ t.stage1_effect }}</span>
-                                <span class="plan-stage__effect-label">{{ t.why_label }}</span>
-                                <span class="plan-stage__effect-text">{{ t.stage1_why }}</span>
+                            {% if f.kierunek_postepowania %}
+                            <div class="plan-row__tags">
+                                {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
                             </div>
-                            <div class="plan-stage__body">
-                                {% if stage1 %}
-                                {% for f in stage1 %}
-                                <div class="plan-item">
-                                    <div class="plan-item__top">
-                                        <span class="plan-item__name">{{ f.name }}</span>
-                                        <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
-                                    </div>
-                                    <p class="plan-item__area">{{ f.area }}</p>
-                                    {% if f.kierunek_postepowania %}
-                                    <div class="plan-item__tags">
-                                        {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
-                                {% else %}
-                                <p class="plan-stage__default">{{ t.stage1_default }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- ETAP 2 -->
-                        <div class="plan-stage">
-                            <div class="plan-stage__header">
-                                <div class="plan-stage__badge">{{ t.stage_label }} 2</div>
-                                <div class="plan-stage__meta">
-                                    <div class="plan-stage__title">{{ t.stage2_title }}</div>
-                                    <div class="plan-stage__sub">{{ t.stage2_sub }}</div>
-                                </div>
-                            </div>
-                            <div class="plan-stage__effect">
-                                <span class="plan-stage__effect-label">{{ t.effect_label }}</span>
-                                <span class="plan-stage__effect-text">{{ t.stage2_effect }}</span>
-                                <span class="plan-stage__effect-label">{{ t.why_label }}</span>
-                                <span class="plan-stage__effect-text">{{ t.stage2_why }}</span>
-                            </div>
-                            <div class="plan-stage__body">
-                                {% if stage2 %}
-                                {% for f in stage2 %}
-                                <div class="plan-item">
-                                    <div class="plan-item__top">
-                                        <span class="plan-item__name">{{ f.name }}</span>
-                                        <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
-                                    </div>
-                                    <p class="plan-item__area">{{ f.area }}</p>
-                                    {% if f.kierunek_postepowania %}
-                                    <div class="plan-item__tags">
-                                        {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
-                                {% else %}
-                                <p class="plan-stage__default">{{ t.stage2_default }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- ETAP 3 -->
-                        <div class="plan-stage">
-                            <div class="plan-stage__header">
-                                <div class="plan-stage__badge">{{ t.stage_label }} 3</div>
-                                <div class="plan-stage__meta">
-                                    <div class="plan-stage__title">{{ t.stage3_title }}</div>
-                                    <div class="plan-stage__sub">{{ t.stage3_sub }}</div>
-                                </div>
-                            </div>
-                            <div class="plan-stage__effect">
-                                <span class="plan-stage__effect-label">{{ t.effect_label }}</span>
-                                <span class="plan-stage__effect-text">{{ t.stage3_effect }}</span>
-                                <span class="plan-stage__effect-label">{{ t.why_label }}</span>
-                                <span class="plan-stage__effect-text">{{ t.stage3_why }}</span>
-                            </div>
-                            <div class="plan-stage__body">
-                                {% if stage3 %}
-                                {% for f in stage3 %}
-                                <div class="plan-item {% if f.wymaga_potwierdzenia %}plan-item--confirm{% endif %}">
-                                    <div class="plan-item__top">
-                                        <span class="plan-item__name">{{ f.name }}</span>
-                                        <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
-                                        {% if f.wymaga_potwierdzenia %}<span class="confirm-badge">{{ t.requires_consultation }}</span>{% endif %}
-                                    </div>
-                                    <p class="plan-item__area">{{ f.area }}</p>
-                                    {% if f.kierunek_postepowania %}
-                                    <div class="plan-item__tags">
-                                        {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
-                                {% else %}
-                                <p class="plan-stage__default">{{ t.stage3_default }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                    </div><!-- /plan-stages -->
-                </div>
-                {% elif result.recommendations %}
-                <div class="band band--plan">
-                    <h2 class="band__title">{{ t.section_recommendations }}</h2>
-                    <p class="band__sub">{{ t.rec_sub }}</p>
-                    <div class="steps-stack">
-                        {% for rec in result.recommendations %}
-                        <div class="step">
-                            <div class="step__num">{{ loop.index }}</div>
-                            <div class="step__text">{{ rec }}</div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -498,24 +455,15 @@
                 {% endif %}
 
                 <!-- ══════════════════════════════
-                     6. CTA — UMÓW KONSULTACJĘ
+                     6. KONSULTACJA — TELEFON + FORMULARZ
                 ══════════════════════════════ -->
-                <div class="band band--cta-main">
-                    <div class="cta-main__inner">
-                        <h2 class="cta-main__heading">{{ t.cta_heading }}</h2>
-                        <p class="cta-main__text">{{ t.cta_text }}</p>
-                        <button class="cta-main__btn" id="openConsultBtn">{{ t.cta_btn }}</button>
-                        <p class="cta-main__sub">{{ t.cta_sub }}</p>
-                        <button class="cta-main__btn--secondary" id="openConsultBtnSecondary">{{ t.cta_secondary }}</button>
-                        <p class="cta-main__trust">{{ t.cta_trust }}</p>
-                    </div>
-                </div>
-
-                <!-- ══════════════════════════════
-                     6b. INLINE CONSULTATION FORM
-                ══════════════════════════════ -->
-                <div class="band band--consult-inline">
+                <div class="band band--consult-cta">
                     <h2 class="band__title">{{ t.section_consult_inline }}</h2>
+                    <p class="consult-cta__phone-line">
+                        <a href="tel:+48690584584" class="consult-cta__phone">+48 690 584 584</a>
+                        <span class="consult-cta__or">{{ t.or_leave_number }}</span>
+                    </p>
+
                     <p class="band__sub">{{ t.consult_inline_sub }}</p>
 
                     <form id="inlineConsultForm" class="ic-form" novalidate>
@@ -554,7 +502,7 @@
                     </div>
 
                     <p class="ic-form__trust">{{ t.ic_trust }}</p>
-                </div>
+                </div><!-- /band--consult-cta -->
 
                 <!-- ══════════════════════════════
                      6c. DOCTOR CARD
@@ -625,6 +573,19 @@
                             <div class="med-cred__clinic">{{ t.clinic_name }}</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- ══════════════════════════════
+                     8. FEEDBACK
+                ══════════════════════════════ -->
+                <div class="band band--feedback">
+                    <h2 class="band__title">{{ t.section_feedback }}</h2>
+                    <p class="band__sub">{{ t.feedback_sub }}</p>
+                    <form id="feedbackForm" class="feedback-form" novalidate>
+                        <textarea class="feedback-form__ta" id="feedbackText" rows="4" placeholder="{{ t.feedback_placeholder }}"></textarea>
+                        <button type="submit" class="feedback-form__btn">{{ t.feedback_btn }}</button>
+                    </form>
+                    <p class="feedback-form__success" id="feedbackSuccess" style="display:none;">{{ t.feedback_success }}</p>
                 </div>
 
                 <!-- DISCLAIMER -->
@@ -895,6 +856,33 @@
                 btn.textContent = _T.submit_btn;
                 errEl.textContent = _T.err_conn;
                 errEl.style.display = 'block';
+            });
+        });
+    })();
+
+    /* ── Feedback form ── */
+    (function() {
+        var form      = document.getElementById('feedbackForm');
+        var textEl    = document.getElementById('feedbackText');
+        var successEl = document.getElementById('feedbackSuccess');
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var text = textEl ? textEl.value.trim() : '';
+            if (!text) return;
+            var btn = form.querySelector('.feedback-form__btn');
+            btn.disabled = true;
+            fetch('/feedback', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text: text, token: '{{ token }}' })
+            })
+            .then(function() {
+                form.style.display = 'none';
+                successEl.style.display = 'block';
+            })
+            .catch(function() {
+                btn.disabled = false;
             });
         });
     })();

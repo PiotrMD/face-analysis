@@ -222,6 +222,10 @@ def _analyze_inner():
                 user_msg = ('Photo is unsuitable for analysis. Please upload a clear en face photo.'
                             if lang == 'en' else
                             'Zdjęcie nieodpowiednie do analizy. Wgraj wyraźne zdjęcie en face.')
+            elif 'POOR_PHOTO_QUALITY' in msg:
+                user_msg = ('Photo quality is insufficient for reliable analysis. Please upload a clear, close-up en face photo — face straight, both eyes visible, no sunglasses.'
+                            if lang == 'en' else
+                            'Jakość zdjęcia nie pozwala na rzetelną analizę. Wgraj wyraźne zbliżenie twarzy en face — twarz prosto, obie oczy widoczne, brak okularów.')
             else:
                 user_msg = str(e)
             return jsonify({
@@ -363,6 +367,22 @@ def contact():
     except Exception as e:
         print(f"[CONTACT ERROR] {e}", flush=True)
         return jsonify({'success': False, 'error': 'Nie udało się zapisać zgłoszenia. Spróbuj ponownie.'}), 500
+
+
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    data  = request.get_json(silent=True) or {}
+    text  = (data.get('text') or '').strip()[:2000]
+    token = (data.get('token') or '').strip()
+    if text:
+        print(f"[FEEDBACK] token={token!r} text={text!r}", flush=True)
+        try:
+            with open('feedback.log', 'a', encoding='utf-8') as f:
+                import json as _json
+                f.write(_json.dumps({'token': token, 'text': text}, ensure_ascii=False) + '\n')
+        except Exception:
+            pass
+    return jsonify({'success': True})
 
 
 @app.errorhandler(413)
