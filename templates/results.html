@@ -143,9 +143,6 @@
                             {{ result.overall_perception.freshness }}
                         </span>
                         {% endif %}
-                        {% if result.overall_perception.apparent_age %}
-                        <span class="op-tag op-tag--age">{{ result.overall_perception.apparent_age }}</span>
-                        {% endif %}
                     </div>
                     {% if result.overall_perception.impression %}
                     <p class="op-impression">{{ result.overall_perception.impression }}</p>
@@ -191,25 +188,27 @@
                 {% endif %}
 
                 <!-- ══════════════════════════════
-                     2b. CO TO OZNACZA
+                     3. CLINICAL INTERPRETATION
                 ══════════════════════════════ -->
-                {% if result.summary or result.top_priority %}
-                <div class="band band--personal-impact">
-                    <h2 class="band__title">{{ t.section_impact }}</h2>
-                    <div class="impact-sentences">
-                        {% if result.summary %}
-                        <p class="impact__sentence">{{ result.summary }}</p>
-                        {% endif %}
-                        {% if result.top_priority and result.top_priority != result.summary %}
-                        <p class="impact__sentence">{{ result.top_priority }}</p>
-                        {% endif %}
-                        <p class="impact__sentence impact__sentence--urgency">{{ t.impact_urgency }}</p>
+                <div class="band band--clinical-interp">
+                    <h2 class="band__title">{{ t.section_clinical }}</h2>
+                    {% if result.summary %}
+                    <p class="ci__note">{{ result.summary }}</p>
+                    {% endif %}
+                    {% if result.skin_health_note %}
+                    <p class="ci__note">{{ result.skin_health_note }}</p>
+                    {% endif %}
+                    <p class="ci__principle">{{ t.ci_principle }}</p>
+                    {% if result.strongest_asset %}
+                    <div class="ci__asset">
+                        <span class="ci__asset-label">{{ t.ci_asset_label }}</span>
+                        <span class="ci__asset-text">{{ result.strongest_asset }}</span>
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
 
                 <!-- ══════════════════════════════
-                     2c. FATIGUE
+                     3b. FATIGUE + NAPIĘCIE
                 ══════════════════════════════ -->
                 {% if result.fatigue_factors or result.skin_tension %}
                 <div class="band band--fatigue">
@@ -249,24 +248,116 @@
                 {% endif %}
 
                 <!-- ══════════════════════════════
-                     3. CLINICAL INTERPRETATION
+                     4. PEŁNA ANALIZA KATEGORII
                 ══════════════════════════════ -->
-                <div class="band band--clinical-interp">
-                    <h2 class="band__title">{{ t.section_clinical }}</h2>
-                    {% if result.skin_health_note %}
-                    <p class="ci__note">{{ result.skin_health_note }}</p>
-                    {% endif %}
-                    <p class="ci__principle">{{ t.ci_principle }}</p>
-                    {% if result.strongest_asset %}
-                    <div class="ci__asset">
-                        <span class="ci__asset-label">{{ t.ci_asset_label }}</span>
-                        <span class="ci__asset-text">{{ result.strongest_asset }}</span>
+                {% if result.sections %}
+                <div class="band band--analysis">
+                    <h2 class="band__title">{{ t.section_full }}</h2>
+                    <p class="band__sub">{{ t.full_sub }}</p>
+
+                    {% if result.category_scores %}
+                    <div class="score-chips">
+                        {% for key, label in section_labels.items() %}
+                            {% set s = result.category_scores.get(key, 0) %}
+                            <span class="schip schip--{% if s >= 7 %}good{% elif s >= 4 %}mild{% else %}moderate{% endif %}">
+                                {{ label }} <strong>{{ s }}</strong>
+                            </span>
+                        {% endfor %}
                     </div>
                     {% endif %}
+
+                    <div class="acc">
+                        {% set sorted_pairs = [] %}
+                        {% for key, label in section_labels.items() %}
+                            {% set score = (result.category_scores or {}).get(key, 5) %}
+                            {% set _ = sorted_pairs.append({'key': key, 'label': label, 'score': score}) %}
+                        {% endfor %}
+                        {% for item in sorted_pairs | sort(attribute='score') %}
+                            {% set key = item.key %}
+                            {% set label = item.label %}
+                            {% set sec = result.sections.get(key) %}
+                            {% if sec %}
+                                {% set cat_score = result.category_scores.get(key, '—') if result.category_scores else '—' %}
+                                <details class="acc__item acc__item--{{ sec.status }}">
+                                    <summary class="acc__summary">
+                                        <span class="acc__name">{{ label }}</span>
+                                        <span class="acc__right">
+                                            <span class="sbadge sbadge--{{ sec.status }}">
+                                                {% if sec.status == 'good' %}{{ t.status_good }}{% elif sec.status == 'mild' %}{{ t.status_mild }}{% else %}{{ t.status_moderate }}{% endif %}
+                                            </span>
+                                            <span class="acc__score">{{ cat_score }}/10</span>
+                                            <span class="acc__chevron">›</span>
+                                        </span>
+                                    </summary>
+                                    <div class="acc__body">
+                                        <p class="acc__finding">{{ sec.finding }}</p>
+                                        {% if sec.detail %}
+                                        <ul class="acc__detail">
+                                            {% for point in sec.detail %}<li>{{ point }}</li>{% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </details>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     4b. PROGRESSION
+                ══════════════════════════════ -->
+                {% if result.findings %}
+                {% set progressing = result.findings | selectattr('co_moze_sie_poglebiac', 'defined') | list %}
+                {% if progressing %}
+                <div class="band band--progression">
+                    <h2 class="band__title">{{ t.section_progression }}</h2>
+                    <p class="band__sub">{{ t.progression_sub }}</p>
+                    <div class="progression-list">
+                        {% for f in progressing[:4] %}
+                        {% if f.co_moze_sie_poglebiac %}
+                        <div class="prog-entry">
+                            <div class="prog-entry__header">
+                                <span class="prog-entry__name">{{ f.name }}</span>
+                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
+                            </div>
+                            <p class="prog-entry__text">{{ f.co_moze_sie_poglebiac }}</p>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     5. WNIOSEK LEKARSKI
+                ══════════════════════════════ -->
+                <div class="band band--verdict">
+                    <h2 class="band__title">{{ t.section_verdict }}</h2>
+                    <div class="verdict__body">
+                        {% if result.top_priority %}
+                        <p class="verdict__finding">{{ result.top_priority }}</p>
+                        {% elif result.summary %}
+                        <p class="verdict__finding">{{ result.summary }}</p>
+                        {% endif %}
+                        <div class="verdict__stage-row">
+                            <span class="verdict__stage-label">{{ t.verdict_stage_label }}</span>
+                            <span class="verdict__stage-val
+                                {% if result.overall_score >= 75 %} verdict__stage-val--early
+                                {% elif result.overall_score >= 55 %} verdict__stage-val--mid
+                                {% else %} verdict__stage-val--advanced{% endif %}">
+                                {% if result.overall_score >= 75 %}{{ t.verdict_early }}
+                                {% elif result.overall_score >= 55 %}{{ t.verdict_mid_stage }}
+                                {% else %}{{ t.verdict_advanced }}{% endif %}
+                            </span>
+                        </div>
+                        <p class="verdict__rec">{{ t.verdict_rec | safe }}</p>
+                    </div>
                 </div>
 
                 <!-- ══════════════════════════════
-                     4. TREATMENT PLAN — 3 ETAPY
+                     6. TREATMENT PLAN — 3 ETAPY
                 ══════════════════════════════ -->
                 {% if result.findings %}
                 {% set stage1 = (result.findings | selectattr('kategoria', 'equalto', 'skin_quality') | list) + (result.findings | selectattr('kategoria', 'equalto', 'pigment_vascular') | list) %}
@@ -407,88 +498,6 @@
                 {% endif %}
 
                 <!-- ══════════════════════════════
-                     4b. PROGRESSION
-                ══════════════════════════════ -->
-                {% if result.findings %}
-                {% set progressing = result.findings | selectattr('co_moze_sie_poglebiac', 'defined') | list %}
-                {% if progressing %}
-                <div class="band band--progression">
-                    <h2 class="band__title">{{ t.section_progression }}</h2>
-                    <p class="band__sub">{{ t.progression_sub }}</p>
-                    <div class="progression-list">
-                        {% for f in progressing[:4] %}
-                        {% if f.co_moze_sie_poglebiac %}
-                        <div class="prog-entry">
-                            <div class="prog-entry__header">
-                                <span class="prog-entry__name">{{ f.name }}</span>
-                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
-                            </div>
-                            <p class="prog-entry__text">{{ f.co_moze_sie_poglebiac }}</p>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     5. MEDICAL CREDIBILITY
-                ══════════════════════════════ -->
-                <div class="band band--med-cred">
-                    <h2 class="band__title">{{ t.section_med_cred }}</h2>
-                    <div class="med-cred__grid">
-                        <div class="med-cred__text">
-                            <p class="med-cred__lead">{{ t.med_cred_lead }}</p>
-                            <ul class="med-cred__list">
-                                <li>{{ t.med_cred_1 }}</li>
-                                <li>{{ t.med_cred_2 }}</li>
-                                <li>{{ t.med_cred_3 }}</li>
-                                <li>{{ t.med_cred_4 }}</li>
-                                <li>{{ t.med_cred_5 }}</li>
-                                <li>{{ t.med_cred_6 }}</li>
-                            </ul>
-                            <p class="med-cred__disclaimer">{{ t.med_cred_disclaimer }}</p>
-                        </div>
-                        <div class="med-cred__aside">
-                            <div class="med-cred__avatar">
-                                <img src="{{ url_for('static', filename='img/doctor.jpg') }}" alt="{{ t.doctor_full }}" class="med-cred__photo" onerror="this.style.display='none'">
-                            </div>
-                            <div class="med-cred__name">{{ t.doctor_full }}</div>
-                            <div class="med-cred__creds">{{ t.doctor_specialty_1 }}</div>
-                            <div class="med-cred__creds">{{ t.doctor_specialty_2 }}</div>
-                            <div class="med-cred__clinic">{{ t.clinic_name }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ══════════════════════════════
-                     5b. WNIOSEK LEKARSKI
-                ══════════════════════════════ -->
-                <div class="band band--verdict">
-                    <h2 class="band__title">{{ t.section_verdict }}</h2>
-                    <div class="verdict__body">
-                        {% if result.top_priority %}
-                        <p class="verdict__finding">{{ result.top_priority }}</p>
-                        {% elif result.summary %}
-                        <p class="verdict__finding">{{ result.summary }}</p>
-                        {% endif %}
-                        <div class="verdict__stage-row">
-                            <span class="verdict__stage-label">{{ t.verdict_stage_label }}</span>
-                            <span class="verdict__stage-val
-                                {% if result.overall_score >= 75 %} verdict__stage-val--early
-                                {% elif result.overall_score >= 55 %} verdict__stage-val--mid
-                                {% else %} verdict__stage-val--advanced{% endif %}">
-                                {% if result.overall_score >= 75 %}{{ t.verdict_early }}
-                                {% elif result.overall_score >= 55 %}{{ t.verdict_mid_stage }}
-                                {% else %}{{ t.verdict_advanced }}{% endif %}
-                            </span>
-                        </div>
-                        <p class="verdict__rec">{{ t.verdict_rec | safe }}</p>
-                    </div>
-                </div>
-
-                <!-- ══════════════════════════════
                      6. CTA — UMÓW KONSULTACJĘ
                 ══════════════════════════════ -->
                 <div class="band band--cta-main">
@@ -589,61 +598,34 @@
                 </div>
 
                 <!-- ══════════════════════════════
-                     7. FULL ANALYSIS (accordion)
+                     7. PODEJŚCIE MEDYCZNE (na końcu)
                 ══════════════════════════════ -->
-                {% if result.sections %}
-                <div class="band band--analysis">
-                    <h2 class="band__title">{{ t.section_full }}</h2>
-                    <p class="band__sub">{{ t.full_sub }}</p>
-
-                    {% if result.category_scores %}
-                    <div class="score-chips">
-                        {% for key, label in section_labels.items() %}
-                            {% set s = result.category_scores.get(key, 0) %}
-                            <span class="schip schip--{% if s >= 7 %}good{% elif s >= 4 %}mild{% else %}moderate{% endif %}">
-                                {{ label }} <strong>{{ s }}</strong>
-                            </span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <div class="acc">
-                        {% set sorted_pairs = [] %}
-                        {% for key, label in section_labels.items() %}
-                            {% set score = (result.category_scores or {}).get(key, 5) %}
-                            {% set _ = sorted_pairs.append({'key': key, 'label': label, 'score': score}) %}
-                        {% endfor %}
-                        {% for item in sorted_pairs | sort(attribute='score') %}
-                            {% set key = item.key %}
-                            {% set label = item.label %}
-                            {% set sec = result.sections.get(key) %}
-                            {% if sec %}
-                                {% set cat_score = result.category_scores.get(key, '—') if result.category_scores else '—' %}
-                                <details class="acc__item acc__item--{{ sec.status }}">
-                                    <summary class="acc__summary">
-                                        <span class="acc__name">{{ label }}</span>
-                                        <span class="acc__right">
-                                            <span class="sbadge sbadge--{{ sec.status }}">
-                                                {% if sec.status == 'good' %}{{ t.status_good }}{% elif sec.status == 'mild' %}{{ t.status_mild }}{% else %}{{ t.status_moderate }}{% endif %}
-                                            </span>
-                                            <span class="acc__score">{{ cat_score }}/10</span>
-                                            <span class="acc__chevron">›</span>
-                                        </span>
-                                    </summary>
-                                    <div class="acc__body">
-                                        <p class="acc__finding">{{ sec.finding }}</p>
-                                        {% if sec.detail %}
-                                        <ul class="acc__detail">
-                                            {% for point in sec.detail %}<li>{{ point }}</li>{% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </details>
-                            {% endif %}
-                        {% endfor %}
+                <div class="band band--med-cred">
+                    <h2 class="band__title">{{ t.section_med_cred }}</h2>
+                    <div class="med-cred__grid">
+                        <div class="med-cred__text">
+                            <p class="med-cred__lead">{{ t.med_cred_lead }}</p>
+                            <ul class="med-cred__list">
+                                <li>{{ t.med_cred_1 }}</li>
+                                <li>{{ t.med_cred_2 }}</li>
+                                <li>{{ t.med_cred_3 }}</li>
+                                <li>{{ t.med_cred_4 }}</li>
+                                <li>{{ t.med_cred_5 }}</li>
+                                <li>{{ t.med_cred_6 }}</li>
+                            </ul>
+                            <p class="med-cred__disclaimer">{{ t.med_cred_disclaimer }}</p>
+                        </div>
+                        <div class="med-cred__aside">
+                            <div class="med-cred__avatar">
+                                <img src="{{ url_for('static', filename='img/doctor.jpg') }}" alt="{{ t.doctor_full }}" class="med-cred__photo" onerror="this.style.display='none'">
+                            </div>
+                            <div class="med-cred__name">{{ t.doctor_full }}</div>
+                            <div class="med-cred__creds">{{ t.doctor_specialty_1 }}</div>
+                            <div class="med-cred__creds">{{ t.doctor_specialty_2 }}</div>
+                            <div class="med-cred__clinic">{{ t.clinic_name }}</div>
+                        </div>
                     </div>
                 </div>
-                {% endif %}
 
                 <!-- DISCLAIMER -->
                 <div class="disclaimer-box">{{ result.disclaimer }}</div>

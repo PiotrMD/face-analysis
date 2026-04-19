@@ -27,7 +27,7 @@ FORBIDDEN generic phrases (these make documentation clinically invalid):
   "delikatne", "nieznaczne", "subtelne" — unless the clinical grade genuinely warrants it
 
 ANTI-SOFTENING RULE — CRITICAL:
-  If the clinical observations report grade 3–4 wrinkles, DO NOT write "łagodne rhytidy".
+  If the clinical observations report grade 3–4 wrinkles, DO NOT write "łagodne zmarszczki".
   If the observations report significant pigmentation, DO NOT write "nieznaczne przebarwienia".
   Match your documented severity to what the observations actually describe.
   A physician who softens findings is clinically unreliable. Document honestly.
@@ -59,7 +59,7 @@ PIGMENTATION DOCUMENTATION REQUIREMENT:
 
 EVERY clinical statement must contain:
   1. ANATOMICAL LOCATION — exact structure (e.g. "okolica podoczodołowa lewa", "strefa T nosa", "lewy kąt ust")
-  2. CLINICAL FINDING — specific type and severity (e.g. "utrata objętości stopień 1", "asymetria ~2mm", "pory >0.4mm", "rhytidy dynamiczne stopień 2")
+  2. CLINICAL FINDING — specific type and severity (e.g. "utrata objętości stopień 1", "asymetria ~2mm", "pory >0.4mm", "zmarszczki dynamiczne stopień 2")
 
 If no significant pathology is documented in a domain: write "brak istotnych nieprawidłowości klinicznych w [structure]" and still document 2–3 minor deviations observed.
 
@@ -78,7 +78,7 @@ CALIBRATION EXAMPLES:
   Score 88: person aged 22–28, minimal pores, no lines, excellent symmetry — very few findings
   Score 74: person aged 30–35, mild nasolabial folds, minor skin texture issues, good symmetry
   Score 62: person aged 40–48, moderate findings in 3–4 domains, some volume loss
-  Score 48: person aged 50–58, significant findings: volume loss, deep rhytids, tissue descent
+  Score 48: person aged 50–58, significant findings: volume loss, deep wrinkles, tissue descent
   Score 32: person aged 60+, extensive findings across most domains
 
 Calibrate HONESTLY based on what you actually observe. Do not cluster scores near 62.
@@ -95,7 +95,7 @@ summary — exactly 3 sentences for the clinical chart:
 
 biological_age_estimate:
   Format: "XX–XX lat — [specific clinical sign that drove the estimate]"
-  Example: "37–43 lat — rhytidy dynamiczne stopień 2 przy kątach oczu i pory >0.4mm w strefie T wskazują na przyspieszone fotostarzenie"
+  Example: "37–43 lat — zmarszczki dynamiczne stopień 2 przy kątach oczu i pory >0.4mm w strefie T wskazują na przyspieszone fotostarzenie"
 
 strongest_asset:
   One sentence. Document the anatomical structure that shows the fewest concerns and explain the specific clinical observation supporting this.
@@ -136,7 +136,7 @@ Do NOT copy this example. Use it as a calibration reference only.
 {
   "overall_score": 64,
   "summary": "Łuki jarzmowe wykazują symetryczną projekcję boczną bez utraty objętości, stanowiąc klinicznie korzystną cechę strukturalną środkowej trzeciej twarzy. W okolicy podoczodołowej obustronnie udokumentowano utratę objętości stopień 1 wg skali Barton, z silniejszym cieniem tear trough po lewej stronie, klinicznie istotną dla efektu zmęczenia twarzy. Priorytetem konsultacji jest ocena wskazań do regeneracji okolicy podoczodołowej.",
-  "biological_age_estimate": "37–42 lat — rhytidy dynamiczne stopień 2 przy zewnętrznych kątach oczu oraz pory >0.4mm w strefie T nosa wskazują na przyspieszone fotostarzenie",
+  "biological_age_estimate": "37–42 lat — zmarszczki dynamiczne stopień 2 przy zewnętrznych kątach oczu oraz pory >0.4mm w strefie T nosa wskazują na przyspieszone fotostarzenie",
   "strongest_asset": "Łuki jarzmowe — symetryczna projekcja boczna w okolicy jarzmowo-skroniowej bez dokumentowanych ubytków objętości, rzadka cecha strukturalna w tej grupie wiekowej.",
   "top_priority": "Utrata objętości w okolicy podoczodołowej lewej (tear trough stopień 1–2 wg skali Barton) pogłębia cień podoczodołowy i efekt chronicznego zmęczenia — bez interwencji defekt będzie narastał i utrwalał cień.",
   "recommendations": [
@@ -452,7 +452,7 @@ If the photo is suitable, begin your response with:
 Then proceed with all sections below.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-WRINKLE GRADING SCALE (use for all rhytid documentation):
+WRINKLE GRADING SCALE (use for all wrinkle documentation):
   Grade 1 — very fine lines, barely visible at rest
   Grade 2 — fine lines, clearly visible at rest
   Grade 3 — moderate depth wrinkles, clearly defined folds
@@ -744,8 +744,8 @@ def _patch_prompt_for_lang(prompt: str, lang: str) -> str:
         '"summary": "The zygomatic arches demonstrate symmetric lateral projection without volume loss, representing a clinically favourable structural feature of the middle facial third. Bilateral periorbital volume loss grade 1 by the Barton scale is documented, with a more pronounced tear trough shadow on the left, clinically significant for the tired-face appearance. The consultation priority is assessment of indications for periorbital regeneration."'
     )
     prompt = prompt.replace(
-        '"biological_age_estimate": "37–42 lat — rhytidy dynamiczne stopień 2 przy zewnętrznych kątach oczu oraz pory >0.4mm w strefie T nosa wskazują na przyspieszone fotostarzenie"',
-        '"biological_age_estimate": "37–42 years — dynamic rhytids grade 2 at the lateral canthi and pores >0.4 mm in the T-zone indicate accelerated photoageing"'
+        '"biological_age_estimate": "37–42 lat — zmarszczki dynamiczne stopień 2 przy zewnętrznych kątach oczu oraz pory >0.4mm w strefie T nosa wskazują na przyspieszone fotostarzenie"',
+        '"biological_age_estimate": "37–42 years — dynamic wrinkles grade 2 at the lateral canthi and pores >0.4 mm in the T-zone indicate accelerated photoageing"'
     )
     prompt = prompt.replace(
         '"strongest_asset": "Łuki jarzmowe — symetryczna projekcja boczna w okolicy jarzmowo-skroniowej bez dokumentowanych ubytków objętości, rzadka cecha strukturalna w tej grupie wiekowej."',
@@ -757,7 +757,7 @@ def _patch_prompt_for_lang(prompt: str, lang: str) -> str:
     )
     prompt = prompt.replace(
         '"recommendations": [\n    "Tear trough: fibryna bogatokomórkowa (PRF) lub łagodne stymulatory — regeneracja okolicy podoczodołowej bez ryzyka obrzęku",\n    "Rhytidy dynamiczne okolicy oka: toksyna botulinowa 8–10j w mięsień okrężny oka obustronnie, co 4–5 miesięcy",\n    "Tekstura skóry: tretynoin 0.05% co drugi wieczór przez 6 tygodni, następnie 0.1% codziennie",\n    "Fotoprotekcja: mineralny SPF 50+ PA++++ codziennie rano",\n    "Pory i sebostaza strefy T: niacynamid 10% serum rano i wieczór przez min. 12 tygodni"\n  ]',
-        '"recommendations": [\n    "Tear trough: platelet-rich fibrin (PRF) or gentle biostimulators — periorbital regeneration without oedema risk",\n    "Periorbital dynamic rhytids: botulinum toxin 8–10 U into orbicularis oculi bilaterally, every 4–5 months",\n    "Skin texture: tretinoin 0.05% every other evening for 6 weeks, then 0.1% daily",\n    "Photoprotection: mineral SPF 50+ PA++++ every morning",\n    "Pores and T-zone sebostasis: niacinamide 10% serum morning and evening for min. 12 weeks"\n  ]'
+        '"recommendations": [\n    "Tear trough: platelet-rich fibrin (PRF) or gentle biostimulators — periorbital regeneration without oedema risk",\n    "Periorbital dynamic wrinkles: botulinum toxin 8–10 U into orbicularis oculi bilaterally, every 4–5 months",\n    "Skin texture: tretinoin 0.05% every other evening for 6 weeks, then 0.1% daily",\n    "Photoprotection: mineral SPF 50+ PA++++ every morning",\n    "Pores and T-zone sebostasis: niacinamide 10% serum morning and evening for min. 12 weeks"\n  ]'
     )
     prompt = prompt.replace(
         '"finding": "Strefa T nosa i czoła z rozszerzonymi porami >0.4mm i niejednorodnym mikrorelief skóry; policzek lewy z ogniskami hiperpigmentacji pozapalnej."',
