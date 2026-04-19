@@ -5,7 +5,7 @@ from typing import Dict
 # ═══════════════════════════════════════════════════════════════════
 # OBSERVATION PROMPT — Step 1: image → structured plain-text notes
 # ═══════════════════════════════════════════════════════════════════
-OBSERVATION_PROMPT = """You are an aesthetic medicine specialist completing a structured pre-consultation assessment. Your role is to observe accurately and describe findings in a balanced, constructive way — noting both what looks good and what can be improved. Fill in each field with what you actually observe.
+OBSERVATION_PROMPT = """Complete a structured aesthetic face assessment form based on the photo. Describe visible features objectively — note both positive aspects and areas that could benefit from improvement. Fill in each field with what you actually observe.
 
 RULE 1 — ACCURACY: Describe findings precisely with grade, location, and character.
 RULE 2 — NO FABRICATION: If you cannot clearly see something, write: "CANNOT ASSESS — [reason]". Never invent.
@@ -702,16 +702,31 @@ def _extract_json(text: str) -> dict:
     return json.loads(text[start:end+1])
 
 
+_SOFT_REFUSALS = (
+    "i'm sorry, i can't",
+    "i'm sorry, i cannot",
+    "i can't assist",
+    "i cannot assist",
+    "i'm not able to",
+    "i cannot help",
+    "i can't help",
+    "sorry, i can't",
+    "sorry, but i can't",
+)
+
 def _call_raw(openai_client, messages: list, model: str, max_tokens: int) -> str:
     response = openai_client.chat.completions.create(
         model=model, messages=messages, max_tokens=max_tokens, temperature=0.5,
     )
     choice  = response.choices[0]
-    raw     = choice.message.content
+    raw     = choice.message.content or ''
     refusal = getattr(choice.message, 'refusal', None)
-    print(f"[API] finish={choice.finish_reason} refusal={bool(refusal)} len={len(raw) if raw else 0}")
+    print(f"[API] finish={choice.finish_reason} refusal={bool(refusal)} len={len(raw)}")
     if refusal or not raw or len(raw) < 20:
         raise ValueError(f"API refused or returned empty (finish={choice.finish_reason})")
+    if any(raw.lower().startswith(p) for p in _SOFT_REFUSALS):
+        print(f"[API] soft refusal detected: {repr(raw[:80])}")
+        raise ValueError(f"API soft refusal: {raw[:80]}")
     if choice.finish_reason == 'length':
         raise ValueError(f"API response truncated — max_tokens={max_tokens} insufficient")
     return raw
@@ -746,7 +761,7 @@ def _observe(openai_client, images_data: dict, model: str, validation_context: d
 
     user_content.append({"type": "text", "text": observation_text})
     messages = [
-        {"role": "system", "content": "You are a dermatologist writing structured clinical observation notes from patient photographs. Document both strengths and concerns. Note confidence per section. Be specific and honest."},
+        {"role": "system", "content": "You are an aesthetic analysis specialist completing a structured face assessment form. Describe visible facial features objectively — skin quality, proportions, volume, lines, and overall appearance. Note both positive features and areas that could be improved. Fill every section of the form based on what you observe in the photo."},
         {"role": "user",   "content": user_content},
     ]
     return _call_raw(openai_client, messages, model, max_tokens=3500)
@@ -971,12 +986,11 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
         {
             "role": "system",
             "content": (
-                f"You are a warm and knowledgeable aesthetic medicine doctor writing a personalised pre-consultation report. "
-                f"Lead with what is genuinely good about this patient's face. Present areas for improvement as opportunities, not problems. "
+                f"You are writing a personalised aesthetic face assessment report based on structured observations. "
+                f"Lead with genuine positives about this person's appearance. Present improvement areas as opportunities. "
                 f"Every sentence must reflect a specific finding from the observations — no generic templates. "
                 f"Scores must vary based on actual findings: excellent features score high (8–10), areas needing work score low (3–5). "
-                f"Tone: like a trusted expert who wants the patient to feel informed, valued, and motivated for their consultation. "
-                f"Return only valid JSON, no markdown. All free text in {lang_name}."
+                f"Tone: warm, informative, encouraging. Return only valid JSON, no markdown. All free text in {lang_name}."
             )
         },
         {"role": "user", "content": prompt},
