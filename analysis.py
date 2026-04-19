@@ -360,7 +360,6 @@ OUTPUT FORMAT — return ONLY valid JSON, no markdown, no explanations
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 {
-  "overall_score": <integer 0–100>,
   "confidence_global": "<wysoka|umiarkowana|niska>",
   "dominant_impression": ["<impression1 from approved list>"],
   "strengths": [
@@ -493,7 +492,7 @@ REQUIRED_SECTIONS = [
 REQUIRED_SECTION_KEYS = {'status', 'finding', 'detail'}
 VALID_STATUSES = {'good', 'mild', 'moderate'}
 REQUIRED_TOP_FIELDS = [
-    'overall_score', 'summary', 'biological_age_estimate',
+    'summary', 'biological_age_estimate',
     'strongest_asset', 'top_priority', 'recommendations',
     'category_scores', 'key_findings', 'sections', 'disclaimer'
 ]
@@ -513,19 +512,22 @@ def _validate_result(result: dict) -> None:
         if field not in result:
             raise ValueError(f"Brak wymaganego pola: {field}")
 
-    result['overall_score'] = int(round(float(result['overall_score'])))
-    if not (0 <= result['overall_score'] <= 100):
-        raise ValueError(f"overall_score poza zakresem: {result['overall_score']}")
-
     if not isinstance(result['recommendations'], list) or len(result['recommendations']) < 3:
         raise ValueError("recommendations musi być listą z co najmniej 3 elementami")
 
-    # category_scores
+    # category_scores — normalize first
     cat = result.get('category_scores', {})
     for sec_name in REQUIRED_SECTIONS:
         if sec_name not in cat:
             raise ValueError(f"Brak category_scores['{sec_name}']")
         result['category_scores'][sec_name] = int(round(float(cat[sec_name])))
+
+    # overall_score — compute from category_scores (ignore GPT's value to prevent inflation)
+    scores = [result['category_scores'][s] for s in REQUIRED_SECTIONS]
+    avg = sum(scores) / len(scores)
+    result['overall_score'] = int(round(avg * 10))
+    if not (0 <= result['overall_score'] <= 100):
+        result['overall_score'] = max(0, min(100, result['overall_score']))
 
     # key_findings — synthesize missing
     kf = result.get('key_findings', [])
@@ -912,12 +914,18 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
         f"RULE B — UNIQUENESS: This report must reflect THIS patient only. "
         f"Every text field must contain at least one specific detail from the observations (grade number, side, location, measurement). "
         f"A report without specific details = invalid.\n\n"
-        f"RULE C — SCORE CALIBRATION: Scores MUST reflect actual findings:\n"
-        f"  - Patient with documented wrinkles grade 3+ → aging_signs ≤ 5\n"
-        f"  - Patient with no wrinkles noted → aging_signs 8–10\n"
-        f"  - Patient with tear trough grade 2+ → eye_area ≤ 5\n"
-        f"  - Patient with full malar volume → skin_quality domain scores high\n"
-        f"  - overall_score: typical patient 55–68; do NOT give everyone 60\n\n"
+        f"RULE C — SCORE CALIBRATION: category_scores (0–10) MUST match actual findings:\n"
+        f"  Score meaning: 10=perfect (no concern), 8–9=very good (minor only), 6–7=good (mild findings),\n"
+        f"  4–5=moderate concerns present, 2–3=significant findings, 0–1=severe.\n"
+        f"  EXAMPLES:\n"
+        f"  - Wrinkles grade 3+ present → aging_signs 3–5\n"
+        f"  - No wrinkles at rest → aging_signs 8–10\n"
+        f"  - Tear trough Barton 2+ → eye_area 3–5\n"
+        f"  - Mild pores/texture only → skin_quality 6–7\n"
+        f"  - Mild asymmetry → symmetry 6–7; no asymmetry → symmetry 8–10\n"
+        f"  FORBIDDEN: giving 8–10 to ANY category that has documented concerns.\n"
+        f"  FORBIDDEN: giving all categories the same score.\n"
+        f"  NOTE: overall_score is computed automatically from category averages — do not include it.\n\n"
         f"RULE D — STRENGTHS: List 3–6 specific anatomical positives from observations. "
         f"Quote exact features observed (e.g. 'pełna objętość łuków jarzmowych', 'brak zmarszczek statycznych czoła'). "
         f"Do NOT write 'ocena ograniczona' in strengths unless the face is literally invisible.\n\n"

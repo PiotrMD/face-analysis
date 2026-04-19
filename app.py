@@ -133,7 +133,7 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         return None
 
 
-APP_VERSION = "1ae71fb-v2"  # hardcoded — update on each deploy to confirm Railway runs latest
+APP_VERSION = "8e0ad1e-v3"  # hardcoded — update on each deploy to confirm Railway runs latest
 
 
 @app.route('/version')
