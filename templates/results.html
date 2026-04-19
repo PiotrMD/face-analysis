@@ -4,17 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-    <title>{% if is_demo %}{{ t.title_demo }}{% else %}{{ t.title_results }}{% endif %} — {{ t.clinic_name }}</title>
-    <meta name="description" content="Szczegółowa kliniczna ocena estetyki twarzy — symetria, jakość skóry, oznaki starzenia, okolica oczu i indywidualny plan postępowania.">
-    <meta property="og:type"        content="website">
-    <meta property="og:title"       content="{% if is_demo %}{{ t.og_title_demo }}{% else %}{{ t.og_title_results }}{% endif %}">
-    <meta property="og:description" content="Ocena kliniczna: {{ result.summary[:120] if result and result.summary else 'Indywidualny plan postępowania oparty na standardach klinicznych medycyny estetycznej.' }}…">
-    <meta property="og:url"         content="{{ og_base_url }}/results/{{ token }}">
-    <meta property="og:image"       content="{{ og_base_url }}/static/img/doctor.jpg">
-    <meta name="twitter:card"       content="summary_large_image">
-    <meta name="twitter:image"      content="{{ og_base_url }}/static/img/doctor.jpg">
+    <title>Wirtualna analiza twarzy — {{ t.clinic_name }}</title>
+    <meta name="description" content="Twoja indywidualna analiza twarzy — mocne strony, obszary do poprawy i proponowane zabiegi.">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_version }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     {% if ga_id %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
     <script>
@@ -26,955 +18,320 @@
     {% endif %}
 </head>
 <body>
-    <div class="page">
+<div class="page">
 
-        <header class="topbar">
-            <div class="topbar__inner">
-                <a href="/" class="topbar__brand">{{ t.brand }}</a>
-                <div class="topbar__doctor">
-                    <span class="topbar__doctor-name">{{ t.doctor_full }}</span>
-                    <span class="topbar__doctor-creds">{{ t.doctor_creds }}</span>
-                    <span class="topbar__clinic">{{ t.clinic_name }}</span>
-                </div>
-                <div class="topbar__right">
-                    <div class="lang-switcher">
-                        <a href="/set-lang/pl" class="lang-btn {% if lang == 'pl' %}lang-btn--active{% endif %}">PL</a>
-                        <a href="/set-lang/en" class="lang-btn {% if lang == 'en' %}lang-btn--active{% endif %}">EN</a>
-                    </div>
-                    <a href="tel:+48690584584" class="topbar__phone">+48 690 584 584</a>
-                    <button class="topbar__cta-btn" id="openConsultBtnTop">{{ t.book_consultation }}</button>
-                </div>
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a href="/" class="topbar__brand">{{ t.brand }}</a>
+            <div class="topbar__doctor">
+                <span class="topbar__doctor-name">{{ t.doctor_full }}</span>
+                <span class="topbar__doctor-creds">{{ t.doctor_creds }}</span>
+                <span class="topbar__clinic">{{ t.clinic_name }}</span>
             </div>
-        </header>
-
-        <main>
-            {% if is_demo %}
-            <div class="demo-banner">
-                <div class="demo-banner__title">{{ t.demo_banner_title }}</div>
-                <span>{{ t.demo_banner_body | safe }}</span>
-                <a href="/" class="demo-banner__cta">{{ t.demo_banner_cta }}</a>
-            </div>
-            {% endif %}
-            {% if error %}
-                <div class="error-box">
-                    <h2>{{ t.error_title }}</h2>
-                    <p>{{ error }}</p>
-                    <a href="/" class="btn btn-primary" style="display:inline-block;margin-top:16px;">{{ t.back }}</a>
+            <div class="topbar__right">
+                <div class="lang-switcher">
+                    <a href="/set-lang/pl" class="lang-btn {% if lang == 'pl' %}lang-btn--active{% endif %}">PL</a>
+                    <a href="/set-lang/en" class="lang-btn {% if lang == 'en' %}lang-btn--active{% endif %}">EN</a>
                 </div>
-            {% else %}
-
-            {% set nasilenie_labels = {
-                'brak':        t.sev_brak,
-                'lagodny':     t.sev_lagodny,
-                'umiarkowany': t.sev_umiarkowany,
-                'zaawansowany':t.sev_zaawansowany
-            } %}
-            {% set section_labels = {
-                'symmetry':        t.cat_symmetry,
-                'proportions':     t.cat_proportions,
-                'aging_signs':     t.cat_aging_signs,
-                'skin_quality':    t.cat_skin_quality,
-                'eye_area':        t.cat_eye_area,
-                'lips_lower_face': t.cat_lips_lower_face,
-                'hairline_hair':   t.cat_hairline_hair
-            } %}
-
-            <div class="results-wrap">
-
-                <!-- ══════════════════════════════
-                     1. HERO — SCORE + RADAR
-                ══════════════════════════════ -->
-                <div class="band band--hero">
-                    <div class="hero-viz">
-
-                        <div class="hero-gauge">
-                            <svg class="gauge-svg" viewBox="0 0 220 220">
-                                <circle class="gauge-track" cx="110" cy="110" r="88"/>
-                                <circle class="gauge-arc
-                                    {% if result.overall_score >= 80 %}gauge-arc--good
-                                    {% elif result.overall_score >= 60 %}gauge-arc--mid
-                                    {% else %}gauge-arc--low{% endif %}"
-                                    cx="110" cy="110" r="88"
-                                    id="gaugeArc"
-                                    stroke-dasharray="0 553"
-                                    stroke-dashoffset="138"/>
-                                <text class="gauge-num
-                                    {% if result.overall_score >= 80 %}gauge-num--good
-                                    {% elif result.overall_score >= 60 %}gauge-num--mid
-                                    {% else %}gauge-num--low{% endif %}"
-                                    x="110" y="120" text-anchor="middle"
-                                    id="gaugeNum">0</text>
-                                <text class="gauge-denom" x="110" y="148" text-anchor="middle">/100</text>
-                            </svg>
-                            <div class="gauge-verdict
-                                {% if result.overall_score >= 80 %}gauge-verdict--good
-                                {% elif result.overall_score >= 60 %}gauge-verdict--mid
-                                {% else %}gauge-verdict--low{% endif %}">
-                                {% if result.overall_score >= 80 %}{{ t.verdict_good }}
-                                {% elif result.overall_score >= 60 %}{{ t.verdict_mid }}
-                                {% else %}{{ t.verdict_low }}{% endif %}
-                            </div>
-                            {% if result.biological_age_estimate %}
-                            <div class="gauge-age">
-                                <span class="gauge-age__label">{{ t.skin_age_label }}</span>
-                                <span class="gauge-age__val">{{ result.biological_age_estimate }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="hero-radar">
-                            <canvas id="radarChart"></canvas>
-                        </div>
-
-                    </div>
-                    <p class="hero__cta-line">{{ t.hero_cta_line }}</p>
-                    <p class="hero__normalize">{{ t.hero_normalize }}</p>
-
-                    <!-- Validation meta strip -->
-                    {% if result.validation or result.harmony %}
-                    <div class="val-strip">
-                        {% set vd = result.validation or {} %}
-                        {% set hp = vd.get('head_pose', {}) %}
-                        {% set oi = vd.get('overall_impression', {}) %}
-                        {% set hm = result.harmony or vd.get('harmony', {}) %}
-
-                        <!-- Head pose chip -->
-                        {% if hp %}
-                        {% set pose_ok = hp.get('acceptable_for_analysis', True) %}
-                        <div class="val-chip val-chip--{{ 'ok' if pose_ok else 'warn' }}">
-                            <span class="val-chip__icon">{% if pose_ok %}✓{% else %}⚠{% endif %}</span>
-                            <span class="val-chip__label">{{ t.val_head_pose }}</span>
-                            <span class="val-chip__val">{{ t.val_pose_ok if pose_ok else t.val_pose_warn }}</span>
-                        </div>
-                        {% endif %}
-
-                        <!-- Harmony chip -->
-                        {% if hm and hm.get('level') %}
-                        {% set hml = hm.level %}
-                        <div class="val-chip val-chip--{{ 'ok' if hml == 'wysoka' else ('mid' if hml == 'umiarkowana' else 'warn') }}">
-                            <span class="val-chip__icon">◈</span>
-                            <span class="val-chip__label">{{ t.val_harmony }}</span>
-                            <span class="val-chip__val">{{ hml }}</span>
-                        </div>
-                        {% endif %}
-
-                        <!-- Analysis confidence chip -->
-                        {% if result.confidence_global %}
-                        {% set cg = result.confidence_global %}
-                        <div class="val-chip val-chip--{{ 'ok' if cg in ('wysoka', 'high') else ('mid' if cg in ('umiarkowana', 'moderate') else 'warn') }}">
-                            <span class="val-chip__icon">◎</span>
-                            <span class="val-chip__label">{{ t.confidence_label }}</span>
-                            <span class="val-chip__val">{{ cg }}</span>
-                        </div>
-                        {% endif %}
-
-                        <!-- Harmony detail note -->
-                        {% if hm and hm.get('notes') %}
-                        <div class="val-notes">
-                            {% for note in hm.notes[:2] %}
-                            <span class="val-note">{{ note }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- ══════════════════════════════
-                     1b. CO WYGLĄDA KORZYSTNIE
-                ══════════════════════════════ -->
-                {% if result.strengths %}
-                <div class="band band--strengths">
-                    <h2 class="band__title">{{ t.section_strengths }}</h2>
-                    <p class="band__sub">{{ t.strengths_sub }}</p>
-                    <ul class="strengths-list">
-                        {% for s in result.strengths %}
-                        <li class="strengths-item">
-                            <span class="strengths-item__icon">✓</span>
-                            <span class="strengths-item__text">{{ s }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% if result.confidence_global %}
-                    <div class="strengths-confidence">
-                        <span class="strengths-confidence__label">{{ t.confidence_label }}:</span>
-                        <span class="strengths-confidence__val strengths-confidence__val--{{ result.confidence_global | replace('ę','e') | replace('ó','o') | replace('ś','s') | replace('ą','a') }}">{{ result.confidence_global }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     1c. OGÓLNY ODBIÓR TWARZY
-                ══════════════════════════════ -->
-                {% if result.overall_perception %}
-                <div class="band band--overall-perception">
-                    <h2 class="band__title">{{ t.section_overall }}</h2>
-                    <div class="op-tags">
-                        {% if result.dominant_impression %}
-                            {% for imp in result.dominant_impression %}
-                            {% if 'ograniczona' not in imp|lower and 'cannot' not in imp|lower %}
-                            <span class="op-tag op-tag--impression">{{ imp }}</span>
-                            {% endif %}
-                            {% endfor %}
-                        {% elif result.overall_perception.freshness %}
-                        <span class="op-tag op-tag--freshness op-tag--{{ result.overall_perception.freshness | replace('ę','e') | replace('ó','o') | replace(' ','_') | replace('ą','a') | replace('ś','s') | replace('ż','z') }}">
-                            {{ result.overall_perception.freshness }}
-                        </span>
-                        {% endif %}
-                        {% if result.overall_perception.aesthetic_character %}
-                        <span class="op-tag op-tag--character">{{ result.overall_perception.aesthetic_character }}</span>
-                        {% endif %}
-                    </div>
-                    {% if result.overall_perception.impression %}
-                    <p class="op-impression">{{ result.overall_perception.impression }}</p>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     2. PRIORYTETY KLINICZNE
-                ══════════════════════════════ -->
-                {% if result.findings or result.top_priority %}
-                {% if result.findings %}
-                {% set top_f = result.findings | selectattr('priorytet', 'equalto', 'wysoki') | list %}
-                {% if not top_f %}{% set top_f = result.findings | list %}{% endif %}
-                {% endif %}
-                <div class="band band--top-priority">
-                    <h2 class="band__title">{{ t.section_priorities }}</h2>
-                    {% if result.top_priority and 'ograniczona' not in result.top_priority|lower %}
-                    <p class="tp-main">{{ result.top_priority }}</p>
-                    {% endif %}
-                    {% if result.findings and top_f %}
-                    <div class="tp-cards">
-                        {% for f in top_f[:3] %}
-                        <div class="tp-card">
-                            <div class="tp-card__header">
-                                <span class="tp-card__area">{{ f.area }}</span>
-                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
-                            </div>
-                            <div class="tp-card__name">{{ f.name }}</div>
-                            {% if f.kierunek_postepowania %}
-                            <div class="tp-card__tags">
-                                {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     2b. WNIOSEK LEKARSKI (zaraz po priorytetach)
-                ══════════════════════════════ -->
-                <div class="band band--verdict">
-                    <h2 class="band__title">{{ t.section_verdict }}</h2>
-                    <div class="verdict__body">
-                        <div class="verdict__stage-row">
-                            <span class="verdict__stage-label">{{ t.verdict_stage_label }}</span>
-                            <span class="verdict__stage-val
-                                {% if result.overall_score >= 75 %} verdict__stage-val--early
-                                {% elif result.overall_score >= 55 %} verdict__stage-val--mid
-                                {% else %} verdict__stage-val--advanced{% endif %}">
-                                {% if result.overall_score >= 75 %}{{ t.verdict_early }}
-                                {% elif result.overall_score >= 55 %}{{ t.verdict_mid_stage }}
-                                {% else %}{{ t.verdict_advanced }}{% endif %}
-                            </span>
-                        </div>
-                        <p class="verdict__rec">{{ t.verdict_rec | safe }}</p>
-                    </div>
-                </div>
-
-                <!-- ══════════════════════════════
-                     3. INTERPRETACJA KLINICZNA
-                ══════════════════════════════ -->
-                <div class="band band--clinical-interp">
-                    <h2 class="band__title">{{ t.section_clinical }}</h2>
-                    {% if result.summary %}
-                    <p class="ci__note">{{ result.summary }}</p>
-                    {% endif %}
-                    {% if result.strongest_asset %}
-                    <div class="ci__asset">
-                        <span class="ci__asset-label">{{ t.ci_asset_label }}</span>
-                        <span class="ci__asset-text">{{ result.strongest_asset }}</span>
-                    </div>
-                    {% endif %}
-                    {% if result.skin_health_note %}
-                    <p class="ci__note ci__note--secondary">{{ result.skin_health_note }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- ══════════════════════════════
-                     3b. CO WPŁYWA NA ZMĘCZENIE
-                ══════════════════════════════ -->
-                {% if result.fatigue_factors or result.skin_tension %}
-                <div class="band band--fatigue">
-                    <h2 class="band__title">{{ t.section_fatigue }}</h2>
-                    {% if result.fatigue_factors %}
-                    {% if result.fatigue_factors.primary %}
-                    <div class="fatigue-primary">
-                        <span class="fatigue-primary__label">{{ t.fatigue_primary_label }}</span>
-                        <span class="fatigue-primary__text">{{ result.fatigue_factors.primary }}</span>
-                    </div>
-                    {% endif %}
-                    {% if result.fatigue_factors.contributing %}
-                    <div class="fatigue-contributing">
-                        {% for c in result.fatigue_factors.contributing %}
-                        <div class="fatigue-factor">{{ c }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    {% if result.fatigue_factors.explanation %}
-                    <p class="fatigue-explanation">{{ result.fatigue_factors.explanation }}</p>
-                    {% endif %}
-                    {% endif %}
-                    {% if result.skin_tension %}
-                    <div class="tension-grid">
-                        <div class="tension-grid__title">{{ t.skin_tension_title }}</div>
-                        {% for zone, label in [('under_eye', t.tension_under_eye), ('cheeks', t.tension_cheeks), ('jawline', t.tension_jawline), ('neck', t.tension_neck)] %}
-                        {% if result.skin_tension[zone] %}
-                        <div class="tension-row">
-                            <span class="tension-row__label">{{ label }}</span>
-                            <span class="tension-row__text">{{ result.skin_tension[zone] }}</span>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     4. PEŁNA ANALIZA KATEGORII
-                ══════════════════════════════ -->
-                {% if result.sections %}
-                <div class="band band--analysis">
-                    <h2 class="band__title">{{ t.section_full }}</h2>
-                    <p class="band__sub">{{ t.full_sub }}</p>
-
-                    {% if result.category_scores %}
-                    <div class="score-chips">
-                        {% for key, label in section_labels.items() %}
-                            {% set s = result.category_scores.get(key, 0) %}
-                            <span class="schip schip--{% if s >= 7 %}good{% elif s >= 4 %}mild{% else %}moderate{% endif %}">
-                                {{ label }} <strong>{{ s }}</strong>
-                            </span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <div class="acc">
-                        {% set sorted_pairs = [] %}
-                        {% for key, label in section_labels.items() %}
-                            {% set score = (result.category_scores or {}).get(key, 5) %}
-                            {% set _ = sorted_pairs.append({'key': key, 'label': label, 'score': score}) %}
-                        {% endfor %}
-                        {% for item in sorted_pairs | sort(attribute='score') %}
-                            {% set key = item.key %}
-                            {% set label = item.label %}
-                            {% set sec = result.sections.get(key) %}
-                            {% if sec %}
-                                {% set cat_score = result.category_scores.get(key, '—') if result.category_scores else '—' %}
-                                <details class="acc__item acc__item--{{ sec.status }}">
-                                    <summary class="acc__summary">
-                                        <span class="acc__name">{{ label }}</span>
-                                        <span class="acc__right">
-                                            <span class="sbadge sbadge--{{ sec.status }}">
-                                                {% if sec.status == 'good' %}{{ t.status_good }}{% elif sec.status == 'mild' %}{{ t.status_mild }}{% else %}{{ t.status_moderate }}{% endif %}
-                                            </span>
-                                            <span class="acc__score">{{ cat_score }}/10</span>
-                                            <span class="acc__chevron">›</span>
-                                        </span>
-                                    </summary>
-                                    <div class="acc__body">
-                                        <p class="acc__finding">{{ sec.finding }}</p>
-                                        {% if sec.detail %}
-                                        <ul class="acc__detail">
-                                            {% for point in sec.detail %}<li>{{ point }}</li>{% endfor %}
-                                        </ul>
-                                        {% endif %}
-                                    </div>
-                                </details>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     4b. PROGRESSION
-                ══════════════════════════════ -->
-                {% if result.findings %}
-                {% set progressing = result.findings | selectattr('co_moze_sie_poglebiac', 'defined') | list %}
-                {% if progressing %}
-                <div class="band band--progression">
-                    <h2 class="band__title">{{ t.section_progression }}</h2>
-                    <p class="band__sub">{{ t.progression_sub }}</p>
-                    <div class="progression-list">
-                        {% for f in progressing[:4] %}
-                        {% if f.co_moze_sie_poglebiac %}
-                        <div class="prog-entry">
-                            <div class="prog-entry__header">
-                                <span class="prog-entry__name">{{ f.name }}</span>
-                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
-                            </div>
-                            <p class="prog-entry__text">{{ f.co_moze_sie_poglebiac }}</p>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     5. PLAN POSTĘPOWANIA (krótki)
-                ══════════════════════════════ -->
-                {% if result.findings %}
-                <div class="band band--plan">
-                    <h2 class="band__title">{{ t.section_plan }}</h2>
-                    <p class="band__sub">{{ t.plan_sub }}</p>
-                    <div class="plan-list">
-                        {% for f in result.findings %}
-                        <div class="plan-row">
-                            <div class="plan-row__left">
-                                <span class="plan-row__name">{{ f.name }}</span>
-                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
-                            </div>
-                            {% if f.kierunek_postepowania %}
-                            <div class="plan-row__tags">
-                                {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- ══════════════════════════════
-                     6. KONSULTACJA — TELEFON + FORMULARZ
-                ══════════════════════════════ -->
-                <div class="band band--consult-cta">
-                    <h2 class="band__title">{{ t.section_consult_inline }}</h2>
-                    <p class="consult-cta__phone-line">
-                        <a href="tel:+48690584584" class="consult-cta__phone">+48 690 584 584</a>
-                        <span class="consult-cta__or">{{ t.or_leave_number }}</span>
-                    </p>
-
-                    <p class="band__sub">{{ t.consult_inline_sub }}</p>
-
-                    <form id="inlineConsultForm" class="ic-form" novalidate>
-                        <div class="ic-form__row">
-                            <div class="ic-form__field">
-                                <label class="ic-form__label" for="ic_name">{{ t.label_name }}</label>
-                                <input class="ic-form__input" type="text" id="ic_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
-                            </div>
-                            <div class="ic-form__field">
-                                <label class="ic-form__label" for="ic_phone">{{ t.label_phone }}</label>
-                                <input class="ic-form__input" type="tel" id="ic_phone" placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
-                            </div>
-                        </div>
-                        <div class="ic-form__field">
-                            <label class="ic-form__label" for="ic_email">{{ t.label_email }}</label>
-                            <input class="ic-form__input" type="email" id="ic_email" placeholder="{{ t.ph_email }}" autocomplete="email" required>
-                        </div>
-                        <div class="ic-form__field">
-                            <label class="ic-form__label" for="ic_message">{{ t.label_message }} <span class="ic-form__opt">({{ t.optional }})</span></label>
-                            <textarea class="ic-form__input ic-form__input--ta" id="ic_message" rows="3" placeholder="{{ t.ph_message }}"></textarea>
-                        </div>
-                        <div class="ic-form__consent">
-                            <label class="ic-form__consent-label">
-                                <input type="checkbox" id="ic_consent" class="ic-form__checkbox" required>
-                                <span>{{ t.consent_text }}</span>
-                            </label>
-                        </div>
-                        <div class="ic-form__footer">
-                            <button type="submit" class="ic-form__btn">{{ t.submit_btn }}</button>
-                        </div>
-                        <p class="ic-form__error" id="icError" style="display:none;"></p>
-                    </form>
-
-                    <div class="ic-form__success" id="icSuccess" style="display:none;">
-                        {{ t.success_msg }}
-                    </div>
-
-                    <p class="ic-form__trust">{{ t.ic_trust }}</p>
-                </div><!-- /band--consult-cta -->
-
-                <!-- ══════════════════════════════
-                     6c. DOCTOR CARD
-                ══════════════════════════════ -->
-                <div class="band band--doctor">
-                    <p class="band__title">{{ t.section_doctor }}</p>
-                    <div class="doctor-card">
-                        <div class="doctor-card__header">
-                            <div class="doctor-card__avatar">
-                                <img src="{{ url_for('static', filename='img/doctor.jpg') }}" alt="{{ t.doctor_full }}" class="doctor-card__photo" onerror="this.style.display='none'">
-                            </div>
-                            <div>
-                                <div class="doctor-card__name">{{ t.doctor_full }}</div>
-                                <div class="doctor-card__credentials">{{ t.doctor_specialty_1 }}, {{ t.doctor_specialty_2 }}</div>
-                                <div class="doctor-card__clinic">{{ t.clinic_name }}</div>
-                            </div>
-                        </div>
-                        <div class="doctor-card__contact">
-                            <div class="contact-row">
-                                <span class="contact-row__label">{{ t.contact_phone }}</span>
-                                <a href="tel:+48690584584" class="contact-row__value">+48 690 584 584</a>
-                            </div>
-                            <div class="contact-row">
-                                <span class="contact-row__label">{{ t.contact_hours }}</span>
-                                <span class="contact-row__value">{{ t.contact_hours_val }}</span>
-                            </div>
-                            <div class="contact-row">
-                                <span class="contact-row__label">{{ t.contact_address }}</span>
-                                <span class="contact-row__value">ul. Leszno 21, 01-199 Warszawa</span>
-                            </div>
-                            <div class="contact-row">
-                                <span class="contact-row__label">{{ t.contact_websites }}</span>
-                                <span class="contact-row__value contact-row__value--links">
-                                    <a href="http://www.ocenazdrowia.pl" target="_blank" rel="noopener">www.ocenazdrowia.pl</a>
-                                    <a href="http://www.estetykamedyczna.pl" target="_blank" rel="noopener">www.estetykamedyczna.pl</a>
-                                </span>
-                            </div>
-                        </div>
-                        <p class="doctor-card__trust">{{ t.doctor_trust }}</p>
-                    </div>
-                </div>
-
-                <!-- ══════════════════════════════
-                     7. PODEJŚCIE MEDYCZNE (na końcu)
-                ══════════════════════════════ -->
-                <div class="band band--med-cred">
-                    <h2 class="band__title">{{ t.section_med_cred }}</h2>
-                    <div class="med-cred__grid">
-                        <div class="med-cred__text">
-                            <p class="med-cred__lead">{{ t.med_cred_lead }}</p>
-                            <ul class="med-cred__list">
-                                <li>{{ t.med_cred_1 }}</li>
-                                <li>{{ t.med_cred_2 }}</li>
-                                <li>{{ t.med_cred_3 }}</li>
-                                <li>{{ t.med_cred_4 }}</li>
-                                <li>{{ t.med_cred_5 }}</li>
-                                <li>{{ t.med_cred_6 }}</li>
-                            </ul>
-                            <p class="med-cred__disclaimer">{{ t.med_cred_disclaimer }}</p>
-                        </div>
-                        <div class="med-cred__aside">
-                            <div class="med-cred__avatar">
-                                <img src="{{ url_for('static', filename='img/doctor.jpg') }}" alt="{{ t.doctor_full }}" class="med-cred__photo" onerror="this.style.display='none'">
-                            </div>
-                            <div class="med-cred__name">{{ t.doctor_full }}</div>
-                            <div class="med-cred__creds">{{ t.doctor_specialty_1 }}</div>
-                            <div class="med-cred__creds">{{ t.doctor_specialty_2 }}</div>
-                            <div class="med-cred__clinic">{{ t.clinic_name }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ══════════════════════════════
-                     8. FEEDBACK
-                ══════════════════════════════ -->
-                <div class="band band--feedback">
-                    <h2 class="band__title">{{ t.section_feedback }}</h2>
-                    <p class="band__sub">{{ t.feedback_sub }}</p>
-                    <form id="feedbackForm" class="feedback-form" novalidate>
-                        <textarea class="feedback-form__ta" id="feedbackText" rows="4" placeholder="{{ t.feedback_placeholder }}"></textarea>
-                        <button type="submit" class="feedback-form__btn">{{ t.feedback_btn }}</button>
-                    </form>
-                    <p class="feedback-form__success" id="feedbackSuccess" style="display:none;">{{ t.feedback_success }}</p>
-                </div>
-
-                <!-- DISCLAIMER -->
-                <div class="disclaimer-box">{{ result.disclaimer }}</div>
-
-            </div><!-- /results-wrap -->
-            {% endif %}
-        </main>
-
-        <!-- MODAL — CONSULTATION FORM -->
-        <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
-            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-                <button class="modal__close" id="modalClose" aria-label="Close">&times;</button>
-                <div class="modal__inner">
-                    <h2 class="modal__title" id="modalTitle">{{ t.modal_title }}</h2>
-                    <p class="modal__lead">{{ t.modal_lead_results }}</p>
-
-                    <form id="consultFormEl" class="consult-form" novalidate>
-                        <div class="consult-form__field">
-                            <label class="consult-form__label" for="cf_full_name">{{ t.label_name }}</label>
-                            <input class="consult-form__input" type="text" id="cf_full_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
-                        </div>
-                        <div class="consult-form__field">
-                            <label class="consult-form__label" for="cf_phone">{{ t.label_phone }}</label>
-                            <input class="consult-form__input" type="tel" id="cf_phone" placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
-                        </div>
-                        <div class="consult-form__field">
-                            <label class="consult-form__label" for="cf_email">{{ t.label_email }}</label>
-                            <input class="consult-form__input" type="email" id="cf_email" placeholder="{{ t.ph_email }}" autocomplete="email" required>
-                        </div>
-                        <div class="consult-form__field">
-                            <label class="consult-form__label" for="cf_message">{{ t.label_message }} <span class="consult-form__optional">({{ t.optional }})</span></label>
-                            <textarea class="consult-form__input consult-form__input--textarea" id="cf_message" rows="3" placeholder="{{ t.ph_message }}"></textarea>
-                        </div>
-                        <div class="consult-form__field consult-form__field--consent">
-                            <label class="consult-form__consent-label">
-                                <input type="checkbox" id="cf_consent" class="consult-form__checkbox" required>
-                                <span>{{ t.consent_text }}</span>
-                            </label>
-                        </div>
-                        <div class="consult-form__footer">
-                            <button type="submit" class="consult-form__btn">{{ t.submit_btn }}</button>
-                        </div>
-                        <p class="consult-form__error" id="consultError" style="display:none;"></p>
-                    </form>
-
-                    <div class="consult__success" id="consultSuccess" style="display:none;">
-                        {{ t.success_msg }}
-                    </div>
-
-                    <p class="consult__note">{{ t.consult_note }}</p>
-                </div>
+                <a href="tel:+48690584584" class="topbar__phone">+48 690 584 584</a>
+                <button class="topbar__cta-btn" id="openConsultBtnTop">{{ t.book_consultation }}</button>
             </div>
         </div>
+    </header>
 
-        <footer><p>{{ t.footer }}</p></footer>
+    <main>
+        {% if is_demo %}
+        <div class="demo-banner">
+            <div class="demo-banner__title">{{ t.demo_banner_title }}</div>
+            <span>{{ t.demo_banner_body | safe }}</span>
+            <a href="/" class="demo-banner__cta">{{ t.demo_banner_cta }}</a>
+        </div>
+        {% endif %}
 
-    <!-- STICKY CTA BAR -->
-    <div class="sticky-cta" id="stickyCta" aria-hidden="true">
-        <div class="sticky-cta__inner">
-            <div class="sticky-cta__text">
-                <span class="sticky-cta__headline">{{ t.sticky_headline }}</span>
-                <span class="sticky-cta__sub">{{ t.sticky_sub }}</span>
+        {% if error %}
+        <div class="error-box">
+            <h2>{{ t.error_title }}</h2>
+            <p>{{ error }}</p>
+            <a href="/" class="btn btn-primary" style="display:inline-block;margin-top:16px;">{{ t.back }}</a>
+        </div>
+        {% else %}
+
+        <div class="res-wrap">
+
+            <!-- ── HEADER ── -->
+            <div class="res-header">
+                <h1 class="res-header__title">
+                    {% if lang == 'en' %}Virtual face analysis{% else %}Wirtualna analiza twarzy{% endif %}
+                </h1>
+                <p class="res-header__intro">{{ result.intro }}</p>
             </div>
-            <button class="sticky-cta__btn" id="openConsultBtnSticky">{{ t.sticky_btn }}</button>
+
+            <!-- ── SCORE ── -->
+            <div class="res-score-band">
+                <div class="res-score">
+                    <div class="res-score__circle res-score__circle--{% if result.overall_score >= 8 %}good{% elif result.overall_score >= 6 %}mid{% else %}low{% endif %}">
+                        <span class="res-score__num">{{ result.overall_score }}</span>
+                        <span class="res-score__denom">/10</span>
+                    </div>
+                    <div class="res-score__label">
+                        {% if result.overall_score >= 8 %}
+                            {% if lang == 'en' %}Great condition{% else %}Świetna kondycja{% endif %}
+                        {% elif result.overall_score >= 6 %}
+                            {% if lang == 'en' %}Good condition{% else %}Dobra kondycja{% endif %}
+                        {% else %}
+                            {% if lang == 'en' %}Room for improvement{% else %}Warto zadbać{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Area bars -->
+                {% if result.areas %}
+                <div class="res-areas">
+                    {% set labels = result.area_labels if result.area_labels else {} %}
+                    {% for key, score in result.areas.items() %}
+                    <div class="res-area">
+                        <span class="res-area__label">{{ labels.get(key, key) }}</span>
+                        <div class="res-area__bar-wrap">
+                            <div class="res-area__bar res-area__bar--{% if score >= 8 %}good{% elif score >= 6 %}mid{% else %}low{% endif %}"
+                                 style="width: {{ score * 10 }}%"></div>
+                        </div>
+                        <span class="res-area__val">{{ score }}/10</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── STRENGTHS ── -->
+            {% if result.strengths %}
+            <div class="res-section res-section--strengths">
+                <h2 class="res-section__title">
+                    <span class="res-section__icon">✓</span>
+                    {% if lang == 'en' %}What looks great{% else %}Co wygląda świetnie{% endif %}
+                </h2>
+                <ul class="res-list res-list--strengths">
+                    {% for item in result.strengths %}
+                    <li class="res-list__item">{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- ── CONCERNS ── -->
+            {% if result.concerns %}
+            <div class="res-section res-section--concerns">
+                <h2 class="res-section__title">
+                    <span class="res-section__icon">◆</span>
+                    {% if lang == 'en' %}Areas to improve{% else %}Co można poprawić{% endif %}
+                </h2>
+                <ul class="res-list res-list--concerns">
+                    {% for item in result.concerns %}
+                    <li class="res-list__item">{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- ── TREATMENTS ── -->
+            {% if result.treatments %}
+            <div class="res-section res-section--treatments">
+                <h2 class="res-section__title">
+                    <span class="res-section__icon">◈</span>
+                    {% if lang == 'en' %}Recommended treatments{% else %}Proponowane zabiegi{% endif %}
+                </h2>
+                <div class="res-treatments">
+                    {% for t_name in result.treatments %}
+                    <span class="res-treatment-tag">{{ t_name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── CTA ── -->
+            <div class="res-cta">
+                <p class="res-cta__text">
+                    {% if lang == 'en' %}
+                        Ready to discuss your results with a specialist?
+                    {% else %}
+                        Chcesz omówić wyniki z lekarzem?
+                    {% endif %}
+                </p>
+                <div class="res-cta__buttons">
+                    <button class="res-cta__btn res-cta__btn--primary" id="openConsultBtn">
+                        {% if lang == 'en' %}Book a consultation{% else %}Umów konsultację{% endif %}
+                    </button>
+                    <a href="tel:+48690584584" class="res-cta__btn res-cta__btn--secondary">
+                        {% if lang == 'en' %}Call us{% else %}Zadzwoń{% endif %}: +48 690 584 584
+                    </a>
+                </div>
+                <p class="res-cta__disclaimer">
+                    {% if lang == 'en' %}
+                        This analysis is based on a photo and does not replace a medical examination.
+                    {% else %}
+                        Analiza wykonana na podstawie zdjęcia. Nie zastępuje badania lekarskiego.
+                    {% endif %}
+                </p>
+            </div>
+
+        </div><!-- /res-wrap -->
+        {% endif %}
+    </main>
+
+    <!-- ── CONSULTATION MODAL ── -->
+    <div class="modal-overlay" id="modalOverlay" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-box">
+            <button class="modal-close" id="modalClose" aria-label="Zamknij">✕</button>
+            <h2 class="modal-title">{{ t.modal_title }}</h2>
+            <p class="modal-sub">{{ t.modal_sub }}</p>
+            <form class="consult-form" id="consultFormEl" novalidate>
+                <div class="consult-form__row">
+                    <input class="consult-form__input" type="text" id="cf_full_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
+                </div>
+                <div class="consult-form__row">
+                    <input class="consult-form__input" type="tel" id="cf_phone" placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
+                </div>
+                <div class="consult-form__row">
+                    <input class="consult-form__input" type="email" id="cf_email" placeholder="{{ t.ph_email }}" autocomplete="email" required>
+                </div>
+                <div class="consult-form__row">
+                    <textarea class="consult-form__input consult-form__input--textarea" id="cf_message" rows="3" placeholder="{{ t.ph_message }}"></textarea>
+                </div>
+                <div class="consult-form__consent-row">
+                    <input type="checkbox" id="cf_consent" class="consult-form__checkbox" required>
+                    <label for="cf_consent" class="consult-form__consent-label">{{ t.consent_label | safe }}</label>
+                </div>
+                <div class="consult-form__error" id="consultError" style="display:none;"></div>
+                <button type="submit" class="consult-form__btn">{{ t.submit_btn }}</button>
+            </form>
+            <div class="consult-success" id="consultSuccess" style="display:none;">
+                <p>{{ t.consult_success }}</p>
+            </div>
         </div>
     </div>
-    </div>
 
-    <script>
-    /* localised strings for JS */
-    var _T = {{ t | tojson }};
+</div><!-- /page -->
 
-    /* ── Gauge + counter animation ── */
-    (function() {
-        var score  = {{ result.overall_score if result else 0 }};
-        var numEl  = document.getElementById('gaugeNum');
-        var arcEl  = document.getElementById('gaugeArc');
-        var circum = 2 * Math.PI * 88;
+<script>
+var _T = {{ t | tojson }};
 
-        var start = null;
-        function ease(t) { return 1 - Math.pow(1 - t, 3); }
-
-        function step(ts) {
-            if (!start) start = ts;
-            var p = Math.min((ts - start) / 1100, 1);
-            var e = ease(p);
-            if (numEl) numEl.textContent = Math.round(e * score);
-            if (arcEl) {
-                var len = e * (score / 100) * circum;
-                arcEl.setAttribute('stroke-dasharray', len.toFixed(1) + ' ' + circum.toFixed(1));
-            }
-            if (p < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-    })();
-
-    /* ── Radar chart ── */
-    (function() {
-        var ctx = document.getElementById('radarChart');
-        if (!ctx || typeof Chart === 'undefined') return;
-
-        var scores = {{ result.category_scores | tojson if result else '{}' }};
-        var labels = {
-            symmetry:        _T.radar_symmetry,
-            proportions:     _T.radar_proportions,
-            aging_signs:     _T.radar_aging_signs,
-            skin_quality:    _T.radar_skin_quality,
-            eye_area:        _T.radar_eye_area,
-            lips_lower_face: _T.radar_lips_lower_face,
-            hairline_hair:   _T.radar_hairline_hair
-        };
-        var keys = ['symmetry','proportions','aging_signs','skin_quality','eye_area','lips_lower_face','hairline_hair'];
-        var data = keys.map(function(k) { return scores[k] !== undefined ? scores[k] : 5; });
-        var lbls = keys.map(function(k) { return labels[k]; });
-
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: lbls,
-                datasets: [{
-                    data: data,
-                    backgroundColor: 'rgba(198,160,98,.18)',
-                    borderColor:     'rgba(198,160,98,.85)',
-                    pointBackgroundColor: 'rgba(198,160,98,1)',
-                    pointBorderColor:     '#1a1a1a',
-                    pointRadius: 4,
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                animation: { duration: 900, easing: 'easeOutCubic' },
-                scales: {
-                    r: {
-                        min: 0, max: 10,
-                        ticks: { stepSize: 2, display: false },
-                        grid:        { color: 'rgba(255,255,255,.1)' },
-                        angleLines:  { color: 'rgba(255,255,255,.1)' },
-                        pointLabels: {
-                            color: 'rgba(255,255,255,.75)',
-                            font:  { size: 11, family: "'Inter', sans-serif" },
-                        }
-                    }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-    })();
-
-    /* ── Modal ── */
+/* Modal */
+(function() {
     var overlay  = document.getElementById('modalOverlay');
     var openBtn  = document.getElementById('openConsultBtn');
     var openTop  = document.getElementById('openConsultBtnTop');
-    var openSec  = document.getElementById('openConsultBtnSecondary');
     var closeBtn = document.getElementById('modalClose');
-
     function openModal() {
         overlay.classList.add('modal-overlay--open');
         overlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-        var first = overlay.querySelector('input, textarea, button');
-        if (first) setTimeout(function() { first.focus(); }, 60);
     }
     function closeModal() {
         overlay.classList.remove('modal-overlay--open');
         overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
     }
-
-    var openSticky = document.getElementById('openConsultBtnSticky');
-    if (openBtn)    openBtn.addEventListener('click', openModal);
-    if (openTop)    openTop.addEventListener('click', openModal);
-    if (openSec)    openSec.addEventListener('click', openModal);
-    if (openSticky) openSticky.addEventListener('click', openModal);
-    if (closeBtn)   closeBtn.addEventListener('click', closeModal);
+    if (openBtn)  openBtn.addEventListener('click', openModal);
+    if (openTop)  openTop.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+})();
 
-    /* ── Sticky CTA: show after scrolling past hero ── */
-    var stickyCta = document.getElementById('stickyCta');
-    var heroBand  = document.querySelector('.band--hero');
-    if (stickyCta && heroBand) {
-        function updateSticky() {
-            var heroBottom = heroBand.getBoundingClientRect().bottom;
-            if (heroBottom < 0) {
-                stickyCta.classList.add('sticky-cta--visible');
-                stickyCta.setAttribute('aria-hidden', 'false');
-            } else {
-                stickyCta.classList.remove('sticky-cta--visible');
-                stickyCta.setAttribute('aria-hidden', 'true');
-            }
-        }
-        window.addEventListener('scroll', updateSticky, { passive: true });
-        updateSticky();
+/* Score circle animation */
+(function() {
+    var numEl = document.querySelector('.res-score__num');
+    if (!numEl) return;
+    var target = parseInt(numEl.textContent, 10) || 0;
+    var current = 0;
+    var step = Math.ceil(target / 20);
+    var timer = setInterval(function() {
+        current = Math.min(current + step, target);
+        numEl.textContent = current;
+        if (current >= target) clearInterval(timer);
+    }, 40);
+})();
+
+/* Area bars animation */
+(function() {
+    var bars = document.querySelectorAll('.res-area__bar');
+    bars.forEach(function(bar) {
+        var w = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(function() {
+            bar.style.transition = 'width 0.8s ease';
+            bar.style.width = w;
+        }, 200);
+    });
+})();
+
+/* Consultation form */
+(function() {
+    var form      = document.getElementById('consultFormEl');
+    var nameEl    = document.getElementById('cf_full_name');
+    var phoneEl   = document.getElementById('cf_phone');
+    var emailEl   = document.getElementById('cf_email');
+    var msgEl     = document.getElementById('cf_message');
+    var consentEl = document.getElementById('cf_consent');
+    var successEl = document.getElementById('consultSuccess');
+    var errEl     = document.getElementById('consultError');
+    if (!form) return;
+
+    function setErr(el, on) {
+        if (!el) return;
+        el.classList[on ? 'add' : 'remove']('consult-form__input--error');
     }
+    [nameEl, phoneEl, emailEl].forEach(function(el) {
+        if (el) el.addEventListener('input', function() { setErr(el, false); errEl.style.display = 'none'; });
+    });
 
-    /* ── Inline consultation form ── */
-    (function() {
-        var form      = document.getElementById('inlineConsultForm');
-        var nameEl    = document.getElementById('ic_name');
-        var phoneEl   = document.getElementById('ic_phone');
-        var emailEl   = document.getElementById('ic_email');
-        var msgEl     = document.getElementById('ic_message');
-        var consentEl = document.getElementById('ic_consent');
-        var successEl = document.getElementById('icSuccess');
-        var errEl     = document.getElementById('icError');
-        if (!form) return;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var full_name    = nameEl  ? nameEl.value.trim()  : '';
+        var phone_number = phoneEl ? phoneEl.value.trim() : '';
+        var email        = emailEl ? emailEl.value.trim() : '';
+        var message      = msgEl   ? msgEl.value.trim()   : '';
+        var consent      = consentEl ? consentEl.checked  : false;
+        var valid = true;
+        if (!full_name)    { setErr(nameEl,  true); valid = false; }
+        if (!phone_number) { setErr(phoneEl, true); valid = false; }
+        if (!email)        { setErr(emailEl, true); valid = false; }
+        if (!consent)      { errEl.textContent = _T.err_consent; errEl.style.display = 'block'; valid = false; }
+        if (!valid) return;
 
-        function markErr(el, on) {
-            if (!el) return;
-            el.classList[on ? 'add' : 'remove']('ic-form__input--error');
-        }
+        var btn = form.querySelector('.consult-form__btn');
+        btn.disabled = true;
+        btn.textContent = _T.submitting;
+        errEl.style.display = 'none';
 
-        [nameEl, phoneEl, emailEl].forEach(function(el) {
-            if (el) el.addEventListener('input', function() { markErr(el, false); errEl.style.display = 'none'; });
-        });
-        if (consentEl) consentEl.addEventListener('change', function() { errEl.style.display = 'none'; });
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var full_name    = nameEl  ? nameEl.value.trim()  : '';
-            var phone_number = phoneEl ? phoneEl.value.trim() : '';
-            var email        = emailEl ? emailEl.value.trim() : '';
-            var message      = msgEl   ? msgEl.value.trim()   : '';
-            var consent      = consentEl ? consentEl.checked  : false;
-            var valid = true;
-
-            markErr(nameEl,  !full_name);    if (!full_name)    valid = false;
-            markErr(phoneEl, !phone_number); if (!phone_number) valid = false;
-            markErr(emailEl, !email);        if (!email)        valid = false;
-            if (!consent) {
-                errEl.textContent = _T.err_consent;
-                errEl.style.display = 'block';
-                valid = false;
-            }
-            if (!valid) return;
-
-            var btn = form.querySelector('.ic-form__btn');
-            btn.disabled = true;
-            btn.textContent = _T.submitting;
-            errEl.style.display = 'none';
-
-            fetch('/contact', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    full_name: full_name, phone_number: phone_number,
-                    email: email, message: message, consent: consent,
-                    token: '{{ token }}'
-                })
+        fetch('/contact', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                full_name: full_name, phone_number: phone_number,
+                email: email, message: message, consent: consent,
+                token: '{{ token }}'
             })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    form.style.display = 'none';
-                    successEl.style.display = 'block';
-                } else {
-                    btn.disabled = false;
-                    btn.textContent = _T.submit_btn;
-                    errEl.textContent = data.error || _T.err_send_failed;
-                    errEl.style.display = 'block';
-                }
-            })
-            .catch(function() {
-                btn.disabled = false;
-                btn.textContent = _T.submit_btn;
-                errEl.textContent = _T.err_conn;
-                errEl.style.display = 'block';
-            });
-        });
-    })();
-
-    /* ── Feedback form ── */
-    (function() {
-        var form      = document.getElementById('feedbackForm');
-        var textEl    = document.getElementById('feedbackText');
-        var successEl = document.getElementById('feedbackSuccess');
-        if (!form) return;
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var text = textEl ? textEl.value.trim() : '';
-            if (!text) return;
-            var btn = form.querySelector('.feedback-form__btn');
-            btn.disabled = true;
-            fetch('/feedback', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ text: text, token: '{{ token }}' })
-            })
-            .then(function() {
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
                 form.style.display = 'none';
                 successEl.style.display = 'block';
-            })
-            .catch(function() {
-                btn.disabled = false;
-            });
-        });
-    })();
-
-    /* ── Scroll reveal ── */
-    (function() {
-        var els = document.querySelectorAll('.band');
-        if (!els.length || !window.IntersectionObserver) return;
-        var io = new IntersectionObserver(function(entries) {
-            entries.forEach(function(e) {
-                if (e.isIntersecting) { e.target.classList.add('band--revealed'); io.unobserve(e.target); }
-            });
-        }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
-        els.forEach(function(el) { el.classList.add('band--hidden'); io.observe(el); });
-    })();
-
-    /* ── Consultation form submit (modal) ── */
-    (function() {
-        var form      = document.getElementById('consultFormEl');
-        var nameEl    = document.getElementById('cf_full_name');
-        var phoneEl   = document.getElementById('cf_phone');
-        var emailEl   = document.getElementById('cf_email');
-        var msgEl     = document.getElementById('cf_message');
-        var consentEl = document.getElementById('cf_consent');
-        var successEl = document.getElementById('consultSuccess');
-        var errEl     = document.getElementById('consultError');
-        if (!form) return;
-
-        function setErr(el, on) {
-            if (!el) return;
-            if (on) el.classList.add('consult-form__input--error');
-            else    el.classList.remove('consult-form__input--error');
-        }
-
-        [nameEl, phoneEl, emailEl].forEach(function(el) {
-            if (el) el.addEventListener('input', function() { setErr(el, false); errEl.style.display = 'none'; });
-        });
-        if (consentEl) consentEl.addEventListener('change', function() { errEl.style.display = 'none'; });
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var full_name    = nameEl  ? nameEl.value.trim()  : '';
-            var phone_number = phoneEl ? phoneEl.value.trim() : '';
-            var email        = emailEl ? emailEl.value.trim() : '';
-            var message      = msgEl   ? msgEl.value.trim()   : '';
-            var consent      = consentEl ? consentEl.checked  : false;
-            var valid = true;
-
-            if (!full_name)    { setErr(nameEl,  true); valid = false; }
-            if (!phone_number) { setErr(phoneEl, true); valid = false; }
-            if (!email)        { setErr(emailEl, true); valid = false; }
-            if (!consent) {
-                errEl.textContent = _T.err_consent;
-                errEl.style.display = 'block';
-                valid = false;
-            }
-            if (!valid) return;
-
-            var btn = form.querySelector('.consult-form__btn');
-            btn.disabled = true;
-            btn.textContent = _T.submitting;
-            errEl.style.display = 'none';
-
-            fetch('/contact', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    full_name: full_name, phone_number: phone_number,
-                    email: email, message: message, consent: consent,
-                    token: '{{ token }}'
-                })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    form.style.display = 'none';
-                    successEl.style.display = 'block';
-                } else {
-                    btn.disabled = false;
-                    btn.textContent = _T.submit_btn;
-                    errEl.textContent = data.error || _T.err_send_failed;
-                    errEl.style.display = 'block';
-                }
-            })
-            .catch(function() {
+            } else {
                 btn.disabled = false;
                 btn.textContent = _T.submit_btn;
-                errEl.textContent = _T.err_conn;
+                errEl.textContent = data.error || _T.err_send_failed;
                 errEl.style.display = 'block';
-            });
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.textContent = _T.submit_btn;
+            errEl.textContent = _T.err_conn;
+            errEl.style.display = 'block';
         });
-    })();
-    </script>
+    });
+})();
+</script>
 </body>
 </html>

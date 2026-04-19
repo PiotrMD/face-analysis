@@ -308,17 +308,14 @@ def validate_face_ai(image_path: str, openai_client, model: str = "gpt-4o") -> d
     result = _normalize(result)
     print(f"[VALIDATE_AI] valid={result['image_valid']} pose={result['head_pose']['yaw']} impression={result['overall_impression']['labels']}")
 
-    if not result['image_valid']:
-        msg = _user_rejection_message(result)
-        occlusion = result.get('occlusion_type') or ''
-        if occlusion in ('sunglasses', 'glasses') or not result.get('eyes_visible', True):
-            raise ValueError(f"EYES_BLOCKED: {msg}")
-        if result.get('filter_detected'):
-            raise ValueError(f"PHOTO_UNSUITABLE: {msg}")
-        raise ValueError(f"PHOTO_UNSUITABLE: {msg}")
+    # Only hard-block: glasses, no face, AI filter — everything else passes
+    occlusion = result.get('occlusion_type') or ''
+    if occlusion in ('sunglasses', 'glasses') or not result.get('eyes_visible', True):
+        raise ValueError(f"EYES_BLOCKED: {REJECTION_MESSAGES['glasses']}")
+    if result.get('filter_detected'):
+        raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['filter']}")
+    if result.get('face_count', 1) == 0:
+        raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['no_face']}")
 
-    if not result['head_pose'].get('acceptable_for_analysis', True):
-        msg = REJECTION_MESSAGES['pose_large']
-        raise ValueError(f"PHOTO_UNSUITABLE: {msg}")
-
+    # Pose, crop, blur, expression — pass with warnings, not blocked
     return result
