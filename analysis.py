@@ -506,6 +506,27 @@ VALID_IMPRESSION = {
 }
 
 
+def _normalize_features(result: dict) -> None:
+    """Normalize features dict in-place. Idempotent — safe to call multiple times."""
+    features = result.get('features')
+    if not isinstance(features, dict):
+        result['features'] = {}
+        features = result['features']
+    for feat_key in VALID_FEATURES:
+        feat = features.get(feat_key)
+        if not isinstance(feat, dict):
+            features[feat_key] = {'score': 0, 'confidence': 'niska', 'notes': 'ocena ograniczona'}
+        else:
+            try:
+                feat['score'] = max(0, min(4, int(round(float(feat.get('score', 0))))))
+            except (ValueError, TypeError):
+                feat['score'] = 0
+            if feat.get('confidence') not in VALID_CONFIDENCE:
+                feat['confidence'] = 'niska'
+            if not isinstance(feat.get('notes'), str):
+                feat['notes'] = ''
+
+
 def _validate_result(result: dict) -> None:
     # Core fields
     for field in REQUIRED_TOP_FIELDS:
@@ -515,19 +536,44 @@ def _validate_result(result: dict) -> None:
     if not isinstance(result['recommendations'], list) or len(result['recommendations']) < 3:
         raise ValueError("recommendations musi być listą z co najmniej 3 elementami")
 
-    # category_scores — normalize first
+    # Normalize features FIRST so derivation below can read clean 0-4 values
+    _normalize_features(result)
+
+    # category_scores — override with values derived from features (concern 0-4 → quality 0-10)
+    # GPT is honest about concern severity; quality ratings are inflated. Invert concerns.
+    features = result.get('features', {})
+    def _concern_to_score(feat_names):
+        vals = [features.get(n, {}).get('score') for n in feat_names]
+        vals = [float(v) for v in vals if v is not None and str(v).replace('.','').isdigit()]
+        if not vals:
+            return None
+        avg_c = sum(vals) / len(vals)
+        return max(0, min(10, int(round(10 - avg_c * 2.5))))
+
+    FEATURE_MAP = {
+        'eye_area':        ['under_eye'],
+        'aging_signs':     ['tissue_descent'],
+        'skin_quality':    ['skin_texture', 'skin_tone'],
+        'proportions':     ['midface_volume'],
+        'lips_lower_face': ['jawline_jowls'],
+        'hairline_hair':   ['hairline'],
+        'symmetry':        [],
+    }
+
     cat = result.get('category_scores', {})
     for sec_name in REQUIRED_SECTIONS:
-        if sec_name not in cat:
-            raise ValueError(f"Brak category_scores['{sec_name}']")
-        result['category_scores'][sec_name] = int(round(float(cat[sec_name])))
+        feat_names = FEATURE_MAP.get(sec_name, [])
+        derived = _concern_to_score(feat_names)
+        if derived is not None:
+            result['category_scores'][sec_name] = derived
+        elif sec_name in cat:
+            result['category_scores'][sec_name] = max(0, min(10, int(round(float(cat[sec_name])))))
+        else:
+            result['category_scores'][sec_name] = 5
 
-    # overall_score — compute from category_scores (ignore GPT's value to prevent inflation)
+    # overall_score — average of derived category scores
     scores = [result['category_scores'][s] for s in REQUIRED_SECTIONS]
-    avg = sum(scores) / len(scores)
-    result['overall_score'] = int(round(avg * 10))
-    if not (0 <= result['overall_score'] <= 100):
-        result['overall_score'] = max(0, min(100, result['overall_score']))
+    result['overall_score'] = max(0, min(100, int(round(sum(scores) / len(scores) * 10))))
 
     # key_findings — synthesize missing
     kf = result.get('key_findings', [])
@@ -633,24 +679,7 @@ def _validate_result(result: dict) -> None:
     if result.get('confidence_global') not in VALID_CONFIDENCE:
         result['confidence_global'] = 'umiarkowana'
 
-    # features — normalize
-    features = result.get('features')
-    if not isinstance(features, dict):
-        result['features'] = {}
-        features = result['features']
-    for feat_key in VALID_FEATURES:
-        feat = features.get(feat_key)
-        if not isinstance(feat, dict):
-            features[feat_key] = {'score': 0, 'confidence': 'niska', 'notes': 'ocena ograniczona'}
-        else:
-            try:
-                feat['score'] = max(0, min(4, int(round(float(feat.get('score', 0))))))
-            except (ValueError, TypeError):
-                feat['score'] = 0
-            if feat.get('confidence') not in VALID_CONFIDENCE:
-                feat['confidence'] = 'niska'
-            if not isinstance(feat.get('notes'), str):
-                feat['notes'] = ''
+    # features — already normalized above via _normalize_features(); no-op here
 
 
 def _extract_json(text: str) -> dict:
