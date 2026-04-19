@@ -1801,7 +1801,7 @@ a.contact-row__value:hover { text-decoration: underline; }
 
 /* radar */
 .hero-radar { display: flex; align-items: center; justify-content: center; }
-.hero-radar canvas { max-width: 340px; max-height: 300px; }
+.hero-radar canvas { max-width: 460px; max-height: 420px; }
 
 /* legacy .hero-score kept for safety */
 .hero-score {
@@ -1904,7 +1904,7 @@ a.contact-row__value:hover { text-decoration: underline; }
         gap: 16px;
     }
     .hero-gauge .gauge-svg { width: 160px; height: 160px; }
-    .hero-radar canvas { max-width: 260px; max-height: 220px; width: 100% !important; }
+    .hero-radar canvas { max-width: 320px; max-height: 280px; width: 100% !important; }
     .hero-radar { width: 100%; }
 }
 
