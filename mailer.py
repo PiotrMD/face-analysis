@@ -74,7 +74,7 @@ def send_patient_confirmation_with_link(to_email: str, full_name: str, token: st
         "Serdecznie pozdrawiamy,\n"
         "Centrum Estetyki Medycznej\n"
         "dr n. med. Piotr Niedziałkowski\n\n"
-        "Telefon: +48 695 84 584\n"
+        "Telefon: +48 690 584 584\n"
         "www.estetykamedyczna.pl\n"
     )
     _send(to=to_email, subject="Potwierdzenie zgłoszenia — Twoja analiza estetyczna", body=body)
@@ -95,7 +95,7 @@ def send_followup_day3(to_email: str, full_name: str, token: str, base_url: str)
         + link_line +
         "\nJeśli ma Pani/Pan pytania lub chciałaby/chciałby umówić się\n"
         "na konsultację — zapraszamy do kontaktu:\n\n"
-        "Telefon: +48 695 84 584\n"
+        "Telefon: +48 690 584 584\n"
         "Godziny: wtorek–piątek 12:00–20:00\n\n"
         "Serdecznie pozdrawiamy,\n"
         "Centrum Estetyki Medycznej\n"
@@ -117,7 +117,7 @@ def send_followup_day7(to_email: str, full_name: str):
         "• Dobierzemy indywidualny plan postępowania\n"
         "• Odpowiemy na wszystkie pytania\n\n"
         "Aby umówić termin, wystarczy zadzwonić lub napisać:\n"
-        "Telefon: +48 695 84 584\n"
+        "Telefon: +48 690 584 584\n"
         "Godziny: wtorek–piątek 12:00–20:00\n\n"
         "Serdecznie pozdrawiamy,\n"
         "Centrum Estetyki Medycznej\n"
@@ -136,7 +136,7 @@ def send_patient_confirmation(to_email: str, full_name: str):
         "Serdecznie pozdrawiamy,\n"
         "Centrum Estetyki Medycznej\n"
         "dr n. med. Piotr Niedziałkowski\n\n"
-        "Telefon: +48 695 84 584\n"
+        "Telefon: +48 690 584 584\n"
         "www.ocenazdrowia.pl\n"
         "www.estetykamedyczna.pl\n"
     )
