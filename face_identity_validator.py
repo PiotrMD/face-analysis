@@ -111,54 +111,47 @@ def validate_faces(files):
         blur = float(cv2.Laplacian(gray, cv2.CV_64F).var())
         print(f"[VALIDATOR] en_face: size={w}x{h} blur={blur:.1f}")
 
-        if blur < 20.0:
+        if blur < 8.0:
             return {"is_valid": False, "errors": ["Zdjęcie jest zbyt niewyraźne do analizy."]}
 
         cc = _get_cascade()
         if cc is None:
-            # Cascade not available — pass through (fail-open)
             print("[VALIDATOR] cascade unavailable — skipping face check")
             return {"is_valid": True, "errors": []}
 
-        # Detect faces — higher minNeighbors reduces false positives from jewelry/background
         eq = cv2.equalizeHist(gray)
-        faces = cc.detectMultiScale(eq, scaleFactor=1.1, minNeighbors=7, minSize=(60, 60))
+        faces = cc.detectMultiScale(eq, scaleFactor=1.1, minNeighbors=4, minSize=(40, 40))
         face_count = len(faces)
         print(f"[VALIDATOR] en_face: face_count={face_count}")
 
         if face_count == 0:
-            return {"is_valid": False, "errors": ["Nie wykryto twarzy. Załącz zdjęcie twarzy — tylko takie zdjęcia mogą być analizowane."]}
+            faces = cc.detectMultiScale(eq, scaleFactor=1.2, minNeighbors=2, minSize=(30, 30))
+            face_count = len(faces)
+            print(f"[VALIDATOR] en_face: face_count (retry)={face_count}")
 
-        # If multiple faces detected, keep only the largest one (filters out jewelry/background false positives)
+        if face_count == 0:
+            # Fail-open — let GPT-4o validator decide
+            print("[VALIDATOR] en_face: no face by OpenCV — passing to AI validator")
+            return {"is_valid": True, "errors": []}
+
         if face_count > 1:
             areas = [fw * fh for (fx, fy, fw, fh) in faces]
             largest_idx = int(np.argmax(areas))
             largest_area = areas[largest_idx]
             second_area = sorted(areas, reverse=True)[1]
-            # Block only if second-largest face is >30% of the largest (likely a real second person)
-            if second_area > largest_area * 0.30:
+            if second_area > largest_area * 0.40:
                 return {"is_valid": False, "errors": ["Na zdjęciu wykryto więcej niż jedną twarz. Załącz zdjęcie przedstawiające wyłącznie Twoją twarz."]}
             faces = [faces[largest_idx]]
-            print(f"[VALIDATOR] en_face: multiple detections, kept largest (false positive filtered)")
+            print(f"[VALIDATOR] en_face: multiple detections, kept largest")
 
         fx, fy, fw, fh = faces[0]
         face_ratio = (fw * fh) / (w * h) if w * h > 0 else 0.0
         print(f"[VALIDATOR] en_face: face_ratio={face_ratio:.3f}")
 
-        if face_ratio < 0.015:
-            return {"is_valid": False, "errors": ["Twarz powinna być ustawiona przodem do aparatu i wyraźnie widoczna."]}
+        if face_ratio < 0.008:
+            return {"is_valid": False, "errors": ["Twarz powinna być wyraźnie widoczna. Zrób zdjęcie bliżej."]}
 
-        # Detect eyes within the face region — rejects head-down or profile photos
-        eye_cc_path = cv2.data.haarcascades + "haarcascade_eye.xml"
-        eye_cc = cv2.CascadeClassifier(eye_cc_path)
-        if not eye_cc.empty():
-            # Search only in the upper 2/3 of the face region
-            face_roi = gray[fy:fy + int(fh * 0.65), fx:fx + fw]
-            eyes = eye_cc.detectMultiScale(face_roi, scaleFactor=1.1, minNeighbors=4, minSize=(20, 20))
-            eye_count = len(eyes)
-            print(f"[VALIDATOR] en_face: eye_count={eye_count}")
-            if eye_count == 0:
-                return {"is_valid": False, "errors": ["Oczy nie są widoczne. Wgraj zdjęcie en face — twarz prosto do aparatu, oba oczy otwarte i widoczne."]}
+        # Eye detection removed — unreliable with makeup/lighting; GPT-4o handles this
 
         print("[VALIDATOR] en_face: PASS")
         return {"is_valid": True, "errors": []}
