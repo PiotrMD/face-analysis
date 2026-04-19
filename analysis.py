@@ -222,9 +222,12 @@ FORBIDDEN: always skewing biological age estimate upward.
 FORBIDDEN: writing about neck or hairline when observations say "CANNOT ASSESS".
 FORBIDDEN: copying the same phrases across reports.
 FORBIDDEN: using vague adjectives like "delikatne", "subtelne" for clearly significant findings.
+FORBIDDEN: giving every patient the same overall_score (typical range 45–80, must reflect findings).
+FORBIDDEN: giving every category a score of 7 — scores must span the actual 1–10 range.
 REQUIRED: if the face looks rested, fresh, or young — document that clearly and positively.
 REQUIRED: vary the vocabulary, emphasis, and tone based on the actual observations.
 REQUIRED: if confidence is LOW for a feature, write so explicitly and avoid strong conclusions.
+REQUIRED: every patient report must be distinguishable from other patients by specific details.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 STRENGTHS-FIRST APPROACH
@@ -715,7 +718,7 @@ def _observe(openai_client, images_data: dict, model: str, validation_context: d
         {"role": "system", "content": "You are a dermatologist writing structured clinical observation notes from patient photographs. Document both strengths and concerns. Note confidence per section. Be specific and honest."},
         {"role": "user",   "content": user_content},
     ]
-    return _call_raw(openai_client, messages, model, max_tokens=2000)
+    return _call_raw(openai_client, messages, model, max_tokens=3500)
 
 
 LANG_REQUIREMENT_EN = """━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -908,11 +911,21 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
 
     prompt = (
         f"Format these clinical observation notes into a structured {lang_name}-language JSON report.\n\n"
-        f"CRITICAL GROUNDING RULE: You may ONLY use findings explicitly stated in the OBSERVATIONS below. "
-        f"If an observation says 'CANNOT ASSESS' or is absent → write 'ocena ograniczona — niewidoczne na zdjęciu' in that field. "
-        f"NEVER invent, assume, or generalize any finding. Every JSON value must trace to the observations.\n\n"
-        f"STRENGTHS RULE: The 'strengths' array MUST list 3–6 concrete positive features observed. "
-        f"These must be specific anatomical observations, not vague compliments.\n\n"
+        f"RULE A — GROUNDING: Every JSON field value MUST quote or directly reflect a specific finding from OBSERVATIONS. "
+        f"If observations say 'CANNOT ASSESS' or do not mention a feature → write 'ocena ograniczona — niewidoczne na zdjęciu'. "
+        f"NEVER use generic phrases like 'delikatne zmarszczki', 'łagodna utrata objętości' unless the observations specifically say so.\n\n"
+        f"RULE B — UNIQUENESS: This report must reflect THIS patient only. "
+        f"Every text field must contain at least one specific detail from the observations (grade number, side, location, measurement). "
+        f"A report without specific details = invalid.\n\n"
+        f"RULE C — SCORE CALIBRATION: Scores MUST reflect actual findings:\n"
+        f"  - Patient with documented wrinkles grade 3+ → aging_signs ≤ 5\n"
+        f"  - Patient with no wrinkles noted → aging_signs 8–10\n"
+        f"  - Patient with tear trough grade 2+ → eye_area ≤ 5\n"
+        f"  - Patient with full malar volume → skin_quality domain scores high\n"
+        f"  - overall_score: typical patient 55–68; do NOT give everyone 60\n\n"
+        f"RULE D — STRENGTHS: List 3–6 specific anatomical positives from observations. "
+        f"Quote exact features observed (e.g. 'pełna objętość łuków jarzmowych', 'brak zmarszczek statycznych czoła'). "
+        f"Do NOT write 'ocena ograniczona' in strengths unless the face is literally invisible.\n\n"
         f"OBSERVATIONS:\n{observations}\n\n"
         f"Return ONLY valid JSON. All free-text values in {lang_name}.\n\n"
         + patched_prompt
@@ -921,10 +934,10 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
         {
             "role": "system",
             "content": (
-                f"You are a physician formatting clinical observation notes into structured JSON. "
-                f"Document only what is stated in the observations — never invent findings. "
-                f"Identify and document STRENGTHS first. Use varied vocabulary. "
-                f"Do not default to 'tired' impression for every face. "
+                f"You are a physician writing a unique clinical report for THIS specific patient based solely on their observation notes. "
+                f"Every sentence must reflect a specific finding from the observations — no generic templates. "
+                f"Scores must vary: different observations = different scores. "
+                f"If the observations document good skin, say so with high scores. If they document concerns, score them low. "
                 f"Return only valid JSON, no markdown. All free text in {lang_name}."
             )
         },
