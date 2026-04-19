@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="{{ t.html_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <title>{{ t.site_title_home }}</title>
+    <meta name="description" content="{{ t.site_desc_home }}">
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="{{ t.og_title_home }}">
+    <meta property="og:description" content="{{ t.og_desc_home }}">
+    <meta property="og:url"         content="{{ og_base_url }}">
+    <meta property="og:image"       content="{{ og_base_url }}/static/img/doctor.jpg">
+    <meta name="twitter:card"       content="summary_large_image">
+    <meta name="twitter:title"      content="{{ t.twitter_title }}">
+    <meta name="twitter:description" content="{{ t.twitter_desc }}">
+    <meta name="twitter:image"      content="{{ og_base_url }}/static/img/doctor.jpg">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_version }}">
+    {% if ga_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ ga_id }}');
+    </script>
+    {% endif %}
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a href="/" class="topbar__brand">{{ t.brand }}</a>
+            <div class="topbar__doctor">
+                <span class="topbar__doctor-name">{{ t.doctor_full }}</span>
+                <span class="topbar__doctor-creds">{{ t.doctor_creds }}</span>
+                <span class="topbar__clinic">{{ t.clinic_name }}</span>
+            </div>
+            <div class="topbar__right">
+                <div class="lang-switcher">
+                    <a href="/set-lang/pl" class="lang-btn {% if lang == 'pl' %}lang-btn--active{% endif %}">PL</a>
+                    <a href="/set-lang/en" class="lang-btn {% if lang == 'en' %}lang-btn--active{% endif %}">EN</a>
+                </div>
+                <a href="tel:+4869584584" class="topbar__phone">+48 695 84 584</a>
+                <button type="button" class="topbar__cta-btn" id="openConsultBtnTop">{{ t.book_consultation }}</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="home-main">
+        <div class="hero">
+
+            <div class="hero__left">
+                <p class="hero__eyebrow">{{ t.eyebrow }}</p>
+                <h1 class="hero__headline">{{ t.hero_headline | safe }}</h1>
+                <p class="hero__sub">{{ t.hero_sub }}</p>
+                <ul class="hero__bullets">
+                    <li>{{ t.bullet_1 }}</li>
+                    <li>{{ t.bullet_2 }}</li>
+                    <li>{{ t.bullet_3 }}</li>
+                    <li>{{ t.bullet_4 }}</li>
+                </ul>
+            </div>
+
+            <div class="hero__right">
+                <div class="upload-card">
+                    <h2 class="upload-card__title">{{ t.upload_title }}</h2>
+
+                    <div class="photo-grid photo-grid--single">
+                        <div class="photo-upload">
+                            <div class="upload-area" id="area-en_face" onclick="document.getElementById('en_face').click()">
+                                <img class="upload-area__preview" id="preview-en_face" src="" alt="" style="display:none;">
+                                <svg class="icon" id="icon-en_face" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <p class="upload-area__label" id="label-en_face">En Face</p>
+                                <span class="file-name" id="en_face_name">{{ t.no_file }}</span>
+                            </div>
+                            <input type="file" id="en_face" name="en_face" accept="image/*" onchange="setFileName('en_face_name', this)">
+                            <p class="slot-hint" id="hint-en_face">{{ t.upload_hint }}</p>
+                            <p class="slot-error" id="slot-error-en_face" style="display:none;"></p>
+                        </div>
+                    </div>
+
+                    <div id="validationBlock" class="vblock" aria-live="polite">
+                        <p class="vblock__title">{{ t.validation_title }}</p>
+                        <ul id="vblock-list" class="vblock__list"></ul>
+                        <div class="vblock__guide">
+                            <p>{{ t.validation_guide_intro }}</p>
+                            <ul>
+                                <li>{{ t.validation_guide_1 }}</li>
+                                <li>{{ t.validation_guide_2 }}</li>
+                                <li>{{ t.validation_guide_3 }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div id="successState" class="upload-success" aria-live="polite"></div>
+                    <p id="formError" class="form-notice" style="display:none;"></p>
+
+                    <button type="button" id="analyzeBtn" class="upload-card__btn" onclick="runAnalyze()">{{ t.analyze_btn }}</button>
+                    <p class="demo-link"><a href="/demo">{{ t.demo_link }}</a></p>
+
+                    <div class="upload-card__trust">
+                        <span>{{ t.trust_no_storage }}</span>
+                        <span>{{ t.trust_preliminary }}</span>
+                        {% if analyses_count > 0 %}
+                        <span class="trust-counter">
+                            {% if lang == 'pl' %}
+                                {{ t.analyses_prefix }} {{ analyses_count }} {{ 'twarz' if analyses_count == 1 else 'twarze' if 2 <= analyses_count <= 4 else 'twarzy' }}
+                            {% else %}
+                                {{ t.analyses_prefix }} {{ analyses_count }} {{ 'face' if analyses_count == 1 else 'faces' }}
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="home-footer">
+        <p>{{ t.footer }}</p>
+    </footer>
+
+    <!-- LOADING OVERLAY -->
+    <div class="analysis-loader" id="analysisLoader" aria-hidden="true">
+        <div class="analysis-loader__card">
+            <div class="loader-spinner">
+                <svg viewBox="0 0 80 80" class="loader-spinner__svg">
+                    <circle class="loader-spinner__track" cx="40" cy="40" r="34"/>
+                    <circle class="loader-spinner__arc"   cx="40" cy="40" r="34"/>
+                </svg>
+                <div class="loader-spinner__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                    </svg>
+                </div>
+            </div>
+            <p class="loader-step" id="loaderStep">{{ t.loader_steps[0] }}</p>
+            <div class="loader-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL — CONSULTATION FORM -->
+    <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <button class="modal__close" id="modalClose" aria-label="Zamknij">&times;</button>
+            <div class="modal__inner">
+                <h2 class="modal__title" id="modalTitle">{{ t.modal_title }}</h2>
+                <p class="modal__lead">{{ t.modal_lead }}</p>
+
+                <form id="consultFormEl" class="consult-form" novalidate>
+                    <div class="consult-form__field">
+                        <label class="consult-form__label" for="cf_full_name">{{ t.label_name }}</label>
+                        <input class="consult-form__input" type="text" id="cf_full_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
+                    </div>
+                    <div class="consult-form__field">
+                        <label class="consult-form__label" for="cf_phone">{{ t.label_phone }}</label>
+                        <input class="consult-form__input" type="tel" id="cf_phone" placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
+                    </div>
+                    <div class="consult-form__field">
+                        <label class="consult-form__label" for="cf_email">{{ t.label_email }}</label>
+                        <input class="consult-form__input" type="email" id="cf_email" placeholder="{{ t.ph_email }}" autocomplete="email" required>
+                    </div>
+                    <div class="consult-form__field">
+                        <label class="consult-form__label" for="cf_message">{{ t.label_message }} <span class="consult-form__optional">({{ t.optional }})</span></label>
+                        <textarea class="consult-form__input consult-form__input--textarea" id="cf_message" rows="3" placeholder="{{ t.ph_message }}"></textarea>
+                    </div>
+                    <div class="consult-form__field consult-form__field--consent">
+                        <label class="consult-form__consent-label">
+                            <input type="checkbox" id="cf_consent" class="consult-form__checkbox" required>
+                            <span>{{ t.consent_text }}</span>
+                        </label>
+                    </div>
+                    <div class="consult-form__footer">
+                        <button type="submit" class="consult-form__btn">{{ t.submit_btn }}</button>
+                    </div>
+                    <p class="consult-form__error" id="consultError" style="display:none;"></p>
+                </form>
+
+                <div class="consult__success" id="consultSuccess" style="display:none;">
+                    {{ t.success_msg }}
+                </div>
+
+                <p class="consult__note">{{ t.consult_note }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    /* localised strings for JS */
+    var _T = {{ t | tojson }};
+
+    /* ── Modal ── */
+    (function() {
+        var overlay  = document.getElementById('modalOverlay');
+        var openTop  = document.getElementById('openConsultBtnTop');
+        var closeBtn = document.getElementById('modalClose');
+
+        function openModal() {
+            overlay.classList.add('modal-overlay--open');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            var first = overlay.querySelector('input');
+            if (first) setTimeout(function() { first.focus(); }, 60);
+        }
+        function closeModal() {
+            overlay.classList.remove('modal-overlay--open');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        if (openTop)  openTop.addEventListener('click', openModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+        /* ── Consultation form submit ── */
+        var form      = document.getElementById('consultFormEl');
+        var nameEl    = document.getElementById('cf_full_name');
+        var phoneEl   = document.getElementById('cf_phone');
+        var emailEl   = document.getElementById('cf_email');
+        var msgEl     = document.getElementById('cf_message');
+        var consentEl = document.getElementById('cf_consent');
+        var successEl = document.getElementById('consultSuccess');
+        var errEl     = document.getElementById('consultError');
+
+        function setErr(el, on) {
+            if (!el) return;
+            el.classList[on ? 'add' : 'remove']('consult-form__input--error');
+        }
+        [nameEl, phoneEl, emailEl].forEach(function(el) {
+            if (el) el.addEventListener('input', function() { setErr(el, false); errEl.style.display = 'none'; });
+        });
+        if (consentEl) consentEl.addEventListener('change', function() { errEl.style.display = 'none'; });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var full_name    = nameEl  ? nameEl.value.trim()  : '';
+            var phone_number = phoneEl ? phoneEl.value.trim() : '';
+            var email        = emailEl ? emailEl.value.trim() : '';
+            var message      = msgEl   ? msgEl.value.trim()   : '';
+            var consent      = consentEl ? consentEl.checked  : false;
+            var valid = true;
+
+            if (!full_name)    { setErr(nameEl,  true); valid = false; }
+            if (!phone_number) { setErr(phoneEl, true); valid = false; }
+            if (!email)        { setErr(emailEl, true); valid = false; }
+            if (!consent) {
+                errEl.textContent = _T.err_consent;
+                errEl.style.display = 'block';
+                valid = false;
+            }
+            if (!valid) return;
+
+            var btn = form.querySelector('.consult-form__btn');
+            btn.disabled = true;
+            btn.textContent = _T.submitting;
+            errEl.style.display = 'none';
+
+            fetch('/contact', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    full_name: full_name, phone_number: phone_number,
+                    email: email, message: message, consent: consent, token: ''
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    form.style.display = 'none';
+                    successEl.style.display = 'block';
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = _T.submit_btn;
+                    errEl.textContent = data.error || _T.err_send_failed;
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.textContent = _T.submit_btn;
+                errEl.textContent = _T.err_conn;
+                errEl.style.display = 'block';
+            });
+        });
+    })();
+
+    /* ── helpers ── */
+    function fadeIn(el) {
+        el.style.opacity = '0';
+        el.style.display = 'block';
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                el.style.transition = 'opacity 0.28s ease';
+                el.style.opacity = '1';
+            });
+        });
+    }
+
+    function fadeOut(el) {
+        el.style.transition = 'opacity 0.2s ease';
+        el.style.opacity = '0';
+        setTimeout(function() { el.style.display = 'none'; }, 220);
+    }
+
+    /* ── slot helpers ── */
+    function setFileName(spanId, input) {
+        if (!input.files[0]) return;
+        var file = input.files[0];
+        var key  = input.id;
+
+        document.getElementById(spanId).textContent = file.name;
+
+        var preview  = document.getElementById('preview-' + key);
+        var icon     = document.getElementById('icon-' + key);
+        var label    = document.getElementById('label-' + key);
+        var nameSpan = document.getElementById(spanId);
+
+        if (preview) {
+            var url = URL.createObjectURL(file);
+            preview.src = url;
+            preview.style.display = 'block';
+            if (icon)     icon.style.display     = 'none';
+            if (label)    label.style.display    = 'none';
+            if (nameSpan) nameSpan.style.display = 'none';
+        }
+
+        var area = document.getElementById('area-' + key);
+        if (area) { area.classList.add('filled'); area.classList.remove('upload-error'); }
+        hideSlotError(key);
+        hideValidationBlock();
+        hideSuccessState();
+    }
+
+    function showSlotError(key, message) {
+        var area = document.getElementById('area-' + key);
+        if (area) area.classList.add('upload-error');
+        var hint = document.getElementById('hint-' + key);
+        if (hint) hint.style.display = 'none';
+        var errEl = document.getElementById('slot-error-' + key);
+        if (!errEl) return;
+        errEl.textContent = message;
+        fadeIn(errEl);
+    }
+
+    function hideSlotError(key) {
+        var area = document.getElementById('area-' + key);
+        if (area) area.classList.remove('upload-error');
+        var hint = document.getElementById('hint-' + key);
+        if (hint) hint.style.display = '';
+        var errEl = document.getElementById('slot-error-' + key);
+        if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    }
+
+    function showValidationBlock(errors) {
+        var block = document.getElementById('validationBlock');
+        var list  = document.getElementById('vblock-list');
+        list.innerHTML = '';
+        errors.forEach(function(msg) {
+            var li = document.createElement('li');
+            li.textContent = msg;
+            list.appendChild(li);
+        });
+        fadeIn(block);
+    }
+
+    function hideValidationBlock() {
+        var block = document.getElementById('validationBlock');
+        if (block.style.display !== 'none') fadeOut(block);
+    }
+
+    function showSuccessState() {
+        var el = document.getElementById('successState');
+        el.textContent = _T.photo_ready;
+        fadeIn(el);
+    }
+
+    function hideSuccessState() {
+        var el = document.getElementById('successState');
+        el.style.display = 'none';
+        el.textContent = '';
+    }
+
+    function clearAllValidation() {
+        ['en_face'].forEach(hideSlotError);
+        hideValidationBlock();
+        hideSuccessState();
+        var errDiv = document.getElementById('formError');
+        errDiv.style.display = 'none';
+        errDiv.textContent = '';
+    }
+
+    /* ── main handler ── */
+    function runAnalyze() {
+        var btn    = document.getElementById('analyzeBtn');
+        var errDiv = document.getElementById('formError');
+
+        clearAllValidation();
+
+        var f1 = document.getElementById('en_face').files[0];
+
+        if (!f1) {
+            errDiv.textContent = _T.err_no_photo;
+            fadeIn(errDiv);
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = _T.btn_verify;
+
+        var fd = new FormData();
+        fd.append('en_face', f1);
+
+        var force      = new URLSearchParams(window.location.search).get('force');
+        var analyzeUrl = force === '1' ? '/analyze?force=1' : '/analyze';
+
+        var loaderSteps = _T.loader_steps;
+        var loaderTimer  = null;
+        var loaderActive = false;
+
+        function showLoader() {
+            var overlay = document.getElementById('analysisLoader');
+            var stepEl  = document.getElementById('loaderStep');
+            if (!overlay) return;
+            loaderActive = true;
+            overlay.classList.add('analysis-loader--visible');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            var i = 0;
+            if (stepEl) stepEl.textContent = loaderSteps[0];
+            loaderTimer = setInterval(function() {
+                if (!loaderActive) return;
+                i = Math.min(i + 1, loaderSteps.length - 1);
+                if (stepEl) {
+                    stepEl.style.opacity = '0';
+                    setTimeout(function() {
+                        stepEl.textContent = loaderSteps[i];
+                        stepEl.style.opacity = '1';
+                    }, 250);
+                }
+            }, 4500);
+        }
+
+        function hideLoader() {
+            loaderActive = false;
+            clearInterval(loaderTimer);
+            var overlay = document.getElementById('analysisLoader');
+            if (overlay) {
+                overlay.classList.remove('analysis-loader--visible');
+                overlay.setAttribute('aria-hidden', 'true');
+            }
+            document.body.style.overflow = '';
+        }
+
+        function showValidationError(errors) {
+            hideLoader();
+            var msgs = Array.isArray(errors) && errors.length ? errors : [_T.err_validation];
+            showValidationBlock(msgs);
+            btn.disabled = false;
+            btn.textContent = _T.btn_retry;
+        }
+
+        function showServerError(message) {
+            hideLoader();
+            errDiv.textContent = message;
+            fadeIn(errDiv);
+            btn.disabled = false;
+            btn.textContent = _T.btn_start;
+        }
+
+        showLoader();
+
+        var abortCtrl   = new AbortController();
+        var fetchTimeout = setTimeout(function() { abortCtrl.abort(); }, 180000);
+
+        fetch(analyzeUrl, { method: 'POST', body: fd, signal: abortCtrl.signal })
+            .then(async function(response) {
+                clearTimeout(fetchTimeout);
+                var contentType = response.headers.get('content-type') || '';
+                var rawText     = await response.text();
+
+                console.log('ANALYZE STATUS:', response.status);
+                console.log('ANALYZE CONTENT-TYPE:', contentType);
+                console.log('ANALYZE RAW RESPONSE:', rawText);
+
+                var data = null;
+                if (contentType.includes('application/json')) {
+                    try { data = JSON.parse(rawText); }
+                    catch (e) { console.error('JSON parse error:', e); }
+                }
+
+                if (response.status === 413) {
+                    showValidationError([_T.err_file_large]);
+                    return;
+                }
+
+                if (response.status === 422) {
+                    showValidationError(
+                        data && (data.validation_errors || data.errors)
+                            ? (data.validation_errors || data.errors)
+                            : [_T.err_no_face]
+                    );
+                    return;
+                }
+
+                if (!response.ok) {
+                    showServerError(
+                        (data && data.error)
+                            ? data.error
+                            : (_T.err_server + ' (' + response.status + ')')
+                    );
+                    return;
+                }
+
+                if (data && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+
+                showServerError(_T.err_parse);
+            })
+            .catch(function(err) {
+                clearTimeout(fetchTimeout);
+                console.error('ANALYZE NETWORK ERROR:', err);
+                hideLoader();
+                var msg = (err && err.name === 'AbortError') ? _T.err_timeout : _T.err_network;
+                errDiv.textContent = msg;
+                fadeIn(errDiv);
+                btn.disabled = false;
+                btn.textContent = _T.btn_start;
+            });
+    }
+    </script>
+</body>
+</html>

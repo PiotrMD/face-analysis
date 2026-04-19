@@ -1,0 +1,483 @@
+TRANSLATIONS = {
+    'pl': {
+        # Meta
+        'site_title_home':  'Analiza Estetyczna Twarzy — Centrum Estetyki Medycznej',
+        'site_desc_home':   'Bezpłatna wstępna analiza estetyki twarzy oparta na standardach klinicznych medycyny estetycznej. Ocena 7 kategorii, indywidualny plan postępowania.',
+        'og_title_home':    'Analiza Estetyczna Twarzy — dr n. med. Piotr Niedziałkowski',
+        'og_desc_home':     'Wgraj jedno zdjęcie i otrzymaj szczegółową ocenę kliniczną twarzy — symetria, jakość skóry, oznaki starzenia, okolica oczu i więcej. Bezpłatnie, online.',
+        'og_title_results': 'Moja analiza estetyczna twarzy — dr n. med. Piotr Niedziałkowski',
+        'og_title_demo':    'Przykładowa analiza estetyczna — dr n. med. Piotr Niedziałkowski',
+        'twitter_title':    'Analiza Estetyczna Twarzy — Centrum Estetyki Medycznej',
+        'twitter_desc':     'Wgraj zdjęcie i otrzymaj szczegółową ocenę kliniczną twarzy. Bezpłatnie, online.',
+
+        # Topbar
+        'brand':              'Analiza Estetyczna',
+        'clinic_name':        'Centrum Estetyki Medycznej',
+        'doctor_full':        'dr n. med. Piotr Niedziałkowski',
+        'doctor_creds':       'Specjalista chorób wewnętrznych · alergolog · dyplomowany lekarz medycyny estetycznej',
+        'book_consultation':  'Zarezerwuj konsultację',
+
+        # Home hero
+        'eyebrow':    'Centrum Estetyki Medycznej',
+        'hero_headline': 'Precyzyjna ocena<br>estetyki twarzy.',
+        'hero_sub':   'Indywidualny plan postępowania oparty na standardach klinicznych medycyny estetycznej.',
+        'bullet_1':   'Diagnostyka oparta na standardach klinicznych medycyny estetycznej',
+        'bullet_2':   'Ocena 7 kategorii: symetria, proporcje, oznaki starzenia, jakość skóry, okolica oczu, wargi, linia włosów',
+        'bullet_3':   'Wystarczy jedno zdjęcie en face — wynik w kilka sekund',
+        'bullet_4':   'Podstawa do konsultacji i indywidualnego planu postępowania',
+
+        # Upload card
+        'upload_title':          'Wgraj zdjęcie do analizy i otrzymaj wstępną ocenę kliniczną',
+        'upload_hint':           'Jedno zdjęcie en face: twarz na wprost, oba oczy widoczne',
+        'no_file':               'Brak pliku',
+        'validation_title':      'Sprawdź zdjęcia przed analizą',
+        'validation_guide_intro':'Upewnij się, że:',
+        'validation_guide_1':    'twarz jest dobrze widoczna i nieprzysłonięta',
+        'validation_guide_2':    'zdjęcie jest wyraźne i dobrze oświetlone',
+        'validation_guide_3':    'widok en face: oba oczy widoczne, głowa prosto',
+        'analyze_btn':           'Rozpocznij analizę',
+        'demo_link':             'Zobacz przykładową analizę →',
+        'trust_no_storage':      'Zdjęcia nie są przechowywane',
+        'trust_preliminary':     'Wstępna analiza przed ostateczną konsultacją lekarską',
+        'analyses_prefix':       'Przeanalizowano',
+
+        # Loader steps (list — serialised to JS)
+        'loader_steps': [
+            'Przesyłam zdjęcie do analizy\u2026',
+            'Wi\u0119kszo\u015b\u0107 analiz gotowa w ci\u0105gu minuty \u2014 prosz\u0119 czeka\u0107\u2026',
+            'Wykrywam struktury anatomiczne twarzy\u2026',
+            'Oceniam symetri\u0119, proporcje i oznaki starzenia\u2026',
+            'Analizuj\u0119 jako\u015b\u0107 sk\u00f3ry i okolice oczu\u2026',
+            'Generuj\u0119 indywidualny plan post\u0119powania\u2026',
+        ],
+
+        # JS strings
+        'btn_verify':       'Weryfikuj\u0119 zdj\u0119cie\u2026',
+        'btn_retry':        'Spr\u00f3buj ponownie',
+        'btn_start':        'Rozpocznij analiz\u0119',
+        'err_no_photo':     'Wgraj zdj\u0119cie en face, aby kontynuowa\u0107.',
+        'err_validation':   'B\u0142\u0105d walidacji zdj\u0119\u0107.',
+        'err_file_large':   'Plik jest za du\u017cy. Skompresuj zdj\u0119cie i spr\u00f3buj ponownie.',
+        'err_no_face':      'Nie wykryto twarzy. Za\u0142\u0105cz zdj\u0119cie twarzy \u2014 tylko takie zdj\u0119cia mog\u0105 by\u0107 analizowane.',
+        'err_timeout':      'Analiza trwa\u0142a zbyt d\u0142ugo. Spr\u00f3buj ponownie za chwil\u0119.',
+        'err_network':      'Nie uda\u0142o si\u0119 po\u0142\u0105czy\u0107 z serwerem. Spr\u00f3buj ponownie.',
+        'err_server':       'B\u0142\u0105d serwera',
+        'err_parse':        'Nie uda\u0142o si\u0119 przetworzy\u0107 \u017c\u0105dania. Spr\u00f3buj ponownie.',
+        'err_consent':      'Wymagana jest zgoda na przetwarzanie danych.',
+        'err_send_failed':  'Nie uda\u0142o si\u0119 wys\u0142a\u0107. Spr\u00f3buj ponownie.',
+        'err_conn':         'B\u0142\u0105d po\u0142\u0105czenia. Zadzwo\u0144 pod numer kliniki.',
+        'submitting':       'Wysy\u0142anie\u2026',
+        'copied':           'Skopiowano link!',
+        'photo_ready':      'Zdj\u0119cia gotowe do analizy',
+
+        # Modal
+        'modal_title':       'Um\u00f3w konsultacj\u0119',
+        'modal_lead':        'Wype\u0142nij formularz \u2014 skontaktujemy si\u0119 z Tob\u0105 w godzinach pracy kliniki.',
+        'modal_lead_results':'Na podstawie analizy mo\u017cesz skonsultowa\u0107 wynik z lekarzem i dobra\u0107 indywidualny plan post\u0119powania.',
+        'label_name':        'Imi\u0119 i nazwisko',
+        'label_phone':       'Numer telefonu',
+        'label_email':       'Adres e-mail',
+        'label_message':     'Wiadomo\u015b\u0107',
+        'optional':          'opcjonalnie',
+        'ph_name':           'Jan Kowalski',
+        'ph_phone':          '+48 600 000 000',
+        'ph_email':          'jan@example.com',
+        'ph_message':        'Dodatkowe informacje lub pytania...',
+        'consent_text':      'Wyra\u017cam zgod\u0119 na przetwarzanie moich danych osobowych przez Centrum Estetyki Medycznej w celu um\u00f3wienia konsultacji lekarskiej.',
+        'submit_btn':        'Wy\u015blij zg\u0142oszenie',
+        'success_msg':       'Dzi\u0119kujemy. Skontaktujemy si\u0119 z Tob\u0105 mo\u017cliwie szybko w godzinach pracy kliniki, wtorek\u2013pi\u0105tek 12:00\u201320:00.',
+        'consult_note':      'Konsultacja prowadzona jest osobi\u015bcie przez lekarza. Ka\u017cdy plan post\u0119powania opiera si\u0119 na indywidualnej ocenie klinicznej.',
+
+        # Results — demo banner
+        'title_results':        'Wynik analizy',
+        'title_demo':           'Przyk\u0142adowa analiza',
+        'demo_banner_title':    'Przyk\u0142adowa analiza \u2014 dane fikcyjne',
+        'demo_banner_body':     'Ten wynik <strong>nie dotyczy Ciebie</strong> \u2014 s\u0142u\u017cy wy\u0142\u0105cznie jako prezentacja formatu raportu. Wgraj w\u0142asne zdj\u0119cie, by otrzyma\u0107 analiz\u0119 swojej twarzy.',
+        'demo_banner_cta':      'Wgraj w\u0142asne zdj\u0119cie \u2192',
+        'error_title':          'B\u0142\u0105d',
+        'back':                 'Powr\u00f3t',
+
+        # Score verdicts
+        'verdict_good': 'Dobry wynik kliniczny',
+        'verdict_mid':  'Umiarkowane wskaza\u0144 kliniczne',
+        'verdict_low':  'Wyra\u017ane wskaza\u0144 kliniczne',
+        'skin_age_label':'Biologiczny wiek sk\u00f3ry',
+        'hero_cta_line': 'Na tym etapie zmiany s\u0105 jeszcze \u0142atwe do odwr\u00f3cenia \u2014 op\u00f3\u017anienie leczenia mo\u017ce wymaga\u0107 bardziej zaawansowanych procedur.',
+        'hero_normalize':'Podobny profil zmian obserwujemy bardzo cz\u0119sto u pacjent\u00f3w zg\u0142aszaj\u0105cych si\u0119 na pierwsz\u0105 konsultacj\u0119.',
+
+        # Sections
+        'section_overall':     'Og\u00f3lny odbi\u00f3r twarzy',
+        'section_priorities':  '\u2691 Priorytety kliniczne',
+        'section_impact':      'Co to oznacza dla Ciebie',
+        'impact_urgency':      'Na tym etapie interwencja jest mniej inwazyjna i daje bardziej przewidywalne efekty ni\u017c w przypadku dalszego odk\u0142adania leczenia.',
+        'section_fatigue':     'Co wp\u0142ywa na odbi\u00f3r zm\u0119czenia',
+        'fatigue_primary_label':'Czynnik g\u0142\u00f3wny',
+        'skin_tension_title':  'Napi\u0119cie sk\u00f3ry',
+        'tension_under_eye':   'Okolica oka',
+        'tension_cheeks':      'Policzki',
+        'tension_jawline':     'Linia \u017cuchwy',
+        'tension_neck':        'Szyja',
+        'section_clinical':    'Interpretacja kliniczna',
+        'ci_principle':        'Najlepsze efekty estetyczne uzyskuje si\u0119 wtedy, gdy poprawa wygl\u0105du idzie r\u00f3wnolegle z popraw\u0105 jako\u015bci i zdrowia sk\u00f3ry. Indywidualny plan post\u0119powania powinien by\u0107 etapowy \u2014 od przygotowania sk\u00f3ry do precyzyjnych interwencji estetycznych. Rozwa\u017cenie ka\u017cdego kroku z lekarzem pozwala unikn\u0105\u0107 niepotrzebnych procedur i osi\u0105gn\u0105\u0107 przewidywalne, trwa\u0142e efekty.',
+        'ci_asset_label':      '\u2726 Atut strukturalny',
+
+        # Treatment plan
+        'section_plan': 'Plan post\u0119powania',
+        'plan_sub':     'Zalecane kierunki \u2014 do rozwa\u017cenia z lekarzem medycyny estetycznej',
+        'stage_label':  'Etap',
+        'stage1_title': 'Jako\u015b\u0107 sk\u00f3ry',
+        'stage1_sub':   'Przygotowanie i regeneracja',
+        'effect_label': 'Co poprawia',
+        'why_label':    'Dlaczego wa\u017cne',
+        'stage1_effect':'Tekstur\u0119 i kolor sk\u00f3ry, nawil\u017cenie, g\u0119sto\u015b\u0107 por\u00f3w i jednolito\u015b\u0107 tonu. Dobra jako\u015b\u0107 sk\u00f3ry jest podstaw\u0105 skuteczno\u015bci wszystkich kolejnych procedur. Zabiegi obejmuj\u0105: peelingi chemiczne (z\u0142uszczanie i odnowa nask\u00f3rka), laser frakcyjny (stymulacja przebudowy tkanki), fibryn\u0119 bogatokom\u00f3rkow\u0105 (biologiczna regeneracja sk\u00f3ry) oraz mezoterapia (od\u017cywienie od \u015bwodka).',
+        'stage1_why':   'Zaniedbana jako\u015b\u0107 sk\u00f3ry obni\u017ca trwa\u0142o\u015b\u0107 i przewidywalno\u015b\u0107 wszystkich kolejnych interwencji \u2014 to fundament, od kt\u00f3rego zaczynamy.',
+        'stage1_default':'Brak istotnych wskaza\u0144 \u2014 kontynuacja piel\u0119gnacji domowej i fotoprotekcji.',
+        'stage2_title': 'Obj\u0119to\u015b\u0107 i napi\u0119cie',
+        'stage2_sub':   'Korekta strukturalna',
+        'stage2_effect':'Utrat\u0119 obj\u0119to\u015bci policzk\u00f3w i owa\u0142u twarzy, zag\u0142\u0119bione doliny \u0142ez, efekt zm\u0119czenia twarzy oraz napi\u0119cie i elastyczno\u015b\u0107 sk\u00f3ry (kolagen, elastyna). Zabiegi obejmuj\u0105: stymulatory tkankowe i fibryn\u0119 bogatokom\u00f3rkow\u0105 (regeneracja okolicy podoczodo\u0142owej i napi\u0119cie sk\u00f3ry) oraz kwas hialuronowy (uzupe\u0142nienie obj\u0119to\u015bci policzk\u00f3w i owa\u0142u).',
+        'stage2_why':   'Utrata obj\u0119to\u015bci i napi\u0119cia post\u0119puje z wiekiem \u2014 wczesna interwencja daje naturalne efekty i zapobiega konieczno\u015bci bardziej inwazyjnych procedur w przysz\u0142o\u015bci.',
+        'stage2_default':'Brak istotnych wskaza\u0144 na tym etapie \u2014 ocena w trakcie konsultacji.',
+        'stage3_title': 'Zmarszczki mimiczne',
+        'stage3_sub':   'Czo\u0142o, lwia zmarszczka, okolice oczu',
+        'stage3_effect':'Zmarszczki dynamiczne w g\u00f3rnej cz\u0119\u015bci twarzy: poziome linie czo\u0142a, lwi\u0105 zmarszczk\u0119 mi\u0119dzy brwiami oraz kurze \u0142apki wok\u00f3\u0142 oczu. Zabieg: toksyna botulinowa \u2014 relaksuje mi\u0119\u015bnie odpowiedzialne za powstawanie zmarszczek mimicznych i zapobiega ich utrwalaniu si\u0119.',
+        'stage3_why':   'Zmarszczki dynamiczne z czasem utrwalaj\u0105 si\u0119 w statyczne \u2014 wcze\u015bniejsza interwencja daje lepszy i trwalszy efekt.',
+        'stage3_default':'Brak istotnych wskaza\u0144 na tym etapie.',
+        'requires_consultation':'wymaga konsultacji',
+
+        # Progression
+        'section_progression': 'Jak zmiany mog\u0105 si\u0119 rozwija\u0107',
+        'progression_sub':     'Nieleczone obszary \u2014 spodziewana progresja bez interwencji',
+
+        # Recommendations fallback
+        'section_recommendations': 'Rekomendacje',
+        'rec_sub': 'W kolejno\u015bci priorytet\u00f3w klinicznych',
+
+        # Med cred
+        'section_med_cred': 'Podej\u015bcie medyczne',
+        'med_cred_lead':    'Medycyna estetyczna praktykowana w tym gabinecie opiera si\u0119 na wieloletnim do\u015bwiadczeniu klinicznym \u2014 \u0142\u0105cz\u0105c specjalizacj\u0119 z chor\u00f3b wewn\u0119trznych i alergologii z podej\u015bciem regeneracyjnym do estetyki twarzy.',
+        'med_cred_1':       'Ponad 30 lat praktyki lekarskiej, w tym ponad 20 lat w zakresie medycyny estetycznej i przeciwstarzeniowej',
+        'med_cred_2':       'T\u0142o internistyczne i alergologiczne \u2014 pozwala oceni\u0107 stan sk\u00f3ry i tkanek w kontek\u015bcie og\u00f3lnego zdrowia pacjenta',
+        'med_cred_3':       'Prowadzimy diagnostyk\u0119 i opiek\u0119 w chorobach przewlek\u0142ych oraz kompleksow\u0105 ocen\u0119 stanu zdrowia \u2014 \u0142\u0105cz\u0105c podej\u015bcie estetyczne z dbało\u015bci\u0105 o zdrowie og\u00f3lne',
+        'med_cred_4':       'Podej\u015bcie regeneracyjne: priorytetem jest poprawa jako\u015bci sk\u00f3ry i zdrowia tkanek, a nie jedynie korekta objaw\u00f3w',
+        'med_cred_5':       'Efekty naturalne i proporcjonalne \u2014 bez przesadnej korekty, z zachowaniem indywidualnego charakteru twarzy',
+        'med_cred_6':       'Bezpo\u015bredni kontakt lekarz\u2013pacjent na ka\u017cdym etapie: od analizy, przez plan leczenia, do kontroli efekt\u00f3w',
+        'med_cred_disclaimer':'Analiza stanowi punkt wyj\u015bcia do decyzji terapeutycznej i nie zast\u0119puje badania lekarskiego.',
+        'doctor_specialty_1':'Specjalista chor\u00f3b wewn\u0119trznych, alergolog',
+        'doctor_specialty_2':'Dyplomowany lekarz medycyny estetycznej',
+
+        # Verdict
+        'section_verdict':   'Wniosek lekarski',
+        'verdict_stage_label':'Etap zmian',
+        'verdict_early':     'Wczesny \u2014 zmiany \u0142atwe do odwr\u00f3cenia przy wczesnej interwencji',
+        'verdict_mid_stage': 'Umiarkowany \u2014 typowy zakres wskaza\u0144 u pacjent\u00f3w na pierwszej konsultacji',
+        'verdict_advanced':  'Zaawansowany \u2014 wskazany priorytetowy plan post\u0119powania',
+        'verdict_rec':       'Nast\u0119pny krok to konsultacja w gabinecie \u2014 potwierdzimy obserwacje, odpowiemy na pytania i dobierzemy indywidualny plan post\u0119powania. Zadzwo\u0144 pod <strong>+48\u202f695\u202f84\u202f584</strong> lub zostaw numer \u2014 odzwonimy. Mo\u017cesz te\u017c wype\u0142ni\u0107 formularz poni\u017cej.',
+
+        # CTA
+        'cta_heading':    'Co dalej?',
+        'cta_text':       'Na podstawie analizy zalecana jest konsultacja w celu dobrania indywidualnego planu post\u0119powania.',
+        'cta_btn':        'Um\u00f3w konsultacj\u0119 lekarsk\u0105',
+        'cta_sub':        'Dobierzemy indywidualny plan dopasowany do Twojej twarzy',
+        'cta_secondary':  'Zostaw numer \u2014 odzwonimy',
+        'cta_trust':      'Twoje dane nie s\u0105 przechowywane bez Twojej zgody.',
+
+        # Inline form
+        'section_consult_inline':'Um\u00f3w konsultacj\u0119 lekarsk\u0105',
+        'consult_inline_sub':    'Wype\u0142nij formularz \u2014 odezwiemy si\u0119 w godzinach pracy kliniki',
+        'ic_trust':              'Konsultacja prowadzona jest osobi\u015bcie przez lekarza. Ka\u017cdy plan post\u0119powania opiera si\u0119 na indywidualnej ocenie klinicznej.',
+
+        # Doctor card
+        'section_doctor':      'Konsultacja medyczna',
+        'contact_phone':       'Telefon',
+        'contact_hours':       'Godziny',
+        'contact_hours_val':   'Wtorek \u2013 Pi\u0105tek, 12:00 \u2013 20:00',
+        'contact_address':     'Adres',
+        'contact_websites':    'Strony',
+        'doctor_trust':        'Konsultacja prowadzona jest osobi\u015bcie przez lekarza. Ka\u017cdy plan post\u0119powania opiera si\u0119 na indywidualnej ocenie klinicznej \u2014 nie na schematach.',
+
+        # Full analysis
+        'section_full': 'Pe\u0142na analiza \u2014 7 kategorii',
+        'full_sub':     'Rozwi\u0144 sekcj\u0119, aby zobaczy\u0107 szczeg\u00f3\u0142y',
+
+        # Category labels
+        'cat_symmetry':        'Symetria',
+        'cat_proportions':     'Proporcje',
+        'cat_aging_signs':     'Oznaki starzenia',
+        'cat_skin_quality':    'Jako\u015b\u0107 sk\u00f3ry',
+        'cat_eye_area':        'Okolica oczu',
+        'cat_lips_lower_face': 'Wargi i dolna twarz',
+        'cat_hairline_hair':   'Linia w\u0142os\u00f3w',
+
+        # Radar (may contain \n for line breaks)
+        'radar_symmetry':        'Symetria',
+        'radar_proportions':     'Proporcje',
+        'radar_aging_signs':     'Oznaki\nstarzenia',
+        'radar_skin_quality':    'Jako\u015b\u0107\nsk\u00f3ry',
+        'radar_eye_area':        'Okolica\noczu',
+        'radar_lips_lower_face': 'Wargi',
+        'radar_hairline_hair':   'W\u0142osy',
+
+        # Status badges
+        'status_good':     'dobry',
+        'status_mild':     '\u0142agodny',
+        'status_moderate': 'umiarkowany',
+
+        # Severity chips
+        'sev_brak':        'brak zmian',
+        'sev_lagodny':     '\u0142agodny',
+        'sev_umiarkowany': 'umiarkowany',
+        'sev_zaawansowany':'zaawansowany',
+
+        # Sticky CTA
+        'sticky_headline': 'Gotowy na konsultacj\u0119?',
+        'sticky_sub':      'Indywidualny plan leczenia z lekarzem',
+        'sticky_btn':      'Um\u00f3w konsultacj\u0119',
+
+        # Footer & misc
+        'footer':      '\u00a9 2026 Centrum Estetyki Medycznej \u00b7 dr n. med. Piotr Niedziałkowski',
+        'switch_lang': 'EN',
+        'lang_target': 'en',
+        'html_lang':   'pl',
+    },
+
+    'en': {
+        # Meta
+        'site_title_home':  'Facial Aesthetic Analysis — Medical Aesthetics Centre',
+        'site_desc_home':   'Free preliminary facial aesthetic analysis based on clinical standards of aesthetic medicine. Assessment of 7 categories, individual treatment plan.',
+        'og_title_home':    'Facial Aesthetic Analysis — dr Piotr Niedziałkowski MD',
+        'og_desc_home':     'Upload one photo and receive a detailed clinical facial assessment — symmetry, skin quality, signs of ageing, eye area and more. Free, online.',
+        'og_title_results': 'My Facial Aesthetic Analysis — dr Piotr Niedziałkowski MD',
+        'og_title_demo':    'Sample Aesthetic Analysis — dr Piotr Niedziałkowski MD',
+        'twitter_title':    'Facial Aesthetic Analysis — Medical Aesthetics Centre',
+        'twitter_desc':     'Upload a photo and receive a detailed clinical facial assessment. Free, online.',
+
+        # Topbar
+        'brand':             'Aesthetic Analysis',
+        'clinic_name':       'Medical Aesthetics Centre',
+        'doctor_full':       'dr Piotr Niedziałkowski MD',
+        'doctor_creds':      'Internal medicine specialist · allergologist · certified aesthetic medicine physician',
+        'book_consultation': 'Book a consultation',
+
+        # Home hero
+        'eyebrow':       'Medical Aesthetics Centre',
+        'hero_headline': 'Precise facial<br>aesthetic assessment.',
+        'hero_sub':      'Individual treatment plan based on clinical standards of aesthetic medicine.',
+        'bullet_1':      'Diagnostics based on clinical standards of aesthetic medicine',
+        'bullet_2':      'Assessment of 7 categories: symmetry, proportions, signs of ageing, skin quality, eye area, lips, hairline',
+        'bullet_3':      'One en face photo is enough — result in seconds',
+        'bullet_4':      'Basis for consultation and an individual treatment plan',
+
+        # Upload card
+        'upload_title':           'Upload your photo for analysis and receive a preliminary clinical assessment',
+        'upload_hint':            'One en face photo: face straight ahead, both eyes visible',
+        'no_file':                'No file',
+        'validation_title':       'Check your photos before analysis',
+        'validation_guide_intro': 'Make sure that:',
+        'validation_guide_1':     'the face is clearly visible and unobstructed',
+        'validation_guide_2':     'the photo is sharp and well-lit',
+        'validation_guide_3':     'en face view: both eyes visible, head straight',
+        'analyze_btn':            'Start analysis',
+        'demo_link':              'See a sample analysis \u2192',
+        'trust_no_storage':       'Photos are not stored',
+        'trust_preliminary':      'Preliminary analysis before final medical consultation',
+        'analyses_prefix':        'Analysed',
+
+        # Loader steps
+        'loader_steps': [
+            'Uploading photo for analysis\u2026',
+            'Most analyses ready within a minute \u2014 please wait\u2026',
+            'Detecting facial anatomical structures\u2026',
+            'Evaluating symmetry, proportions and signs of ageing\u2026',
+            'Analysing skin quality and eye area\u2026',
+            'Generating individual treatment plan\u2026',
+        ],
+
+        # JS strings
+        'btn_verify':      'Verifying photo\u2026',
+        'btn_retry':       'Try again',
+        'btn_start':       'Start analysis',
+        'err_no_photo':    'Please upload an en face photo to continue.',
+        'err_validation':  'Photo validation error.',
+        'err_file_large':  'File too large. Please compress the photo and try again.',
+        'err_no_face':     'No face detected. Please attach a face photo \u2014 only such photos can be analysed.',
+        'err_timeout':     'Analysis took too long. Please try again shortly.',
+        'err_network':     'Could not connect to the server. Please try again.',
+        'err_server':      'Server error',
+        'err_parse':       'Could not process the request. Please try again.',
+        'err_consent':     'Consent to data processing is required.',
+        'err_send_failed': 'Failed to send. Please try again.',
+        'err_conn':        'Connection error. Please call the clinic.',
+        'submitting':      'Sending\u2026',
+        'copied':          'Link copied!',
+        'photo_ready':     'Photos ready for analysis',
+
+        # Modal
+        'modal_title':        'Book a consultation',
+        'modal_lead':         'Fill in the form \u2014 we will contact you during clinic hours.',
+        'modal_lead_results': 'Based on the analysis, you can consult the results with a doctor and choose an individual treatment plan.',
+        'label_name':         'Full name',
+        'label_phone':        'Phone number',
+        'label_email':        'Email address',
+        'label_message':      'Message',
+        'optional':           'optional',
+        'ph_name':            'John Smith',
+        'ph_phone':           '+48 600 000 000',
+        'ph_email':           'john@example.com',
+        'ph_message':         'Additional information or questions...',
+        'consent_text':       'I consent to the processing of my personal data by the Medical Aesthetics Centre for the purpose of arranging a medical consultation.',
+        'submit_btn':         'Send enquiry',
+        'success_msg':        'Thank you. We will contact you as soon as possible during clinic hours, Tuesday\u2013Friday 12:00\u201320:00.',
+        'consult_note':       'Consultation is conducted personally by the doctor. Every treatment plan is based on an individual clinical assessment.',
+
+        # Results — demo banner
+        'title_results':     'Analysis result',
+        'title_demo':        'Sample analysis',
+        'demo_banner_title': 'Sample analysis \u2014 fictional data',
+        'demo_banner_body':  'This result <strong>does not concern you</strong> \u2014 it serves only as a presentation of the report format. Upload your own photo to receive an analysis of your face.',
+        'demo_banner_cta':   'Upload your own photo \u2192',
+        'error_title':       'Error',
+        'back':              'Back',
+
+        # Score verdicts
+        'verdict_good':  'Good clinical result',
+        'verdict_mid':   'Moderate clinical indications',
+        'verdict_low':   'Significant clinical indications',
+        'skin_age_label':'Biological skin age',
+        'hero_cta_line': 'At this stage, changes are still easy to reverse \u2014 delaying treatment may require more advanced procedures.',
+        'hero_normalize':'We observe a similar pattern of changes very often in patients presenting for their first consultation.',
+
+        # Sections
+        'section_overall':      'Overall facial impression',
+        'section_priorities':   '\u2691 Clinical priorities',
+        'section_impact':       'What this means for you',
+        'impact_urgency':       'At this stage, intervention is less invasive and provides more predictable results than if treatment is further delayed.',
+        'section_fatigue':      'What affects the tired appearance',
+        'fatigue_primary_label':'Primary factor',
+        'skin_tension_title':   'Skin tension',
+        'tension_under_eye':    'Under-eye area',
+        'tension_cheeks':       'Cheeks',
+        'tension_jawline':      'Jawline',
+        'tension_neck':         'Neck',
+        'section_clinical':     'Clinical interpretation',
+        'ci_principle':         'The best aesthetic results are achieved when improvement in appearance goes hand in hand with improvement in skin quality and health. The individual treatment plan should be staged \u2014 from skin preparation to precise aesthetic interventions. Considering each step with a doctor helps avoid unnecessary procedures and achieve predictable, lasting results.',
+        'ci_asset_label':       '\u2726 Structural asset',
+
+        # Treatment plan
+        'section_plan':   'Treatment plan',
+        'plan_sub':       'Recommended directions \u2014 to be discussed with an aesthetic medicine doctor',
+        'stage_label':    'Stage',
+        'stage1_title':   'Skin quality',
+        'stage1_sub':     'Preparation and regeneration',
+        'effect_label':   'What it improves',
+        'why_label':      'Why it matters',
+        'stage1_effect':  'Skin texture and colour, hydration, pore density and tone uniformity. Good skin quality is the foundation for the effectiveness of all subsequent procedures. Treatments include: chemical peels (exfoliation and epidermal renewal), fractional laser (tissue remodelling stimulation), platelet-rich fibrin (biological skin regeneration) and mesotherapy (deep nourishment).',
+        'stage1_why':     'Neglected skin quality reduces the durability and predictability of all subsequent interventions \u2014 this is the foundation we start from.',
+        'stage1_default': 'No significant indications \u2014 continue home care and photoprotection.',
+        'stage2_title':   'Volume and firmness',
+        'stage2_sub':     'Structural correction',
+        'stage2_effect':  'Loss of cheek and facial oval volume, deep tear troughs, tired face appearance and skin firmness and elasticity (collagen, elastin). Treatments include: tissue stimulators and platelet-rich fibrin (periorbital regeneration and skin tightening) and hyaluronic acid (restoring cheek and facial oval volume).',
+        'stage2_why':     'Loss of volume and firmness progresses with age \u2014 early intervention gives natural results and prevents the need for more invasive procedures in the future.',
+        'stage2_default': 'No significant indications at this stage \u2014 to be assessed during consultation.',
+        'stage3_title':   'Expression lines',
+        'stage3_sub':     'Forehead, glabellar line, eye area',
+        'stage3_effect':  "Dynamic wrinkles in the upper face: horizontal forehead lines, the glabellar line between the brows and crow\u2019s feet around the eyes. Treatment: botulinum toxin \u2014 relaxes the muscles responsible for expression wrinkles and prevents them from becoming permanent.",
+        'stage3_why':     'Dynamic wrinkles gradually become static over time \u2014 earlier intervention gives a better and more lasting result.',
+        'stage3_default': 'No significant indications at this stage.',
+        'requires_consultation':'requires consultation',
+
+        # Progression
+        'section_progression': 'How changes may progress',
+        'progression_sub':     'Untreated areas \u2014 expected progression without intervention',
+
+        # Recommendations fallback
+        'section_recommendations': 'Recommendations',
+        'rec_sub': 'In order of clinical priority',
+
+        # Med cred
+        'section_med_cred': 'Medical approach',
+        'med_cred_lead':    'Aesthetic medicine practised at this clinic is based on years of clinical experience \u2014 combining specialisation in internal medicine and allergology with a regenerative approach to facial aesthetics.',
+        'med_cred_1':       'Over 30 years of medical practice, including over 20 years in aesthetic and anti-ageing medicine',
+        'med_cred_2':       'Internal medicine and allergology background \u2014 allows assessment of skin and tissue condition in the context of the patient\u2019s overall health',
+        'med_cred_3':       'We provide diagnostics and care for chronic diseases and comprehensive health assessment \u2014 combining the aesthetic approach with attention to general health',
+        'med_cred_4':       'Regenerative approach: priority is on improving skin quality and tissue health, not merely correcting symptoms',
+        'med_cred_5':       'Natural and proportional results \u2014 without overcorrection, preserving the individual character of the face',
+        'med_cred_6':       'Direct doctor\u2013patient contact at every stage: from analysis, through treatment planning, to monitoring results',
+        'med_cred_disclaimer':'The analysis is a starting point for therapeutic decisions and does not replace a medical examination.',
+        'doctor_specialty_1':'Internal medicine specialist, allergologist',
+        'doctor_specialty_2':'Certified aesthetic medicine physician',
+
+        # Verdict
+        'section_verdict':    'Medical conclusion',
+        'verdict_stage_label':'Stage of changes',
+        'verdict_early':      'Early \u2014 changes easy to reverse with timely intervention',
+        'verdict_mid_stage':  'Moderate \u2014 typical range of indications in patients at first consultation',
+        'verdict_advanced':   'Advanced \u2014 priority treatment plan indicated',
+        'verdict_rec':        'The next step is an in-clinic consultation \u2014 we will confirm the findings, answer questions and devise an individual treatment plan. Call <strong>+48\u202f695\u202f84\u202f584</strong> or leave your number \u2014 we will call back. You can also fill in the form below.',
+
+        # CTA
+        'cta_heading':   "What's next?",
+        'cta_text':      'Based on the analysis, a consultation is recommended to develop an individual treatment plan.',
+        'cta_btn':       'Book a medical consultation',
+        'cta_sub':       'We will design a plan tailored to your face',
+        'cta_secondary': 'Leave your number \u2014 we will call back',
+        'cta_trust':     'Your data is not stored without your consent.',
+
+        # Inline form
+        'section_consult_inline':'Book a medical consultation',
+        'consult_inline_sub':    'Fill in the form \u2014 we will respond during clinic hours',
+        'ic_trust':              'Consultation is conducted personally by the doctor. Every treatment plan is based on an individual clinical assessment.',
+
+        # Doctor card
+        'section_doctor':    'Medical consultation',
+        'contact_phone':     'Phone',
+        'contact_hours':     'Hours',
+        'contact_hours_val': 'Tuesday \u2013 Friday, 12:00 \u2013 20:00',
+        'contact_address':   'Address',
+        'contact_websites':  'Websites',
+        'doctor_trust':      'Consultation is conducted personally by the doctor. Every treatment plan is based on an individual clinical assessment \u2014 not on templates.',
+
+        # Full analysis
+        'section_full': 'Full analysis \u2014 7 categories',
+        'full_sub':     'Expand a section to see details',
+
+        # Category labels
+        'cat_symmetry':        'Symmetry',
+        'cat_proportions':     'Proportions',
+        'cat_aging_signs':     'Signs of ageing',
+        'cat_skin_quality':    'Skin quality',
+        'cat_eye_area':        'Eye area',
+        'cat_lips_lower_face': 'Lips & lower face',
+        'cat_hairline_hair':   'Hairline',
+
+        # Radar
+        'radar_symmetry':        'Symmetry',
+        'radar_proportions':     'Proportions',
+        'radar_aging_signs':     'Signs of\nageing',
+        'radar_skin_quality':    'Skin\nquality',
+        'radar_eye_area':        'Eye\narea',
+        'radar_lips_lower_face': 'Lips',
+        'radar_hairline_hair':   'Hair',
+
+        # Status badges
+        'status_good':     'good',
+        'status_mild':     'mild',
+        'status_moderate': 'moderate',
+
+        # Severity chips
+        'sev_brak':        'none',
+        'sev_lagodny':     'mild',
+        'sev_umiarkowany': 'moderate',
+        'sev_zaawansowany':'advanced',
+
+        # Sticky CTA
+        'sticky_headline': 'Ready for a consultation?',
+        'sticky_sub':      'Individual treatment plan with a doctor',
+        'sticky_btn':      'Book consultation',
+
+        # Footer & misc
+        'footer':      '\u00a9 2026 Medical Aesthetics Centre \u00b7 dr Piotr Niedziałkowski MD',
+        'switch_lang': 'PL',
+        'lang_target': 'pl',
+        'html_lang':   'en',
+    },
+}

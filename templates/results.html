@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="{{ t.html_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <title>{% if is_demo %}{{ t.title_demo }}{% else %}{{ t.title_results }}{% endif %} — {{ t.clinic_name }}</title>
+    <meta name="description" content="Szczegółowa kliniczna ocena estetyki twarzy — symetria, jakość skóry, oznaki starzenia, okolica oczu i indywidualny plan postępowania.">
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="{% if is_demo %}{{ t.og_title_demo }}{% else %}{{ t.og_title_results }}{% endif %}">
+    <meta property="og:description" content="Ocena kliniczna: {{ result.summary[:120] if result and result.summary else 'Indywidualny plan postępowania oparty na standardach klinicznych medycyny estetycznej.' }}…">
+    <meta property="og:url"         content="{{ og_base_url }}/results/{{ token }}">
+    <meta property="og:image"       content="{{ og_base_url }}/static/img/doctor.jpg">
+    <meta name="twitter:card"       content="summary_large_image">
+    <meta name="twitter:image"      content="{{ og_base_url }}/static/img/doctor.jpg">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_version }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    {% if ga_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ ga_id }}');
+    </script>
+    {% endif %}
+</head>
+<body>
+    <div class="page">
+
+        <header class="topbar">
+            <div class="topbar__inner">
+                <a href="/" class="topbar__brand">{{ t.brand }}</a>
+                <div class="topbar__doctor">
+                    <span class="topbar__doctor-name">{{ t.doctor_full }}</span>
+                    <span class="topbar__doctor-creds">{{ t.doctor_creds }}</span>
+                    <span class="topbar__clinic">{{ t.clinic_name }}</span>
+                </div>
+                <div class="topbar__right">
+                    <div class="lang-switcher">
+                        <a href="/set-lang/pl" class="lang-btn {% if lang == 'pl' %}lang-btn--active{% endif %}">PL</a>
+                        <a href="/set-lang/en" class="lang-btn {% if lang == 'en' %}lang-btn--active{% endif %}">EN</a>
+                    </div>
+                    <a href="tel:+4869584584" class="topbar__phone">+48 695 84 584</a>
+                    <button class="topbar__cta-btn" id="openConsultBtnTop">{{ t.book_consultation }}</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            {% if is_demo %}
+            <div class="demo-banner">
+                <div class="demo-banner__title">{{ t.demo_banner_title }}</div>
+                <span>{{ t.demo_banner_body | safe }}</span>
+                <a href="/" class="demo-banner__cta">{{ t.demo_banner_cta }}</a>
+            </div>
+            {% endif %}
+            {% if error %}
+                <div class="error-box">
+                    <h2>{{ t.error_title }}</h2>
+                    <p>{{ error }}</p>
+                    <a href="/" class="btn btn-primary" style="display:inline-block;margin-top:16px;">{{ t.back }}</a>
+                </div>
+            {% else %}
+
+            {% set nasilenie_labels = {
+                'brak':        t.sev_brak,
+                'lagodny':     t.sev_lagodny,
+                'umiarkowany': t.sev_umiarkowany,
+                'zaawansowany':t.sev_zaawansowany
+            } %}
+            {% set section_labels = {
+                'symmetry':        t.cat_symmetry,
+                'proportions':     t.cat_proportions,
+                'aging_signs':     t.cat_aging_signs,
+                'skin_quality':    t.cat_skin_quality,
+                'eye_area':        t.cat_eye_area,
+                'lips_lower_face': t.cat_lips_lower_face,
+                'hairline_hair':   t.cat_hairline_hair
+            } %}
+
+            <div class="results-wrap">
+
+                <!-- ══════════════════════════════
+                     1. HERO — SCORE + RADAR
+                ══════════════════════════════ -->
+                <div class="band band--hero">
+                    <div class="hero-viz">
+
+                        <div class="hero-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 220 220">
+                                <circle class="gauge-track" cx="110" cy="110" r="88"/>
+                                <circle class="gauge-arc
+                                    {% if result.overall_score >= 80 %}gauge-arc--good
+                                    {% elif result.overall_score >= 60 %}gauge-arc--mid
+                                    {% else %}gauge-arc--low{% endif %}"
+                                    cx="110" cy="110" r="88"
+                                    id="gaugeArc"
+                                    stroke-dasharray="0 553"
+                                    stroke-dashoffset="138"/>
+                                <text class="gauge-num
+                                    {% if result.overall_score >= 80 %}gauge-num--good
+                                    {% elif result.overall_score >= 60 %}gauge-num--mid
+                                    {% else %}gauge-num--low{% endif %}"
+                                    x="110" y="120" text-anchor="middle"
+                                    id="gaugeNum">0</text>
+                                <text class="gauge-denom" x="110" y="148" text-anchor="middle">/100</text>
+                            </svg>
+                            <div class="gauge-verdict
+                                {% if result.overall_score >= 80 %}gauge-verdict--good
+                                {% elif result.overall_score >= 60 %}gauge-verdict--mid
+                                {% else %}gauge-verdict--low{% endif %}">
+                                {% if result.overall_score >= 80 %}{{ t.verdict_good }}
+                                {% elif result.overall_score >= 60 %}{{ t.verdict_mid }}
+                                {% else %}{{ t.verdict_low }}{% endif %}
+                            </div>
+                            {% if result.biological_age_estimate %}
+                            <div class="gauge-age">
+                                <span class="gauge-age__label">{{ t.skin_age_label }}</span>
+                                <span class="gauge-age__val">{{ result.biological_age_estimate }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="hero-radar">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+
+                    </div>
+                    <p class="hero__cta-line">{{ t.hero_cta_line }}</p>
+                    <p class="hero__normalize">{{ t.hero_normalize }}</p>
+                </div>
+
+                <!-- ══════════════════════════════
+                     1b. OGÓLNY ODBIÓR TWARZY
+                ══════════════════════════════ -->
+                {% if result.overall_perception %}
+                <div class="band band--overall-perception">
+                    <h2 class="band__title">{{ t.section_overall }}</h2>
+                    <div class="op-tags">
+                        {% if result.overall_perception.freshness %}
+                        <span class="op-tag op-tag--freshness op-tag--{{ result.overall_perception.freshness | replace('ę','e') | replace('ó','o') | replace(' ','_') }}">
+                            {{ result.overall_perception.freshness }}
+                        </span>
+                        {% endif %}
+                        {% if result.overall_perception.apparent_age %}
+                        <span class="op-tag op-tag--age">{{ result.overall_perception.apparent_age }}</span>
+                        {% endif %}
+                    </div>
+                    {% if result.overall_perception.impression %}
+                    <p class="op-impression">{{ result.overall_perception.impression }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     2. TOP PRIORITY
+                ══════════════════════════════ -->
+                {% if result.findings or result.top_priority %}
+                {% if result.findings %}
+                {% set top_f = result.findings | selectattr('priorytet', 'equalto', 'wysoki') | list %}
+                {% if not top_f %}{% set top_f = result.findings | list %}{% endif %}
+                {% endif %}
+                <div class="band band--top-priority">
+                    <div class="tp-eyebrow">{{ t.section_priorities }}</div>
+                    {% if result.top_priority %}
+                    <p class="tp-main">{{ result.top_priority }}</p>
+                    {% endif %}
+                    {% if result.findings and top_f %}
+                    <div class="tp-cards">
+                        {% for f in top_f[:2] %}
+                        <div class="tp-card">
+                            <div class="tp-card__header">
+                                <span class="tp-card__area">{{ f.area }}</span>
+                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
+                            </div>
+                            <div class="tp-card__name">{{ f.name }}</div>
+                            {% if f.dlaczego_wazne %}
+                            <p class="tp-card__why">{{ f.dlaczego_wazne }}</p>
+                            {% endif %}
+                            {% if f.kierunek_postepowania %}
+                            <div class="tp-card__tags">
+                                {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     2b. CO TO OZNACZA
+                ══════════════════════════════ -->
+                {% if result.summary or result.top_priority %}
+                <div class="band band--personal-impact">
+                    <h2 class="band__title">{{ t.section_impact }}</h2>
+                    <div class="impact-sentences">
+                        {% if result.summary %}
+                        <p class="impact__sentence">{{ result.summary }}</p>
+                        {% endif %}
+                        {% if result.top_priority and result.top_priority != result.summary %}
+                        <p class="impact__sentence">{{ result.top_priority }}</p>
+                        {% endif %}
+                        <p class="impact__sentence impact__sentence--urgency">{{ t.impact_urgency }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     2c. FATIGUE
+                ══════════════════════════════ -->
+                {% if result.fatigue_factors or result.skin_tension %}
+                <div class="band band--fatigue">
+                    <h2 class="band__title">{{ t.section_fatigue }}</h2>
+                    {% if result.fatigue_factors %}
+                    {% if result.fatigue_factors.primary %}
+                    <div class="fatigue-primary">
+                        <span class="fatigue-primary__label">{{ t.fatigue_primary_label }}</span>
+                        <span class="fatigue-primary__text">{{ result.fatigue_factors.primary }}</span>
+                    </div>
+                    {% endif %}
+                    {% if result.fatigue_factors.contributing %}
+                    <div class="fatigue-contributing">
+                        {% for c in result.fatigue_factors.contributing %}
+                        <div class="fatigue-factor">{{ c }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if result.fatigue_factors.explanation %}
+                    <p class="fatigue-explanation">{{ result.fatigue_factors.explanation }}</p>
+                    {% endif %}
+                    {% endif %}
+                    {% if result.skin_tension %}
+                    <div class="tension-grid">
+                        <div class="tension-grid__title">{{ t.skin_tension_title }}</div>
+                        {% for zone, label in [('under_eye', t.tension_under_eye), ('cheeks', t.tension_cheeks), ('jawline', t.tension_jawline), ('neck', t.tension_neck)] %}
+                        {% if result.skin_tension[zone] %}
+                        <div class="tension-row">
+                            <span class="tension-row__label">{{ label }}</span>
+                            <span class="tension-row__text">{{ result.skin_tension[zone] }}</span>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     3. CLINICAL INTERPRETATION
+                ══════════════════════════════ -->
+                <div class="band band--clinical-interp">
+                    <h2 class="band__title">{{ t.section_clinical }}</h2>
+                    {% if result.skin_health_note %}
+                    <p class="ci__note">{{ result.skin_health_note }}</p>
+                    {% endif %}
+                    <p class="ci__principle">{{ t.ci_principle }}</p>
+                    {% if result.strongest_asset %}
+                    <div class="ci__asset">
+                        <span class="ci__asset-label">{{ t.ci_asset_label }}</span>
+                        <span class="ci__asset-text">{{ result.strongest_asset }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- ══════════════════════════════
+                     4. TREATMENT PLAN — 3 ETAPY
+                ══════════════════════════════ -->
+                {% if result.findings %}
+                {% set stage1 = (result.findings | selectattr('kategoria', 'equalto', 'skin_quality') | list) + (result.findings | selectattr('kategoria', 'equalto', 'pigment_vascular') | list) %}
+                {% set stage2 = (result.findings | selectattr('kategoria', 'equalto', 'volume_contour') | list) + (result.findings | selectattr('kategoria', 'equalto', 'eye_area') | list) %}
+                {% set stage3 = (result.findings | selectattr('kategoria', 'equalto', 'forehead_hairline') | list) + (result.findings | selectattr('kategoria', 'equalto', 'neck') | list) + (result.findings | selectattr('kategoria', 'equalto', 'lesions') | list) %}
+                <div class="band band--plan">
+                    <h2 class="band__title">{{ t.section_plan }}</h2>
+                    <p class="band__sub">{{ t.plan_sub }}</p>
+                    <div class="plan-stages">
+
+                        <!-- ETAP 1 -->
+                        <div class="plan-stage">
+                            <div class="plan-stage__header">
+                                <div class="plan-stage__badge">{{ t.stage_label }} 1</div>
+                                <div class="plan-stage__meta">
+                                    <div class="plan-stage__title">{{ t.stage1_title }}</div>
+                                    <div class="plan-stage__sub">{{ t.stage1_sub }}</div>
+                                </div>
+                            </div>
+                            <div class="plan-stage__effect">
+                                <span class="plan-stage__effect-label">{{ t.effect_label }}</span>
+                                <span class="plan-stage__effect-text">{{ t.stage1_effect }}</span>
+                                <span class="plan-stage__effect-label">{{ t.why_label }}</span>
+                                <span class="plan-stage__effect-text">{{ t.stage1_why }}</span>
+                            </div>
+                            <div class="plan-stage__body">
+                                {% if stage1 %}
+                                {% for f in stage1 %}
+                                <div class="plan-item">
+                                    <div class="plan-item__top">
+                                        <span class="plan-item__name">{{ f.name }}</span>
+                                        <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
+                                    </div>
+                                    <p class="plan-item__area">{{ f.area }}</p>
+                                    {% if f.kierunek_postepowania %}
+                                    <div class="plan-item__tags">
+                                        {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <p class="plan-stage__default">{{ t.stage1_default }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- ETAP 2 -->
+                        <div class="plan-stage">
+                            <div class="plan-stage__header">
+                                <div class="plan-stage__badge">{{ t.stage_label }} 2</div>
+                                <div class="plan-stage__meta">
+                                    <div class="plan-stage__title">{{ t.stage2_title }}</div>
+                                    <div class="plan-stage__sub">{{ t.stage2_sub }}</div>
+                                </div>
+                            </div>
+                            <div class="plan-stage__effect">
+                                <span class="plan-stage__effect-label">{{ t.effect_label }}</span>
+                                <span class="plan-stage__effect-text">{{ t.stage2_effect }}</span>
+                                <span class="plan-stage__effect-label">{{ t.why_label }}</span>
+                                <span class="plan-stage__effect-text">{{ t.stage2_why }}</span>
+                            </div>
+                            <div class="plan-stage__body">
+                                {% if stage2 %}
+                                {% for f in stage2 %}
+                                <div class="plan-item">
+                                    <div class="plan-item__top">
+                                        <span class="plan-item__name">{{ f.name }}</span>
+                                        <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
+                                    </div>
+                                    <p class="plan-item__area">{{ f.area }}</p>
+                                    {% if f.kierunek_postepowania %}
+                                    <div class="plan-item__tags">
+                                        {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <p class="plan-stage__default">{{ t.stage2_default }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- ETAP 3 -->
+                        <div class="plan-stage">
+                            <div class="plan-stage__header">
+                                <div class="plan-stage__badge">{{ t.stage_label }} 3</div>
+                                <div class="plan-stage__meta">
+                                    <div class="plan-stage__title">{{ t.stage3_title }}</div>
+                                    <div class="plan-stage__sub">{{ t.stage3_sub }}</div>
+                                </div>
+                            </div>
+                            <div class="plan-stage__effect">
+                                <span class="plan-stage__effect-label">{{ t.effect_label }}</span>
+                                <span class="plan-stage__effect-text">{{ t.stage3_effect }}</span>
+                                <span class="plan-stage__effect-label">{{ t.why_label }}</span>
+                                <span class="plan-stage__effect-text">{{ t.stage3_why }}</span>
+                            </div>
+                            <div class="plan-stage__body">
+                                {% if stage3 %}
+                                {% for f in stage3 %}
+                                <div class="plan-item {% if f.wymaga_potwierdzenia %}plan-item--confirm{% endif %}">
+                                    <div class="plan-item__top">
+                                        <span class="plan-item__name">{{ f.name }}</span>
+                                        <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
+                                        {% if f.wymaga_potwierdzenia %}<span class="confirm-badge">{{ t.requires_consultation }}</span>{% endif %}
+                                    </div>
+                                    <p class="plan-item__area">{{ f.area }}</p>
+                                    {% if f.kierunek_postepowania %}
+                                    <div class="plan-item__tags">
+                                        {% for tag in f.kierunek_postepowania %}<span class="treatment-tag">{{ tag }}</span>{% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <p class="plan-stage__default">{{ t.stage3_default }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div><!-- /plan-stages -->
+                </div>
+                {% elif result.recommendations %}
+                <div class="band band--plan">
+                    <h2 class="band__title">{{ t.section_recommendations }}</h2>
+                    <p class="band__sub">{{ t.rec_sub }}</p>
+                    <div class="steps-stack">
+                        {% for rec in result.recommendations %}
+                        <div class="step">
+                            <div class="step__num">{{ loop.index }}</div>
+                            <div class="step__text">{{ rec }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     4b. PROGRESSION
+                ══════════════════════════════ -->
+                {% if result.findings %}
+                {% set progressing = result.findings | selectattr('co_moze_sie_poglebiac', 'defined') | list %}
+                {% if progressing %}
+                <div class="band band--progression">
+                    <h2 class="band__title">{{ t.section_progression }}</h2>
+                    <p class="band__sub">{{ t.progression_sub }}</p>
+                    <div class="progression-list">
+                        {% for f in progressing[:4] %}
+                        {% if f.co_moze_sie_poglebiac %}
+                        <div class="prog-entry">
+                            <div class="prog-entry__header">
+                                <span class="prog-entry__name">{{ f.name }}</span>
+                                <span class="sev-chip sev-chip--{{ f.nasilenie }}">{{ nasilenie_labels.get(f.nasilenie, f.nasilenie) }}</span>
+                            </div>
+                            <p class="prog-entry__text">{{ f.co_moze_sie_poglebiac }}</p>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <!-- ══════════════════════════════
+                     5. MEDICAL CREDIBILITY
+                ══════════════════════════════ -->
+                <div class="band band--med-cred">
+                    <h2 class="band__title">{{ t.section_med_cred }}</h2>
+                    <div class="med-cred__grid">
+                        <div class="med-cred__text">
+                            <p class="med-cred__lead">{{ t.med_cred_lead }}</p>
+                            <ul class="med-cred__list">
+                                <li>{{ t.med_cred_1 }}</li>
+                                <li>{{ t.med_cred_2 }}</li>
+                                <li>{{ t.med_cred_3 }}</li>
+                                <li>{{ t.med_cred_4 }}</li>
+                                <li>{{ t.med_cred_5 }}</li>
+                                <li>{{ t.med_cred_6 }}</li>
+                            </ul>
+                            <p class="med-cred__disclaimer">{{ t.med_cred_disclaimer }}</p>
+                        </div>
+                        <div class="med-cred__aside">
+                            <div class="med-cred__avatar">
+                                <img src="{{ url_for('static', filename='img/doctor.jpg') }}" alt="{{ t.doctor_full }}" class="med-cred__photo" onerror="this.style.display='none'">
+                            </div>
+                            <div class="med-cred__name">{{ t.doctor_full }}</div>
+                            <div class="med-cred__creds">{{ t.doctor_specialty_1 }}</div>
+                            <div class="med-cred__creds">{{ t.doctor_specialty_2 }}</div>
+                            <div class="med-cred__clinic">{{ t.clinic_name }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════
+                     5b. WNIOSEK LEKARSKI
+                ══════════════════════════════ -->
+                <div class="band band--verdict">
+                    <h2 class="band__title">{{ t.section_verdict }}</h2>
+                    <div class="verdict__body">
+                        {% if result.top_priority %}
+                        <p class="verdict__finding">{{ result.top_priority }}</p>
+                        {% elif result.summary %}
+                        <p class="verdict__finding">{{ result.summary }}</p>
+                        {% endif %}
+                        <div class="verdict__stage-row">
+                            <span class="verdict__stage-label">{{ t.verdict_stage_label }}</span>
+                            <span class="verdict__stage-val
+                                {% if result.overall_score >= 75 %} verdict__stage-val--early
+                                {% elif result.overall_score >= 55 %} verdict__stage-val--mid
+                                {% else %} verdict__stage-val--advanced{% endif %}">
+                                {% if result.overall_score >= 75 %}{{ t.verdict_early }}
+                                {% elif result.overall_score >= 55 %}{{ t.verdict_mid_stage }}
+                                {% else %}{{ t.verdict_advanced }}{% endif %}
+                            </span>
+                        </div>
+                        <p class="verdict__rec">{{ t.verdict_rec | safe }}</p>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════
+                     6. CTA — UMÓW KONSULTACJĘ
+                ══════════════════════════════ -->
+                <div class="band band--cta-main">
+                    <div class="cta-main__inner">
+                        <h2 class="cta-main__heading">{{ t.cta_heading }}</h2>
+                        <p class="cta-main__text">{{ t.cta_text }}</p>
+                        <button class="cta-main__btn" id="openConsultBtn">{{ t.cta_btn }}</button>
+                        <p class="cta-main__sub">{{ t.cta_sub }}</p>
+                        <button class="cta-main__btn--secondary" id="openConsultBtnSecondary">{{ t.cta_secondary }}</button>
+                        <p class="cta-main__trust">{{ t.cta_trust }}</p>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════
+                     6b. INLINE CONSULTATION FORM
+                ══════════════════════════════ -->
+                <div class="band band--consult-inline">
+                    <h2 class="band__title">{{ t.section_consult_inline }}</h2>
+                    <p class="band__sub">{{ t.consult_inline_sub }}</p>
+
+                    <form id="inlineConsultForm" class="ic-form" novalidate>
+                        <div class="ic-form__row">
+                            <div class="ic-form__field">
+                                <label class="ic-form__label" for="ic_name">{{ t.label_name }}</label>
+                                <input class="ic-form__input" type="text" id="ic_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
+                            </div>
+                            <div class="ic-form__field">
+                                <label class="ic-form__label" for="ic_phone">{{ t.label_phone }}</label>
+                                <input class="ic-form__input" type="tel" id="ic_phone" placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
+                            </div>
+                        </div>
+                        <div class="ic-form__field">
+                            <label class="ic-form__label" for="ic_email">{{ t.label_email }}</label>
+                            <input class="ic-form__input" type="email" id="ic_email" placeholder="{{ t.ph_email }}" autocomplete="email" required>
+                        </div>
+                        <div class="ic-form__field">
+                            <label class="ic-form__label" for="ic_message">{{ t.label_message }} <span class="ic-form__opt">({{ t.optional }})</span></label>
+                            <textarea class="ic-form__input ic-form__input--ta" id="ic_message" rows="3" placeholder="{{ t.ph_message }}"></textarea>
+                        </div>
+                        <div class="ic-form__consent">
+                            <label class="ic-form__consent-label">
+                                <input type="checkbox" id="ic_consent" class="ic-form__checkbox" required>
+                                <span>{{ t.consent_text }}</span>
+                            </label>
+                        </div>
+                        <div class="ic-form__footer">
+                            <button type="submit" class="ic-form__btn">{{ t.submit_btn }}</button>
+                        </div>
+                        <p class="ic-form__error" id="icError" style="display:none;"></p>
+                    </form>
+
+                    <div class="ic-form__success" id="icSuccess" style="display:none;">
+                        {{ t.success_msg }}
+                    </div>
+
+                    <p class="ic-form__trust">{{ t.ic_trust }}</p>
+                </div>
+
+                <!-- ══════════════════════════════
+                     6c. DOCTOR CARD
+                ══════════════════════════════ -->
+                <div class="band band--doctor">
+                    <p class="band__title">{{ t.section_doctor }}</p>
+                    <div class="doctor-card">
+                        <div class="doctor-card__header">
+                            <div class="doctor-card__avatar">
+                                <img src="{{ url_for('static', filename='img/doctor.jpg') }}" alt="{{ t.doctor_full }}" class="doctor-card__photo" onerror="this.style.display='none'">
+                            </div>
+                            <div>
+                                <div class="doctor-card__name">{{ t.doctor_full }}</div>
+                                <div class="doctor-card__credentials">{{ t.doctor_specialty_1 }}, {{ t.doctor_specialty_2 }}</div>
+                                <div class="doctor-card__clinic">{{ t.clinic_name }}</div>
+                            </div>
+                        </div>
+                        <div class="doctor-card__contact">
+                            <div class="contact-row">
+                                <span class="contact-row__label">{{ t.contact_phone }}</span>
+                                <a href="tel:+4869584584" class="contact-row__value">+48 695 84 584</a>
+                            </div>
+                            <div class="contact-row">
+                                <span class="contact-row__label">{{ t.contact_hours }}</span>
+                                <span class="contact-row__value">{{ t.contact_hours_val }}</span>
+                            </div>
+                            <div class="contact-row">
+                                <span class="contact-row__label">{{ t.contact_address }}</span>
+                                <span class="contact-row__value">ul. Leszno 21, 01-199 Warszawa</span>
+                            </div>
+                            <div class="contact-row">
+                                <span class="contact-row__label">{{ t.contact_websites }}</span>
+                                <span class="contact-row__value contact-row__value--links">
+                                    <a href="http://www.ocenazdrowia.pl" target="_blank" rel="noopener">www.ocenazdrowia.pl</a>
+                                    <a href="http://www.estetykamedyczna.pl" target="_blank" rel="noopener">www.estetykamedyczna.pl</a>
+                                </span>
+                            </div>
+                        </div>
+                        <p class="doctor-card__trust">{{ t.doctor_trust }}</p>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════
+                     7. FULL ANALYSIS (accordion)
+                ══════════════════════════════ -->
+                {% if result.sections %}
+                <div class="band band--analysis">
+                    <h2 class="band__title">{{ t.section_full }}</h2>
+                    <p class="band__sub">{{ t.full_sub }}</p>
+
+                    {% if result.category_scores %}
+                    <div class="score-chips">
+                        {% for key, label in section_labels.items() %}
+                            {% set s = result.category_scores.get(key, 0) %}
+                            <span class="schip schip--{% if s >= 7 %}good{% elif s >= 4 %}mild{% else %}moderate{% endif %}">
+                                {{ label }} <strong>{{ s }}</strong>
+                            </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="acc">
+                        {% set sorted_pairs = [] %}
+                        {% for key, label in section_labels.items() %}
+                            {% set score = (result.category_scores or {}).get(key, 5) %}
+                            {% set _ = sorted_pairs.append({'key': key, 'label': label, 'score': score}) %}
+                        {% endfor %}
+                        {% for item in sorted_pairs | sort(attribute='score') %}
+                            {% set key = item.key %}
+                            {% set label = item.label %}
+                            {% set sec = result.sections.get(key) %}
+                            {% if sec %}
+                                {% set cat_score = result.category_scores.get(key, '—') if result.category_scores else '—' %}
+                                <details class="acc__item acc__item--{{ sec.status }}">
+                                    <summary class="acc__summary">
+                                        <span class="acc__name">{{ label }}</span>
+                                        <span class="acc__right">
+                                            <span class="sbadge sbadge--{{ sec.status }}">
+                                                {% if sec.status == 'good' %}{{ t.status_good }}{% elif sec.status == 'mild' %}{{ t.status_mild }}{% else %}{{ t.status_moderate }}{% endif %}
+                                            </span>
+                                            <span class="acc__score">{{ cat_score }}/10</span>
+                                            <span class="acc__chevron">›</span>
+                                        </span>
+                                    </summary>
+                                    <div class="acc__body">
+                                        <p class="acc__finding">{{ sec.finding }}</p>
+                                        {% if sec.detail %}
+                                        <ul class="acc__detail">
+                                            {% for point in sec.detail %}<li>{{ point }}</li>{% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </div>
+                                </details>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- DISCLAIMER -->
+                <div class="disclaimer-box">{{ result.disclaimer }}</div>
+
+            </div><!-- /results-wrap -->
+            {% endif %}
+        </main>
+
+        <!-- MODAL — CONSULTATION FORM -->
+        <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+                <button class="modal__close" id="modalClose" aria-label="Close">&times;</button>
+                <div class="modal__inner">
+                    <h2 class="modal__title" id="modalTitle">{{ t.modal_title }}</h2>
+                    <p class="modal__lead">{{ t.modal_lead_results }}</p>
+
+                    <form id="consultFormEl" class="consult-form" novalidate>
+                        <div class="consult-form__field">
+                            <label class="consult-form__label" for="cf_full_name">{{ t.label_name }}</label>
+                            <input class="consult-form__input" type="text" id="cf_full_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
+                        </div>
+                        <div class="consult-form__field">
+                            <label class="consult-form__label" for="cf_phone">{{ t.label_phone }}</label>
+                            <input class="consult-form__input" type="tel" id="cf_phone" placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
+                        </div>
+                        <div class="consult-form__field">
+                            <label class="consult-form__label" for="cf_email">{{ t.label_email }}</label>
+                            <input class="consult-form__input" type="email" id="cf_email" placeholder="{{ t.ph_email }}" autocomplete="email" required>
+                        </div>
+                        <div class="consult-form__field">
+                            <label class="consult-form__label" for="cf_message">{{ t.label_message }} <span class="consult-form__optional">({{ t.optional }})</span></label>
+                            <textarea class="consult-form__input consult-form__input--textarea" id="cf_message" rows="3" placeholder="{{ t.ph_message }}"></textarea>
+                        </div>
+                        <div class="consult-form__field consult-form__field--consent">
+                            <label class="consult-form__consent-label">
+                                <input type="checkbox" id="cf_consent" class="consult-form__checkbox" required>
+                                <span>{{ t.consent_text }}</span>
+                            </label>
+                        </div>
+                        <div class="consult-form__footer">
+                            <button type="submit" class="consult-form__btn">{{ t.submit_btn }}</button>
+                        </div>
+                        <p class="consult-form__error" id="consultError" style="display:none;"></p>
+                    </form>
+
+                    <div class="consult__success" id="consultSuccess" style="display:none;">
+                        {{ t.success_msg }}
+                    </div>
+
+                    <p class="consult__note">{{ t.consult_note }}</p>
+                </div>
+            </div>
+        </div>
+
+        <footer><p>{{ t.footer }}</p></footer>
+
+    <!-- STICKY CTA BAR -->
+    <div class="sticky-cta" id="stickyCta" aria-hidden="true">
+        <div class="sticky-cta__inner">
+            <div class="sticky-cta__text">
+                <span class="sticky-cta__headline">{{ t.sticky_headline }}</span>
+                <span class="sticky-cta__sub">{{ t.sticky_sub }}</span>
+            </div>
+            <button class="sticky-cta__btn" id="openConsultBtnSticky">{{ t.sticky_btn }}</button>
+        </div>
+    </div>
+    </div>
+
+    <script>
+    /* localised strings for JS */
+    var _T = {{ t | tojson }};
+
+    /* ── Gauge + counter animation ── */
+    (function() {
+        var score  = {{ result.overall_score }};
+        var numEl  = document.getElementById('gaugeNum');
+        var arcEl  = document.getElementById('gaugeArc');
+        var circum = 2 * Math.PI * 88;
+
+        var start = null;
+        function ease(t) { return 1 - Math.pow(1 - t, 3); }
+
+        function step(ts) {
+            if (!start) start = ts;
+            var p = Math.min((ts - start) / 1100, 1);
+            var e = ease(p);
+            if (numEl) numEl.textContent = Math.round(e * score);
+            if (arcEl) {
+                var len = e * (score / 100) * circum;
+                arcEl.setAttribute('stroke-dasharray', len.toFixed(1) + ' ' + circum.toFixed(1));
+            }
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    })();
+
+    /* ── Radar chart ── */
+    (function() {
+        var ctx = document.getElementById('radarChart');
+        if (!ctx || typeof Chart === 'undefined') return;
+
+        var scores = {{ result.category_scores | tojson }};
+        var labels = {
+            symmetry:        _T.radar_symmetry,
+            proportions:     _T.radar_proportions,
+            aging_signs:     _T.radar_aging_signs,
+            skin_quality:    _T.radar_skin_quality,
+            eye_area:        _T.radar_eye_area,
+            lips_lower_face: _T.radar_lips_lower_face,
+            hairline_hair:   _T.radar_hairline_hair
+        };
+        var keys = ['symmetry','proportions','aging_signs','skin_quality','eye_area','lips_lower_face','hairline_hair'];
+        var data = keys.map(function(k) { return scores[k] !== undefined ? scores[k] : 5; });
+        var lbls = keys.map(function(k) { return labels[k]; });
+
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: lbls,
+                datasets: [{
+                    data: data,
+                    backgroundColor: 'rgba(198,160,98,.18)',
+                    borderColor:     'rgba(198,160,98,.85)',
+                    pointBackgroundColor: 'rgba(198,160,98,1)',
+                    pointBorderColor:     '#1a1a1a',
+                    pointRadius: 4,
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: { duration: 900, easing: 'easeOutCubic' },
+                scales: {
+                    r: {
+                        min: 0, max: 10,
+                        ticks: { stepSize: 2, display: false },
+                        grid:        { color: 'rgba(255,255,255,.1)' },
+                        angleLines:  { color: 'rgba(255,255,255,.1)' },
+                        pointLabels: {
+                            color: 'rgba(255,255,255,.75)',
+                            font:  { size: 11, family: "'Inter', sans-serif" },
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    })();
+
+    /* ── Modal ── */
+    var overlay  = document.getElementById('modalOverlay');
+    var openBtn  = document.getElementById('openConsultBtn');
+    var openTop  = document.getElementById('openConsultBtnTop');
+    var openSec  = document.getElementById('openConsultBtnSecondary');
+    var closeBtn = document.getElementById('modalClose');
+
+    function openModal() {
+        overlay.classList.add('modal-overlay--open');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        var first = overlay.querySelector('input, textarea, button');
+        if (first) setTimeout(function() { first.focus(); }, 60);
+    }
+    function closeModal() {
+        overlay.classList.remove('modal-overlay--open');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    var openSticky = document.getElementById('openConsultBtnSticky');
+    if (openBtn)    openBtn.addEventListener('click', openModal);
+    if (openTop)    openTop.addEventListener('click', openModal);
+    if (openSec)    openSec.addEventListener('click', openModal);
+    if (openSticky) openSticky.addEventListener('click', openModal);
+    if (closeBtn)   closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+    /* ── Sticky CTA: show after scrolling past hero ── */
+    var stickyCta = document.getElementById('stickyCta');
+    var heroBand  = document.querySelector('.band--hero');
+    if (stickyCta && heroBand) {
+        function updateSticky() {
+            var heroBottom = heroBand.getBoundingClientRect().bottom;
+            if (heroBottom < 0) {
+                stickyCta.classList.add('sticky-cta--visible');
+                stickyCta.setAttribute('aria-hidden', 'false');
+            } else {
+                stickyCta.classList.remove('sticky-cta--visible');
+                stickyCta.setAttribute('aria-hidden', 'true');
+            }
+        }
+        window.addEventListener('scroll', updateSticky, { passive: true });
+        updateSticky();
+    }
+
+    /* ── Inline consultation form ── */
+    (function() {
+        var form      = document.getElementById('inlineConsultForm');
+        var nameEl    = document.getElementById('ic_name');
+        var phoneEl   = document.getElementById('ic_phone');
+        var emailEl   = document.getElementById('ic_email');
+        var msgEl     = document.getElementById('ic_message');
+        var consentEl = document.getElementById('ic_consent');
+        var successEl = document.getElementById('icSuccess');
+        var errEl     = document.getElementById('icError');
+        if (!form) return;
+
+        function markErr(el, on) {
+            if (!el) return;
+            el.classList[on ? 'add' : 'remove']('ic-form__input--error');
+        }
+
+        [nameEl, phoneEl, emailEl].forEach(function(el) {
+            if (el) el.addEventListener('input', function() { markErr(el, false); errEl.style.display = 'none'; });
+        });
+        if (consentEl) consentEl.addEventListener('change', function() { errEl.style.display = 'none'; });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var full_name    = nameEl  ? nameEl.value.trim()  : '';
+            var phone_number = phoneEl ? phoneEl.value.trim() : '';
+            var email        = emailEl ? emailEl.value.trim() : '';
+            var message      = msgEl   ? msgEl.value.trim()   : '';
+            var consent      = consentEl ? consentEl.checked  : false;
+            var valid = true;
+
+            markErr(nameEl,  !full_name);    if (!full_name)    valid = false;
+            markErr(phoneEl, !phone_number); if (!phone_number) valid = false;
+            markErr(emailEl, !email);        if (!email)        valid = false;
+            if (!consent) {
+                errEl.textContent = _T.err_consent;
+                errEl.style.display = 'block';
+                valid = false;
+            }
+            if (!valid) return;
+
+            var btn = form.querySelector('.ic-form__btn');
+            btn.disabled = true;
+            btn.textContent = _T.submitting;
+            errEl.style.display = 'none';
+
+            fetch('/contact', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    full_name: full_name, phone_number: phone_number,
+                    email: email, message: message, consent: consent,
+                    token: '{{ token }}'
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    form.style.display = 'none';
+                    successEl.style.display = 'block';
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = _T.submit_btn;
+                    errEl.textContent = data.error || _T.err_send_failed;
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.textContent = _T.submit_btn;
+                errEl.textContent = _T.err_conn;
+                errEl.style.display = 'block';
+            });
+        });
+    })();
+
+    /* ── Scroll reveal ── */
+    (function() {
+        var els = document.querySelectorAll('.band');
+        if (!els.length || !window.IntersectionObserver) return;
+        var io = new IntersectionObserver(function(entries) {
+            entries.forEach(function(e) {
+                if (e.isIntersecting) { e.target.classList.add('band--revealed'); io.unobserve(e.target); }
+            });
+        }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
+        els.forEach(function(el) { el.classList.add('band--hidden'); io.observe(el); });
+    })();
+
+    /* ── Consultation form submit (modal) ── */
+    (function() {
+        var form      = document.getElementById('consultFormEl');
+        var nameEl    = document.getElementById('cf_full_name');
+        var phoneEl   = document.getElementById('cf_phone');
+        var emailEl   = document.getElementById('cf_email');
+        var msgEl     = document.getElementById('cf_message');
+        var consentEl = document.getElementById('cf_consent');
+        var successEl = document.getElementById('consultSuccess');
+        var errEl     = document.getElementById('consultError');
+        if (!form) return;
+
+        function setErr(el, on) {
+            if (!el) return;
+            if (on) el.classList.add('consult-form__input--error');
+            else    el.classList.remove('consult-form__input--error');
+        }
+
+        [nameEl, phoneEl, emailEl].forEach(function(el) {
+            if (el) el.addEventListener('input', function() { setErr(el, false); errEl.style.display = 'none'; });
+        });
+        if (consentEl) consentEl.addEventListener('change', function() { errEl.style.display = 'none'; });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var full_name    = nameEl  ? nameEl.value.trim()  : '';
+            var phone_number = phoneEl ? phoneEl.value.trim() : '';
+            var email        = emailEl ? emailEl.value.trim() : '';
+            var message      = msgEl   ? msgEl.value.trim()   : '';
+            var consent      = consentEl ? consentEl.checked  : false;
+            var valid = true;
+
+            if (!full_name)    { setErr(nameEl,  true); valid = false; }
+            if (!phone_number) { setErr(phoneEl, true); valid = false; }
+            if (!email)        { setErr(emailEl, true); valid = false; }
+            if (!consent) {
+                errEl.textContent = _T.err_consent;
+                errEl.style.display = 'block';
+                valid = false;
+            }
+            if (!valid) return;
+
+            var btn = form.querySelector('.consult-form__btn');
+            btn.disabled = true;
+            btn.textContent = _T.submitting;
+            errEl.style.display = 'none';
+
+            fetch('/contact', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    full_name: full_name, phone_number: phone_number,
+                    email: email, message: message, consent: consent,
+                    token: '{{ token }}'
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    form.style.display = 'none';
+                    successEl.style.display = 'block';
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = _T.submit_btn;
+                    errEl.textContent = data.error || _T.err_send_failed;
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.textContent = _T.submit_btn;
+                errEl.textContent = _T.err_conn;
+                errEl.style.display = 'block';
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

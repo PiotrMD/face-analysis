@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('app.py OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('validators.py'\\).read\\(\\)\\); print\\('validators.py OK'\\)\")",
+      "Bash(curl -s http://127.0.0.1:5000/)",
+      "Bash(python -c \"import psutil; [p.kill\\(\\) for p in psutil.process_iter\\(\\) if any\\(c.laddr.port == 5000 for c in p.net_connections\\(kind='inet'\\) if c.status == 'LISTEN'\\)]\")",
+      "Bash(python app.py)",
+      "Bash(cmd /c \"taskkill /PID 21856 /F 2>&1\")"
+    ]
+  }
+}
