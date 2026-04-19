@@ -2,7 +2,7 @@
 face_validator_ai.py
 AI-based face photo validation module.
 
-Runs BEFORE the main clinical analysis pipeline.
+Runs BEFORE the main aesthetic analysis pipeline.
 Uses GPT-4o vision to assess:
   1. Photo technical quality (sharpness, lighting, resolution)
   2. Face positioning and head pose (yaw / pitch / roll)
@@ -15,7 +15,7 @@ Returns structured JSON or raises ValueError with user-facing message.
 import json
 import base64
 
-VALIDATION_PROMPT = """Analyze this face photograph for clinical suitability. Return ONLY a valid JSON object — no markdown, no explanation, no text outside the JSON.
+VALIDATION_PROMPT = """Assess this face photograph for aesthetic analysis suitability. Return ONLY a valid JSON object — no markdown, no explanation, no text outside the JSON.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BLOCKING CONDITIONS — set image_valid: false if ANY applies
@@ -24,22 +24,34 @@ B1. No human face present (photo of object, animal, document, landscape, etc.)
 B2. More than one person visible in the photo
 B3. ANY glasses present — sunglasses OR regular corrective glasses (glasses of any kind block orbital area assessment)
 B4. Face is unrecognizable: completely dark, severely out of focus throughout, face features indistinguishable
-B5. Head yaw above 35 degrees — clearly near-profile, one eye mostly hidden
+B5. Head yaw above 45 degrees — clearly near-profile, one eye mostly hidden
 B6. Strong beauty filter or clearly AI-generated face (plastic skin texture, airbrushed appearance)
 
 NOT blocking — pass through with warnings:
 - Black borders or letterboxing around the photo
 - Partial hairline or chin slightly cut off
+- Hairline not visible (cut by frame or black border)
+- Chin slightly cut off
 - Mild blur or lower resolution (webcam, screenshot)
 - Slight smile, mild expression
 - Arms crossed or slight pose variation
-- Professional/clinic photos
+- Professional/clinic photos with standard crop
 - Face smaller than ideal but still clearly visible
+- Any standard portrait crop (chest-up, shoulders-up, face-only)
+
+face_fully_visible: set to false ONLY when the face itself is severely cropped —
+meaning more than 40% of the face area is outside the frame.
+Do NOT set face_fully_visible: false for:
+  - hairline cut off at top
+  - chin cut off at bottom
+  - black letterboxing borders
+  - standard portrait framing
+  - the person wearing a shirt or uniform that covers the neck
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 WARNINGS (do not block, but set warning flags)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-W1. Head rotation 15–35 degrees — reduced confidence for symmetry/jawline
+W1. Head rotation 20–35 degrees — reduced confidence for symmetry/jawline
 W2. Single-sided strong shadow — reduced confidence for volume
 W3. Non-neutral expression (mild smile, slight tension)
 W4. Neck not visible — cannot assess neck region
@@ -51,9 +63,9 @@ W7. Black borders or letterboxing detected
 HEAD POSE ASSESSMENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Estimate rotation in three axes based on facial landmarks:
-  yaw (left/right rotation):  "minimal" <8° | "small" 8–15° | "moderate" 15–25° | "large" >25°
-  pitch (up/down tilt):       "minimal" <8° | "small" 8–15° | "moderate" 15–25° | "large" >25°
-  roll (side tilt):           "minimal" <5° | "small" 5–10° | "moderate" 10–18° | "large" >18°
+  yaw (left/right rotation):  "minimal" <10° | "small" 10–20° | "moderate" 20–35° | "large" >35°
+  pitch (up/down tilt):       "minimal" <10° | "small" 10–20° | "moderate" 20–35° | "large" >35°
+  roll (side tilt):           "minimal" <5°  | "small" 5–12°  | "moderate" 12–20° | "large" >20°
   acceptable_for_analysis: false if yaw="large" OR pitch="large"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -273,8 +285,8 @@ def validate_face_ai(image_path: str, openai_client, model: str = "gpt-4o") -> d
         {
             "role": "system",
             "content": (
-                "You are a clinical photography quality assessment system. "
-                "Analyze face photographs for analysis suitability. "
+                "You are a photo quality assessment system for aesthetic face analysis. "
+                "Assess whether the photo is suitable for aesthetic evaluation. "
                 "Return ONLY valid JSON — no markdown, no text outside the JSON. "
                 "Be strict with blocking conditions but do not over-reject borderline cases."
             )
@@ -330,8 +342,22 @@ def validate_face_ai(image_path: str, openai_client, model: str = "gpt-4o") -> d
     if face_cnt == 0:
         print("[VALIDATE_AI] REJECT reason=no_face")
         raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['no_face']}")
+    # Hard-block: multiple faces (was missing before — B2 in prompt had no corresponding code block)
+    if face_cnt > 1:
+        print(f"[VALIDATE_AI] REJECT reason=multiple_faces face_count={face_cnt}")
+        raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['multi_face']}")
 
-    # Pose, crop, blur, expression — pass with warnings logged
+    # face_fully_visible=false is NEVER a hard block — log and continue
+    if not result.get('face_fully_visible', True):
+        print("[VALIDATE_AI] face_fully_visible=false — soft warning only, NOT blocking", flush=True)
+
+    # Pose, lighting — pass with warnings logged
     warnings = result.get('warnings', [])
-    print(f"[VALIDATE_AI] PASS warnings={warnings}")
+    if not result.get('lighting_ok', True):
+        print("[VALIDATE_AI] WARNING low_light")
+        warnings.append("Nierównomierne oświetlenie może obniżyć precyzję analizy skóry.")
+    if not result.get('head_pose', {}).get('acceptable_for_analysis', True):
+        yaw = result.get('head_pose', {}).get('yaw', '?')
+        print(f"[VALIDATE_AI] WARNING bad_angle yaw={yaw}")
+    print(f"[VALIDATE_AI] PASS face_fully_visible={result.get('face_fully_visible')} warnings={warnings}")
     return result

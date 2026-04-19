@@ -64,6 +64,7 @@
 
             <div class="hero__right">
                 <div class="upload-card">
+                    <p class="upload-card__app-name">{% if lang == 'en' %}Virtual Face Analysis{% else %}Wirtualna analiza twarzy{% endif %}</p>
                     <h2 class="upload-card__title">{{ t.upload_title }}</h2>
 
                     <div class="photo-grid photo-grid--single">
@@ -102,7 +103,8 @@
                     <div id="successState" class="upload-success" aria-live="polite"></div>
                     <p id="formError" class="form-notice" style="display:none;"></p>
 
-                    <button type="button" id="analyzeBtn" class="upload-card__btn" onclick="runAnalyze()">{{ t.analyze_btn }}</button>
+                    <button type="button" id="analyzeBtn" class="upload-card__btn" onclick="runAnalyze()"
+                            style="background:#C6A062;color:#111111;font-weight:700;line-height:1.3;padding:16px 14px;">{{ t.analyze_btn }}</button>
                     <p class="demo-link"><a href="/demo">{{ t.demo_link }}</a></p>
 
                     <div class="upload-card__trust">
@@ -362,6 +364,7 @@
         hideSlotError(key);
         hideValidationBlock();
         hideSuccessState();
+        updateBtnState();
     }
 
     function showSlotError(key, message) {
@@ -384,7 +387,7 @@
         if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
     }
 
-    function showValidationBlock(errors) {
+    function showValidationBlock(errors, hint) {
         var block = document.getElementById('validationBlock');
         var list  = document.getElementById('vblock-list');
         list.innerHTML = '';
@@ -393,12 +396,29 @@
             li.textContent = msg;
             list.appendChild(li);
         });
+        // hint line — shows what the user should fix
+        var existingHint = block.querySelector('.vblock__hint');
+        if (existingHint) existingHint.remove();
+        if (hint) {
+            var hintEl = document.createElement('p');
+            hintEl.className = 'vblock__hint';
+            hintEl.textContent = hint;
+            list.after(hintEl);
+        }
         fadeIn(block);
     }
 
     function hideValidationBlock() {
         var block = document.getElementById('validationBlock');
-        if (block.style.display !== 'none') fadeOut(block);
+        block.style.transition = '';
+        block.style.opacity = '';
+        block.style.display = 'none';
+    }
+
+    function updateBtnState() {
+        var btn = document.getElementById('analyzeBtn');
+        var f1 = document.getElementById('en_face').files[0] || _camBlob;
+        btn.textContent = f1 ? _T.btn_has_photo : _T.analyze_btn;
     }
 
     function showSuccessState() {
@@ -420,6 +440,7 @@
         var errDiv = document.getElementById('formError');
         errDiv.style.display = 'none';
         errDiv.textContent = '';
+        updateBtnState();
     }
 
     /* ── Camera ── */
@@ -529,6 +550,7 @@
             hideSlotError('en_face');
             hideValidationBlock();
             hideSuccessState();
+            updateBtnState();
             closeCamera();
         }, 'image/jpeg', 0.92);
     }
@@ -598,12 +620,12 @@
             document.body.style.overflow = '';
         }
 
-        function showValidationError(errors) {
+        function showValidationError(errors, hint) {
             hideLoader();
             var msgs = Array.isArray(errors) && errors.length ? errors : [_T.err_validation];
-            showValidationBlock(msgs);
+            showValidationBlock(msgs, hint || null);
             btn.disabled = false;
-            btn.textContent = _T.btn_retry;
+            btn.textContent = _T.btn_change_photo;
         }
 
         function showServerError(message) {
@@ -622,30 +644,28 @@
         fetch(analyzeUrl, { method: 'POST', body: fd, signal: abortCtrl.signal })
             .then(async function(response) {
                 clearTimeout(fetchTimeout);
-                var contentType = response.headers.get('content-type') || '';
-                var rawText     = await response.text();
+                var rawText = await response.text();
 
                 console.log('ANALYZE STATUS:', response.status);
-                console.log('ANALYZE CONTENT-TYPE:', contentType);
                 console.log('ANALYZE RAW RESPONSE:', rawText);
 
                 var data = null;
-                if (contentType.includes('application/json')) {
-                    try { data = JSON.parse(rawText); }
-                    catch (e) { console.error('JSON parse error:', e); }
-                }
+                try { data = JSON.parse(rawText); } catch (e) { console.error('JSON parse error:', e); }
 
                 if (response.status === 413) {
                     showValidationError([_T.err_file_large]);
                     return;
                 }
 
-                if (response.status === 422) {
-                    showValidationError(
-                        data && (data.validation_errors || data.errors)
-                            ? (data.validation_errors || data.errors)
-                            : [_T.err_no_face]
-                    );
+                var isValidation = response.status === 422
+                    || (data && data.validation_failed === true);
+
+                if (isValidation) {
+                    var errMsgs = (data && (data.validation_errors || data.errors))
+                        ? (data.validation_errors || data.errors)
+                        : [_T.err_validation];
+                    var hint = data && data.error_hint ? data.error_hint : null;
+                    showValidationError(errMsgs, hint);
                     return;
                 }
 

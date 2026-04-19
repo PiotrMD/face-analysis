@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-    <title>Wirtualna analiza twarzy — {{ t.clinic_name }}</title>
-    <meta name="description" content="Twoja indywidualna analiza twarzy — mocne strony, obszary do poprawy i proponowane zabiegi.">
+    <title>{% if lang == 'en' %}Virtual Face Analysis{% else %}Wirtualna analiza twarzy{% endif %} — {{ t.clinic_name }}</title>
+    <meta name="description" content="{% if lang == 'en' %}Your individual face analysis — strengths, areas for improvement and suggested treatments.{% else %}Twoja indywidualna analiza twarzy — mocne strony, obszary do poprawy i proponowane zabiegi.{% endif %}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_version }}">
     {% if ga_id %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
@@ -20,22 +20,15 @@
 <body>
 <div class="page">
 
-    <header class="topbar">
-        <div class="topbar__inner">
-            <a href="/" class="topbar__brand">{{ t.brand }}</a>
-            <div class="topbar__doctor">
-                <span class="topbar__doctor-name">{{ t.doctor_full }}</span>
-                <span class="topbar__doctor-creds">{{ t.doctor_creds }}</span>
-                <span class="topbar__clinic">{{ t.clinic_name }}</span>
+    <!-- Minimal header for results page -->
+    <header class="res-topbar">
+        <a href="/" class="res-topbar__brand">{{ t.brand }}</a>
+        <div class="res-topbar__right">
+            <div class="lang-switcher">
+                <a href="/set-lang/pl" class="lang-btn {% if lang == 'pl' %}lang-btn--active{% endif %}">PL</a>
+                <a href="/set-lang/en" class="lang-btn {% if lang == 'en' %}lang-btn--active{% endif %}">EN</a>
             </div>
-            <div class="topbar__right">
-                <div class="lang-switcher">
-                    <a href="/set-lang/pl" class="lang-btn {% if lang == 'pl' %}lang-btn--active{% endif %}">PL</a>
-                    <a href="/set-lang/en" class="lang-btn {% if lang == 'en' %}lang-btn--active{% endif %}">EN</a>
-                </div>
-                <a href="tel:+48690584584" class="topbar__phone">+48 690 584 584</a>
-                <button class="topbar__cta-btn" id="openConsultBtnTop">{{ t.book_consultation }}</button>
-            </div>
+            <a href="tel:+48690584584" class="res-topbar__phone">+48&nbsp;690&nbsp;584&nbsp;584</a>
         </div>
     </header>
 
@@ -58,22 +51,22 @@
 
         <div class="res-wrap">
 
-            <!-- ── HEADER ── -->
-            <div class="res-header">
-                <h1 class="res-header__title">
-                    {% if lang == 'en' %}Virtual face analysis{% else %}Wirtualna analiza twarzy{% endif %}
+            <!-- ── 1. NAGŁÓWEK ── -->
+            <div class="res-head">
+                <h1 class="res-head__title">
+                    {% if lang == 'en' %}Virtual Face Analysis{% else %}Wirtualna analiza twarzy{% endif %}
                 </h1>
-                <p class="res-header__intro">{{ result.intro }}</p>
+                <p class="res-head__clinic">{{ t.clinic_name }}</p>
             </div>
 
-            <!-- ── SCORE ── -->
-            <div class="res-score-band">
-                <div class="res-score">
-                    <div class="res-score__circle res-score__circle--{% if result.overall_score >= 8 %}good{% elif result.overall_score >= 6 %}mid{% else %}low{% endif %}">
-                        <span class="res-score__num">{{ result.overall_score }}</span>
-                        <span class="res-score__denom">/10</span>
-                    </div>
-                    <div class="res-score__label">
+            <!-- ── 2. OCENA OGÓLNA ── -->
+            <div class="res-score-card">
+                <div class="res-score-circle res-score-circle--{% if result.overall_score >= 8 %}good{% elif result.overall_score >= 6 %}mid{% else %}low{% endif %}">
+                    <span class="res-score-circle__num" id="scoreNum">{{ result.overall_score }}</span>
+                    <span class="res-score-circle__denom">/10</span>
+                </div>
+                <div class="res-score-meta">
+                    <div class="res-score-meta__verdict res-score-meta__verdict--{% if result.overall_score >= 8 %}good{% elif result.overall_score >= 6 %}mid{% else %}low{% endif %}">
                         {% if result.overall_score >= 8 %}
                             {% if lang == 'en' %}Great condition{% else %}Świetna kondycja{% endif %}
                         {% elif result.overall_score >= 6 %}
@@ -82,15 +75,70 @@
                             {% if lang == 'en' %}Room for improvement{% else %}Warto zadbać{% endif %}
                         {% endif %}
                     </div>
+                    {% if result.intro %}
+                    <div class="res-score-meta__intro">{{ result.intro }}</div>
+                    {% endif %}
                 </div>
+            </div>
 
-                <!-- Area bars -->
-                {% if result.areas %}
+            <!-- ── 3. MOCNE STRONY ── -->
+            {% if result.strengths_items or result.strengths %}
+            <div class="res-card res-card--good">
+                <div class="res-card__title">
+                    <span class="res-card__icon res-card__icon--good">✓</span>
+                    {% if lang == 'en' %}Strengths{% else %}Mocne strony{% endif %}
+                </div>
+                <div class="res-chips">
+                    {% if result.strengths_items %}
+                        {% for item in result.strengths_items %}
+                        <span class="res-chip res-chip--good">
+                            {{ item.label }}<span class="res-chip__score">{{ item.score }}/10</span>
+                        </span>
+                        {% endfor %}
+                    {% else %}
+                        {% for label in result.strengths %}
+                        <span class="res-chip res-chip--good">{{ label }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── 4. OBSZARY DO POPRAWY ── -->
+            {% if result.concerns_items or result.concerns %}
+            <div class="res-card res-card--concern">
+                <div class="res-card__title">
+                    <span class="res-card__icon res-card__icon--concern">◆</span>
+                    {% if lang == 'en' %}Areas to improve{% else %}Obszary do poprawy{% endif %}
+                </div>
+                <div class="res-chips">
+                    {% if result.concerns_items %}
+                        {% for item in result.concerns_items %}
+                        <span class="res-chip res-chip--concern">
+                            {{ item.label }}<span class="res-chip__score">{{ item.score }}/10</span>
+                        </span>
+                        {% endfor %}
+                    {% else %}
+                        {% for label in result.concerns %}
+                        <span class="res-chip res-chip--concern">{{ label }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── SZCZEGÓŁOWE OCENY (zwijane) ── -->
+            {% if result.areas %}
+            <details class="res-details">
+                <summary class="res-details__summary">
+                    <span>{% if lang == 'en' %}Detailed scores{% else %}Szczegółowe oceny{% endif %}</span>
+                    <span class="res-details__arrow">›</span>
+                </summary>
                 <div class="res-areas">
-                    {% set labels = result.area_labels if result.area_labels else {} %}
+                    {% set area_labels = result.area_labels if result.area_labels else {} %}
                     {% for key, score in result.areas.items() %}
                     <div class="res-area">
-                        <span class="res-area__label">{{ labels.get(key, key) }}</span>
+                        <span class="res-area__label">{{ area_labels.get(key, key) }}</span>
                         <div class="res-area__bar-wrap">
                             <div class="res-area__bar res-area__bar--{% if score >= 8 %}good{% elif score >= 6 %}mid{% else %}low{% endif %}"
                                  style="width: {{ score * 10 }}%"></div>
@@ -99,90 +147,101 @@
                     </div>
                     {% endfor %}
                 </div>
-                {% endif %}
-            </div>
-
-            <!-- ── STRENGTHS ── -->
-            {% if result.strengths %}
-            <div class="res-section res-section--strengths">
-                <h2 class="res-section__title">
-                    <span class="res-section__icon">✓</span>
-                    {% if lang == 'en' %}What looks great{% else %}Co wygląda świetnie{% endif %}
-                </h2>
-                <ul class="res-list res-list--strengths">
-                    {% for item in result.strengths %}
-                    <li class="res-list__item">{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
+            </details>
             {% endif %}
 
-            <!-- ── CONCERNS ── -->
-            {% if result.concerns %}
-            <div class="res-section res-section--concerns">
-                <h2 class="res-section__title">
-                    <span class="res-section__icon">◆</span>
-                    {% if lang == 'en' %}Areas to improve{% else %}Co można poprawić{% endif %}
-                </h2>
-                <ul class="res-list res-list--concerns">
-                    {% for item in result.concerns %}
-                    <li class="res-list__item">{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            <!-- ── TREATMENTS ── -->
+            <!-- ── 5. ZABIEGI ── -->
             {% if result.treatments %}
-            <div class="res-section res-section--treatments">
-                <h2 class="res-section__title">
-                    <span class="res-section__icon">◈</span>
-                    {% if lang == 'en' %}Recommended treatments{% else %}Proponowane zabiegi{% endif %}
-                </h2>
-                <div class="res-treatments">
+            <div class="res-card res-card--treatments">
+                <div class="res-card__title">
+                    <span class="res-card__icon res-card__icon--treatment">◈</span>
+                    {% if lang == 'en' %}Treatments to discuss{% else %}Zabiegi do omówienia{% endif %}
+                </div>
+                <div class="res-tags">
                     {% for t_name in result.treatments %}
-                    <span class="res-treatment-tag">{{ t_name }}</span>
+                    <span class="res-tag">{{ t_name }}</span>
                     {% endfor %}
                 </div>
             </div>
             {% endif %}
 
-            <!-- ── CTA ── -->
+            <!-- ── 6. KONSULTACJA ── -->
             <div class="res-cta">
-                <p class="res-cta__text">
-                    {% if lang == 'en' %}
-                        Ready to discuss your results with a specialist?
-                    {% else %}
-                        Chcesz omówić wyniki z lekarzem?
-                    {% endif %}
-                </p>
                 <div class="res-cta__buttons">
                     <button class="res-cta__btn res-cta__btn--primary" id="openConsultBtn">
                         {% if lang == 'en' %}Book a consultation{% else %}Umów konsultację{% endif %}
                     </button>
-                    <a href="tel:+48690584584" class="res-cta__btn res-cta__btn--secondary">
-                        {% if lang == 'en' %}Call us{% else %}Zadzwoń{% endif %}: +48 690 584 584
+                    <a href="tel:+48690584584" class="res-cta__btn res-cta__btn--phone">
+                        +48&nbsp;690&nbsp;584&nbsp;584
                     </a>
                 </div>
                 <p class="res-cta__disclaimer">
                     {% if lang == 'en' %}
-                        This analysis is based on a photo and does not replace a medical examination.
+                        Analysis based on a photo — does not replace a medical examination. Use SPF 50+ daily.
                     {% else %}
-                        Analiza wykonana na podstawie zdjęcia. Nie zastępuje badania lekarskiego.
+                        Analiza na podstawie zdjęcia — nie zastępuje badania lekarskiego. Stosuj SPF 50+ każdego dnia.
                     {% endif %}
                 </p>
+            </div>
+
+            <!-- ── 7. KOD RABATOWY ── -->
+            <div class="res-discount" id="discountSection"
+                 style="background:#fff;border:1px solid rgba(198,160,98,.35);border-radius:14px;padding:24px 20px 22px;display:flex;flex-direction:column;gap:0;">
+                <p style="font-size:.72rem;font-weight:700;color:#B8914F;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px;">
+                    🎁 {% if lang == 'en' %}A gift after your analysis{% else %}Dla Ciebie po analizie{% endif %}
+                </p>
+                <p style="font-size:1rem;font-weight:700;color:#111;margin:0 0 6px;line-height:1.35;">
+                    {% if lang == 'en' %}Get a <strong>–10% discount</strong> on a consultation or aesthetic treatment{% else %}Otrzymaj kod rabatowy <strong>–10%</strong> na konsultację lub zabieg medycyny estetycznej{% endif %}
+                </p>
+                <p style="font-size:.82rem;color:#6F6A63;margin:0 0 18px;line-height:1.55;">
+                    {% if lang == 'en' %}Enter your email and we'll send you a code valid 7 days to book an appointment.<br>The appointment itself can take place later.{% else %}Podaj e-mail, a wyślemy Ci kod ważny 7 dni na umówienie wizyty.<br>Sama wizyta może odbyć się później.{% endif %}
+                </p>
+                <div id="discForm" style="display:flex;flex-direction:column;gap:10px;">
+                    <input type="email" id="disc_email"
+                           placeholder="{% if lang == 'en' %}Your email{% else %}Twój e-mail{% endif %}"
+                           autocomplete="email"
+                           style="width:100%;border:1.5px solid #DDD4C7;border-radius:8px;padding:13px 15px;font-size:.95rem;color:#111;background:#FBFAF7;outline:none;font-family:inherit;box-sizing:border-box;">
+                    <button type="button" id="discBtn"
+                            style="width:100%;padding:15px 20px;background:#C6A062;color:#111111;border:none;border-radius:8px;font-size:.95rem;font-weight:700;letter-spacing:.02em;cursor:pointer;font-family:inherit;line-height:1.2;">
+                        {% if lang == 'en' %}Send code{% else %}Wyślij kod{% endif %}
+                    </button>
+                    <p id="discErr" style="display:none;font-size:.8rem;color:#6B2820;margin:0;">
+                        {% if lang == 'en' %}Please enter a valid email address.{% else %}Podaj poprawny adres e-mail.{% endif %}
+                    </p>
+                </div>
+                <div id="discSuccess" style="display:none;flex-direction:column;gap:5px;padding-top:4px;">
+                    <p style="font-size:.9rem;font-weight:600;color:#2D4A26;margin:0;">
+                        {% if lang == 'en' %}Thank you. The code has been sent to your email.{% else %}Dziękujemy. Kod został wysłany na Twój e-mail.{% endif %}
+                    </p>
+                    <p style="font-size:.82rem;color:#6F6A63;margin:0;">
+                        {% if lang == 'en' %}You can use it within 7 days when booking.{% else %}Możesz użyć go w ciągu 7 dni podczas umawiania wizyty.{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- ── 8. FEEDBACK ── -->
+            <div class="res-feedback">
+                <p class="res-feedback__label">{{ t.section_feedback }}</p>
+                <div id="fbForm">
+                    <textarea id="fb_text" class="res-feedback__textarea"
+                              placeholder="{{ t.feedback_placeholder }}" rows="3"></textarea>
+                    <input type="email" id="fb_email" class="res-feedback__email"
+                           placeholder="{{ t.feedback_email_ph }}">
+                    <button type="button" class="res-feedback__btn" id="fbBtn">{{ t.feedback_btn }}</button>
+                </div>
+                <p id="fbSuccess" class="res-feedback__success" style="display:none;">{{ t.feedback_success }}</p>
             </div>
 
         </div><!-- /res-wrap -->
         {% endif %}
     </main>
 
-    <!-- ── CONSULTATION MODAL ── -->
+    <!-- ── MODAL KONSULTACJI ── -->
     <div class="modal-overlay" id="modalOverlay" aria-hidden="true" role="dialog" aria-modal="true">
         <div class="modal-box">
             <button class="modal-close" id="modalClose" aria-label="Zamknij">✕</button>
             <h2 class="modal-title">{{ t.modal_title }}</h2>
-            <p class="modal-sub">{{ t.modal_sub }}</p>
+            <p class="modal-sub">{{ t.modal_lead_results }}</p>
             <form class="consult-form" id="consultFormEl" novalidate>
                 <div class="consult-form__row">
                     <input class="consult-form__input" type="text" id="cf_full_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
@@ -198,13 +257,13 @@
                 </div>
                 <div class="consult-form__consent-row">
                     <input type="checkbox" id="cf_consent" class="consult-form__checkbox" required>
-                    <label for="cf_consent" class="consult-form__consent-label">{{ t.consent_label | safe }}</label>
+                    <label for="cf_consent" class="consult-form__consent-label">{{ t.consent_text | safe }}</label>
                 </div>
                 <div class="consult-form__error" id="consultError" style="display:none;"></div>
                 <button type="submit" class="consult-form__btn">{{ t.submit_btn }}</button>
             </form>
             <div class="consult-success" id="consultSuccess" style="display:none;">
-                <p>{{ t.consult_success }}</p>
+                <p>{{ t.success_msg }}</p>
             </div>
         </div>
     </div>
@@ -218,7 +277,6 @@ var _T = {{ t | tojson }};
 (function() {
     var overlay  = document.getElementById('modalOverlay');
     var openBtn  = document.getElementById('openConsultBtn');
-    var openTop  = document.getElementById('openConsultBtnTop');
     var closeBtn = document.getElementById('modalClose');
     function openModal() {
         overlay.classList.add('modal-overlay--open');
@@ -231,36 +289,112 @@ var _T = {{ t | tojson }};
         document.body.style.overflow = '';
     }
     if (openBtn)  openBtn.addEventListener('click', openModal);
-    if (openTop)  openTop.addEventListener('click', openModal);
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 })();
 
-/* Score circle animation */
+/* Score count-up */
 (function() {
-    var numEl = document.querySelector('.res-score__num');
+    var numEl = document.getElementById('scoreNum');
     if (!numEl) return;
-    var target = parseInt(numEl.textContent, 10) || 0;
+    var target  = parseInt(numEl.textContent, 10) || 0;
     var current = 0;
-    var step = Math.ceil(target / 20);
-    var timer = setInterval(function() {
+    var step    = Math.ceil(target / 18);
+    var timer   = setInterval(function() {
         current = Math.min(current + step, target);
         numEl.textContent = current;
         if (current >= target) clearInterval(timer);
-    }, 40);
+    }, 45);
 })();
 
-/* Area bars animation */
+/* Feedback form */
+(function() {
+    var btn  = document.getElementById('fbBtn');
+    var form = document.getElementById('fbForm');
+    var succ = document.getElementById('fbSuccess');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+        var text  = (document.getElementById('fb_text').value  || '').trim();
+        var email = (document.getElementById('fb_email').value || '').trim();
+        if (!text) {
+            document.getElementById('fb_text').focus();
+            return;
+        }
+        btn.disabled = true;
+        fetch('/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text, email: email || null, token: '{{ token }}'})
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success) {
+                form.style.display = 'none';
+                succ.style.display = 'block';
+            } else {
+                btn.disabled = false;
+            }
+        })
+        .catch(function() { btn.disabled = false; });
+    });
+})();
+
+/* Discount code form */
+(function() {
+    var btn     = document.getElementById('discBtn');
+    var form    = document.getElementById('discForm');
+    var succ    = document.getElementById('discSuccess');
+    var errEl   = document.getElementById('discErr');
+    var emailEl = document.getElementById('disc_email');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+        var email = (emailEl.value || '').trim();
+        errEl.style.display = 'none';
+        if (!email || email.indexOf('@') < 0) {
+            errEl.style.display = 'block';
+            emailEl.focus();
+            return;
+        }
+        var btnLabel = '{% if lang == "en" %}Send code{% else %}Wyślij kod{% endif %}';
+        btn.disabled = true;
+        btn.textContent = _T.submitting || '…';
+        fetch('/discount', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: email, token: '{{ token }}'})
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success) {
+                form.style.display = 'none';
+                succ.style.display = 'flex';
+            } else {
+                btn.disabled = false;
+                btn.textContent = btnLabel;
+                errEl.textContent = '{% if lang == "en" %}Please enter a valid email address.{% else %}Podaj poprawny adres e-mail.{% endif %}';
+                errEl.style.display = 'block';
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.textContent = btnLabel;
+            errEl.textContent = _T.err_conn || '{% if lang == "en" %}Connection error.{% else %}Błąd połączenia.{% endif %}';
+            errEl.style.display = 'block';
+        });
+    });
+})();
+
+/* Area bar animation */
 (function() {
     var bars = document.querySelectorAll('.res-area__bar');
     bars.forEach(function(bar) {
         var w = bar.style.width;
         bar.style.width = '0';
         setTimeout(function() {
-            bar.style.transition = 'width 0.8s ease';
+            bar.style.transition = 'width 0.7s ease';
             bar.style.width = w;
-        }, 200);
+        }, 250);
     });
 })();
 

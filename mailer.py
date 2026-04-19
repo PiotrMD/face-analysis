@@ -127,6 +127,56 @@ def send_followup_day7(to_email: str, full_name: str):
     _send(to=to_email, subject="Wolne terminy konsultacji — Centrum Estetyki Medycznej", body=body)
 
 
+def send_discount_code(to_email: str, lang: str = 'pl') -> None:
+    """Send FACE10 discount code to the patient. Falls back to console log if SMTP not configured."""
+    cfg = _cfg()
+    if not cfg['host'] or not cfg['user'] or not cfg['mail_from']:
+        if lang == 'pl':
+            print(f"[MAIL TEST] Do: {to_email}", flush=True)
+            print(f"[MAIL TEST] Temat: Twój kod po analizie twarzy", flush=True)
+            print(f"[MAIL TEST] Treść: Kod FACE10 — -10% na konsultację lub zabieg, ważny 7 dni na umówienie wizyty.", flush=True)
+        else:
+            print(f"[MAIL TEST] To: {to_email}", flush=True)
+            print(f"[MAIL TEST] Subject: Your code after face analysis", flush=True)
+            print(f"[MAIL TEST] Body: Code FACE10 — -10% on consultation or treatment, valid 7 days to book.", flush=True)
+        return
+
+    if lang == 'pl':
+        subject = "Twój kod po analizie twarzy"
+        body = (
+            "Dziękujemy za skorzystanie z analizy twarzy.\n\n"
+            "Twój kod: FACE10\n\n"
+            "-10% na konsultację lub zabieg medycyny estetycznej\n\n"
+            "Kod jest ważny 7 dni na umówienie wizyty.\n"
+            "Sama wizyta może odbyć się później.\n\n"
+            "Jeśli podczas wizyty zdecydujesz się na zabieg,\n"
+            "rabat zostanie zastosowany do zabiegu.\n\n"
+            "Aby skorzystać, podaj kod podczas zapisu.\n\n"
+            "—\n"
+            "Centrum Estetyki Medycznej\n"
+            "dr n. med. Piotr Niedziałkowski\n"
+            "Tel. +48 690 584 584\n"
+        )
+    else:
+        subject = "Your code after face analysis"
+        body = (
+            "Thank you for using our face analysis.\n\n"
+            "Your code: FACE10\n\n"
+            "-10% on a consultation or aesthetic medicine treatment\n\n"
+            "The code is valid for 7 days to book an appointment.\n"
+            "The appointment itself can take place later.\n\n"
+            "If you decide on a treatment during your visit,\n"
+            "the discount will be applied to the treatment.\n\n"
+            "To use it, provide the code when booking your appointment.\n\n"
+            "—\n"
+            "Medical Aesthetics Centre\n"
+            "dr Piotr Niedziałkowski MD\n"
+            "Tel. +48 690 584 584\n"
+        )
+
+    _send(to=to_email, subject=subject, body=body)
+
+
 def send_patient_confirmation(to_email: str, full_name: str):
     body = (
         f"Szanowna/y Pani/Pan {full_name},\n\n"

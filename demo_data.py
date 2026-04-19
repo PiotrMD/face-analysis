@@ -1,26 +1,26 @@
 DEMO_RESULT = {
     "overall_score": 7,
-    "intro": "Twoja twarz ma kilka wyraźnych atutów — dobra struktura i jakość skóry to solidna baza do dalszej pielęgnacji.",
-    "strengths": [
-        "Dobra jakość skóry — równomierny koloryt bez widocznych przebarwień",
-        "Wyraźnie zarysowany owal twarzy i linia żuchwy",
-        "Pełna objętość policzków — twarz wygląda świeżo i wypoczęcie",
-        "Okolica oczu bez wyraźnych oznak zmęczenia",
+    "intro": "Twoja skóra jest w dobrej kondycji z kilkoma obszarami, które warto wzmocnić.",
+    "strengths": ["Jakość skóry", "Owal twarzy", "Przebarwienia"],
+    "concerns":  ["Naczynka / Rumień", "Zmarszczki", "Napięcie skóry"],
+    "strengths_items": [
+        {"label": "Jakość skóry",   "score": 8},
+        {"label": "Owal twarzy",    "score": 8},
+        {"label": "Przebarwienia",  "score": 8},
     ],
-    "concerns": [
-        "Pierwsze drobne zmarszczki dynamiczne w okolicy czoła — warto zadziałać profilaktycznie",
-        "Lekko widoczne naczynka na policzkach — można zredukować laser naczyniowym",
-        "Skóra mogłaby zyskać na nawilżeniu i rozświetleniu",
+    "concerns_items": [
+        {"label": "Naczynka / Rumień", "score": 6},
+        {"label": "Zmarszczki",        "score": 7},
+        {"label": "Napięcie skóry",    "score": 7},
     ],
     "treatments": [
         "Toksyna botulinowa",
         "Laser naczyniowy",
         "Mezoterapia",
-        "Peelingi chemiczne",
     ],
     "areas": {
         "okolica_oczu":  8,
-        "jakosc_skory":  7,
+        "jakosc_skory":  8,
         "zmarszczki":    7,
         "napiecie":      7,
         "owal_twarzy":   8,
@@ -36,5 +36,6 @@ DEMO_RESULT = {
         "przebarwienia": "Przebarwienia",
         "naczynka":      "Naczynka / Rumień",
     },
+    "health_note": "Pamiętaj, że regularne stosowanie filtra SPF 50+ to podstawa ochrony przed fotostarzeniem.",
     "lang": "pl",
 }

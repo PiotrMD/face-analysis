@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-from sqlalchemy import create_engine, Column, String, DateTime, Text, Integer
+from sqlalchemy import create_engine, Column, String, DateTime, Text, Integer, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -179,6 +179,39 @@ class FollowUpEmail(Base):
             if row:
                 row.error = str(msg)[:500]
                 db.commit()
+        finally:
+            db.close()
+
+
+class DiscountCode(Base):
+    __tablename__ = 'discount_codes'
+
+    id            = Column(Integer, primary_key=True)
+    email         = Column(String(200), nullable=False, index=True)
+    result_token  = Column(String(36), nullable=True, index=True)
+    discount_code = Column(String(20), nullable=False, default='FACE10')
+    created_at    = Column(DateTime, default=datetime.utcnow, nullable=False)
+    valid_until   = Column(DateTime, nullable=False)
+    used          = Column(Boolean, nullable=False, default=False)
+
+    @staticmethod
+    def create(email: str, result_token: str | None = None) -> 'DiscountCode':
+        from datetime import timedelta
+        db = SessionLocal()
+        try:
+            now = datetime.utcnow()
+            entry = DiscountCode(
+                email=email,
+                result_token=result_token or None,
+                discount_code='FACE10',
+                created_at=now,
+                valid_until=now + timedelta(days=7),
+                used=False,
+            )
+            db.add(entry)
+            db.commit()
+            db.refresh(entry)
+            return entry
         finally:
             db.close()
 

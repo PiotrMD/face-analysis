@@ -11,7 +11,11 @@ import time as _time
 from database import init_db, Analysis, ContactRequest, FollowUpEmail
 from validators import validate_file_technical
 from analysis import analyze_face_with_ai
+from pipeline.run import analyze as pipeline_analyze
 from demo_data import DEMO_RESULT
+
+# Switch: True = new 3-stage pipeline, False = old analysis.py path
+USE_NEW_PIPELINE = True
 
 # Load environment variables
 load_dotenv(override=True)
@@ -117,7 +121,7 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         return result
     except ValueError as e:
         msg = str(e)
-        if any(msg.startswith(p) for p in ("EYES_BLOCKED:", "PHOTO_UNSUITABLE:", "POOR_PHOTO_QUALITY:")):
+        if any(msg.startswith(p) for p in ("REJECT:", "EYES_BLOCKED:", "PHOTO_UNSUITABLE:")):
             raise
         import traceback
         tb = traceback.format_exc()
@@ -130,7 +134,32 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         return None
 
 
-APP_VERSION = "f7daef6-v8"  # hardcoded — update on each deploy to confirm Railway runs latest
+def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl'):
+    """3-stage pipeline: validate → score → report. Replaces _run_analysis when USE_NEW_PIPELINE=True."""
+    if USE_MOCK_MODE:
+        print(f"[NO API KEY] Pipeline unavailable — configure OPENAI_API_KEY. token={token}")
+        return None
+
+    client = openai_client or OpenAI(api_key=os.getenv('OPENAI_API_KEY', ''))
+    try:
+        print(f"[PIPELINE START] token={token} lang={lang}", flush=True)
+        result = pipeline_analyze(saved_paths, client, lang=lang)
+        print(f"[PIPELINE SUCCESS] token={token}", flush=True)
+        return result
+    except ValueError as e:
+        msg = str(e)
+        if any(msg.startswith(p) for p in ("REJECT:", "EYES_BLOCKED:", "PHOTO_UNSUITABLE:")):
+            raise
+        import traceback
+        print(f"[PIPELINE FAILED ValueError] {msg}\n{traceback.format_exc()}", flush=True)
+        return None
+    except Exception as e:
+        import traceback
+        print(f"[PIPELINE FAILED Exception] {type(e).__name__}: {e}\n{traceback.format_exc()}", flush=True)
+        return None
+
+
+APP_VERSION = "f7daef6-v10"  # hardcoded — update on each deploy to confirm Railway runs latest
 
 
 @app.route('/version')
@@ -221,29 +250,30 @@ def _analyze_inner():
         if force: print("[FORCE CACHE BYPASS]")
         else: print(f"[CACHE MISS] token={token}")
         try:
-            analysis_result = _run_analysis(token, saved_paths, lang=lang)
+            runner = _run_analysis_v2 if USE_NEW_PIPELINE else _run_analysis
+            analysis_result = runner(token, saved_paths, lang=lang)
         except ValueError as e:
+            from validation_messages import get_message, get_hint
             msg = str(e)
             print(f"[ANALYZE ERROR] ValueError routing: {repr(msg[:200])}", flush=True)
-            if 'EYES_BLOCKED' in msg:
-                user_msg = ('Photo with sunglasses detected — eye area analysis not possible. Please upload a photo without sunglasses.'
-                            if lang == 'en' else
-                            'Wykryto zdjęcie z okularami przeciwsłonecznymi — analiza okolicy oczu niemożliwa. Wgraj zdjęcie bez okularów.')
+            # New format: "REJECT:{code}"
+            if msg.startswith('REJECT:'):
+                code = msg.split(':', 1)[1].strip()
+            elif 'EYES_BLOCKED' in msg:
+                code = 'glasses'
             elif 'PHOTO_UNSUITABLE' in msg:
-                user_msg = ('Photo is unsuitable for analysis. Please upload a clear en face photo.'
-                            if lang == 'en' else
-                            'Zdjęcie nieodpowiednie do analizy. Wgraj wyraźne zdjęcie en face.')
-            elif 'POOR_PHOTO_QUALITY' in msg:
-                user_msg = ('Photo quality is insufficient for reliable analysis. Please upload a clear, close-up en face photo — face straight, both eyes visible, no sunglasses.'
-                            if lang == 'en' else
-                            'Jakość zdjęcia nie pozwala na rzetelną analizę. Wgraj wyraźne zbliżenie twarzy en face — twarz prosto, obie oczy widoczne, brak okularów.')
+                code = 'no_face'
             else:
-                user_msg = str(e)
+                code = 'no_face'
+            short = get_message(code, lang)
+            hint  = get_hint(code, lang)
             return jsonify({
                 "success": False,
                 "validation_failed": True,
-                "errors": [user_msg],
-                "validation_errors": [user_msg],
+                "reject_code": code,
+                "errors": [short],
+                "error_hint": hint,
+                "validation_errors": [short],
             }), 422
 
     if analysis_result is None:
@@ -380,19 +410,63 @@ def contact():
         return jsonify({'success': False, 'error': 'Nie udało się zapisać zgłoszenia. Spróbuj ponownie.'}), 500
 
 
+@app.route('/discount', methods=['POST'])
+def discount():
+    data  = request.get_json(silent=True) or {}
+    email = (data.get('email') or '').strip()[:200]
+    token = (data.get('token') or '').strip()
+    lang  = session.get('lang', 'pl')
+
+    if not email or '@' not in email or '.' not in email.split('@')[-1]:
+        return jsonify({'success': False, 'error': 'invalid_email'}), 400
+
+    try:
+        from database import DiscountCode
+        DiscountCode.create(email=email, result_token=token or None)
+        print(f"[DISCOUNT] saved email={email!r} token={token!r}", flush=True)
+    except Exception as e:
+        print(f"[DISCOUNT] DB error: {e}", flush=True)
+
+    try:
+        from mailer import send_discount_code
+        send_discount_code(to_email=email, lang=lang)
+        print(f"[DISCOUNT] mail sent to={email!r}", flush=True)
+    except Exception as e:
+        print(f"[DISCOUNT] mail failed: {e}", flush=True)
+
+    return jsonify({'success': True})
+
+
 @app.route('/feedback', methods=['POST'])
 def feedback():
+    import json as _json
+    from datetime import datetime, timezone
     data  = request.get_json(silent=True) or {}
     text  = (data.get('text') or '').strip()[:2000]
+    email = (data.get('email') or '').strip()[:200]
     token = (data.get('token') or '').strip()
-    if text:
-        print(f"[FEEDBACK] token={token!r} text={text!r}", flush=True)
-        try:
-            with open('feedback.log', 'a', encoding='utf-8') as f:
-                import json as _json
-                f.write(_json.dumps({'token': token, 'text': text}, ensure_ascii=False) + '\n')
-        except Exception:
-            pass
+    if not text:
+        return jsonify({'success': False, 'error': 'empty'}), 400
+    entry = {
+        'ts':    datetime.now(timezone.utc).isoformat(),
+        'token': token or None,
+        'email': email or None,
+        'text':  text,
+    }
+    print(f"[FEEDBACK] {_json.dumps(entry, ensure_ascii=False)}", flush=True)
+    try:
+        with open('feedback.log', 'a', encoding='utf-8') as f:
+            f.write(_json.dumps(entry, ensure_ascii=False) + '\n')
+    except Exception as e:
+        print(f"[FEEDBACK] write error: {e}", flush=True)
+    try:
+        from mailer import _send
+        subject = f"Feedback z aplikacji — {token or 'brak tokenu'}"
+        body = f"Token: {token or '-'}\nE-mail: {email or '-'}\nData: {entry['ts']}\n\n{text}"
+        _send(to='piotr@spirometria.pl', subject=subject, body=body)
+        print(f"[FEEDBACK] mail sent", flush=True)
+    except Exception as e:
+        print(f"[FEEDBACK] mail failed: {e}", flush=True)
     return jsonify({'success': True})
 
 

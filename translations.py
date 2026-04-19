@@ -20,14 +20,14 @@ TRANSLATIONS = {
         # Home hero
         'eyebrow':    'Centrum Estetyki Medycznej',
         'hero_headline': 'Precyzyjna ocena<br>estetyki twarzy.',
-        'hero_sub':   'Indywidualny plan postępowania oparty na standardach klinicznych medycyny estetycznej.',
-        'bullet_1':   'Diagnostyka oparta na standardach klinicznych medycyny estetycznej',
-        'bullet_2':   'Ocena 7 kategorii: symetria, proporcje, oznaki starzenia, jakość skóry, okolica oczu, wargi, linia włosów',
+        'hero_sub':   'Indywidualny plan postępowania dopasowany do Twojej twarzy.',
+        'bullet_1':   'Kompleksowa analiza estetyczna twarzy',
+        'bullet_2':   'Ocena 7 kategorii: symetria, skóra, oznaki starzenia, okolica oczu, wargi',
         'bullet_3':   'Wystarczy jedno zdjęcie en face — wynik w kilka sekund',
-        'bullet_4':   'Podstawa do konsultacji i indywidualnego planu postępowania',
+        'bullet_4':   'Punkt wyjścia do konsultacji i indywidualnego planu postępowania',
 
         # Upload card
-        'upload_title':          'Wgraj zdjęcie do analizy i otrzymaj wstępną ocenę kliniczną',
+        'upload_title':          'Wgraj zdjęcie twarzy i otrzymaj indywidualną ocenę estetyczną',
         'upload_hint':           'Jedno zdjęcie en face: twarz na wprost, oba oczy widoczne',
         'no_file':               'Brak pliku',
         'validation_title':      'Sprawdź zdjęcia przed analizą',
@@ -58,9 +58,11 @@ TRANSLATIONS = {
         ],
 
         # JS strings
-        'btn_verify':       'Weryfikuj\u0119 zdj\u0119cie\u2026',
+        'btn_verify':       'Analizuj\u0119\u2026',
         'btn_retry':        'Spr\u00f3buj ponownie',
         'btn_start':        'Rozpocznij analiz\u0119',
+        'btn_has_photo':    'Analizuj zdj\u0119cie',
+        'btn_change_photo': 'Wybierz inne zdj\u0119cie',
         'err_no_photo':     'Wgraj zdj\u0119cie en face, aby kontynuowa\u0107.',
         'err_validation':   'B\u0142\u0105d walidacji zdj\u0119\u0107.',
         'err_file_large':   'Plik jest za du\u017cy. Skompresuj zdj\u0119cie i spr\u00f3buj ponownie.',
@@ -186,11 +188,23 @@ TRANSLATIONS = {
         'verdict_mid_stage': 'Umiarkowany \u2014 typowy zakres wskaza\u0144 u pacjent\u00f3w na pierwszej konsultacji',
         'verdict_advanced':  'Zaawansowany \u2014 wskazany priorytetowy plan post\u0119powania',
         'verdict_rec':       'Zadzwo\u0144 pod <strong>+48\u202f690\u202f584\u202f584</strong> lub zostaw numer \u2014 odzwonimy.',
+        # Discount code
+        'disc_heading':      'Dla Ciebie po analizie',
+        'disc_offer':        'Otrzymaj kod rabatowy <strong>–10%</strong> na konsultację lub zabieg medycyny estetycznej',
+        'disc_body':         'Podaj e-mail, a wyślemy Ci kod ważny 7 dni na umówienie wizyty.',
+        'disc_note':         'Sama wizyta może odbyć się później.',
+        'disc_ph_email':     'Twój e-mail',
+        'disc_btn':          'Wyślij kod',
+        'disc_success':      'Dziękujemy. Kod został wysłany na Twój e-mail.',
+        'disc_success_note': 'Możesz użyć go w ciągu 7 dni podczas umawiania wizyty.',
+        'disc_err_email':    'Podaj poprawny adres e-mail.',
+
         'section_feedback':  'Pom\u00f3\u017c nam ulepsza\u0107 aplikacj\u0119',
         'feedback_sub':      'Zauwa\u017cy\u0142e\u015b b\u0142\u0105d w analizie? Masz uwag\u0119? Napisz — ka\u017cda informacja pomaga nam poprawi\u0107 jako\u015b\u0107 ocen.',
         'feedback_placeholder': 'Np. analiza nie wykry\u0142a zmarszczek na czole, cho\u0107 by\u0142y wyra\u017anie widoczne...',
-        'feedback_btn':      'Wy\u015blij uwag\u0119',
-        'feedback_success':  'Dzi\u0119kujemy za uwag\u0119 \u2014 to pomaga nam ulepsza\u0107 aplikacj\u0119.',
+        'feedback_email_ph': 'Tw\u00f3j e-mail (opcjonalnie)',
+        'feedback_btn':      'Wy\u015blij uwagi',
+        'feedback_success':  'Dzi\u0119kujemy za uwagi.',
 
         # CTA
         'cta_heading':    'Co dalej?',
@@ -281,14 +295,14 @@ TRANSLATIONS = {
         # Home hero
         'eyebrow':       'Medical Aesthetics Centre',
         'hero_headline': 'Precise facial<br>aesthetic assessment.',
-        'hero_sub':      'Individual treatment plan based on clinical standards of aesthetic medicine.',
-        'bullet_1':      'Diagnostics based on clinical standards of aesthetic medicine',
-        'bullet_2':      'Assessment of 7 categories: symmetry, proportions, signs of ageing, skin quality, eye area, lips, hairline',
+        'hero_sub':      'Individual treatment plan tailored to your face.',
+        'bullet_1':      'Comprehensive facial aesthetic analysis',
+        'bullet_2':      'Assessment of 7 categories: symmetry, skin quality, signs of ageing, eye area, lips',
         'bullet_3':      'One en face photo is enough — result in seconds',
-        'bullet_4':      'Basis for consultation and an individual treatment plan',
+        'bullet_4':      'Starting point for consultation and an individual treatment plan',
 
         # Upload card
-        'upload_title':           'Upload your photo for analysis and receive a preliminary clinical assessment',
+        'upload_title':           'Upload your photo and receive an individual aesthetic assessment',
         'upload_hint':            'One en face photo: face straight ahead, both eyes visible',
         'no_file':                'No file',
         'validation_title':       'Check your photos before analysis',
@@ -319,9 +333,11 @@ TRANSLATIONS = {
         ],
 
         # JS strings
-        'btn_verify':      'Verifying photo\u2026',
-        'btn_retry':       'Try again',
-        'btn_start':       'Start analysis',
+        'btn_verify':       'Analysing\u2026',
+        'btn_retry':        'Try again',
+        'btn_start':        'Start analysis',
+        'btn_has_photo':    'Analyse photo',
+        'btn_change_photo': 'Choose another photo',
         'err_no_photo':    'Please upload an en face photo to continue.',
         'err_validation':  'Photo validation error.',
         'err_file_large':  'File too large. Please compress the photo and try again.',
@@ -447,11 +463,23 @@ TRANSLATIONS = {
         'verdict_mid_stage':  'Moderate \u2014 typical range of indications in patients at first consultation',
         'verdict_advanced':   'Advanced \u2014 priority treatment plan indicated',
         'verdict_rec':        'Call <strong>+48\u202f690\u202f584\u202f584</strong> or leave your number \u2014 we will call back.',
+        # Discount code
+        'disc_heading':      'A gift after your analysis',
+        'disc_offer':        'Get a <strong>–10% discount code</strong> on a consultation or aesthetic medicine treatment',
+        'disc_body':         'Enter your email and we will send you a code valid for 7 days to book an appointment.',
+        'disc_note':         'The appointment itself can take place later.',
+        'disc_ph_email':     'Your email',
+        'disc_btn':          'Send code',
+        'disc_success':      'Thank you. The code has been sent to your email.',
+        'disc_success_note': 'You can use it within 7 days when booking your appointment.',
+        'disc_err_email':    'Please enter a valid email address.',
+
         'section_feedback':   'Help us improve the app',
         'feedback_sub':       'Noticed an error in the analysis? Have a comment? Write to us \u2014 every piece of feedback helps us improve the quality of assessments.',
         'feedback_placeholder': 'E.g. the analysis did not detect forehead wrinkles that were clearly visible...',
+        'feedback_email_ph': 'Your email (optional)',
         'feedback_btn':       'Send feedback',
-        'feedback_success':   'Thank you for your feedback \u2014 it helps us improve the app.',
+        'feedback_success':   'Thank you for your feedback.',
 
         # CTA
         'cta_heading':   "What's next?",

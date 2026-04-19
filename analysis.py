@@ -3,9 +3,71 @@ import base64
 from typing import Dict
 
 # ═══════════════════════════════════════════════════════════════════
-# OBSERVATION PROMPT — Step 1: photo → plain-text notes
+# OBSERVATION PROMPTS — Step 1: photo → plain-text notes (PL / EN)
 # ═══════════════════════════════════════════════════════════════════
-OBSERVATION_PROMPT = """Look at this face photo and fill in the assessment form below. Be specific about what you actually see. Plain language, no jargon.
+OBSERVATION_PROMPT_PL = """Przejrzyj to zdjęcie twarzy i wypełnij poniższy formularz oceny. Bądź konkretny w tym, co faktycznie widzisz. Prosty język, bez żargonu medycznego. Odpowiedz WYŁĄCZNIE po polsku.
+
+WARUNKI ZATRZYMANIA (sprawdź najpierw):
+- Okulary przeciwsłoneczne lub okulary zasłaniające oczy → napisz "EYES_BLOCKED" i zakończ
+- Brak ludzkiej twarzy na zdjęciu → napisz "NO_FACE" i zakończ
+- Wyraźny cyfrowy filtr upiększający (plastikowa/wyretuszowana skóra, filtr Snapchat) → napisz "FILTER_DETECTED" i zakończ
+- W pozostałych przypadkach → kontynuuj formularz poniżej
+
+━━━ OBSZAR 1: OKOLICA OCZU ━━━
+Cienie/sińce pod oczami: brak / łagodne / umiarkowane / wyraźne
+Worki lub opuchlizna pod oczami: brak / łagodne / umiarkowane / wyraźne
+Kurze łapki (linie w kącikach oczu): brak / delikatne / umiarkowane / głębokie
+Opadanie górnej powieki: brak / łagodne / wyraźne
+Ogólna świeżość okolicy oczu: świeża / neutralna / zmęczona
+
+━━━ OBSZAR 2: JAKOŚĆ SKÓRY ━━━
+Tekstura skóry: gładka / lekko nierówna / nierówna / bardzo nierówna
+Widoczność porów: niewidoczne / lekko widoczne / wyraźnie widoczne / duże
+Równomierność kolorytu: równomierny / drobne nierówności / umiarkowane nierówności / bardzo nierówny
+Wygląd nawilżenia skóry: pełna/nawilżona / normalna / lekko odwodniona / odwodniona
+Ogólna jakość skóry: doskonała / dobra / przeciętna / wymaga uwagi
+
+━━━ OBSZAR 3: ZMARSZCZKI ━━━
+Linie na czole: brak / delikatne dynamiczne / umiarkowane / głębokie statyczne
+Linie między brwiami (jedenastki): brak / łagodne / umiarkowane / głębokie
+Bruzdy nosowo-wargowe: brak / delikatne / umiarkowane / głębokie
+Linie wokół ust: brak / delikatne / umiarkowane / głębokie
+Ogólny poziom zmarszczek: minimalny / łagodny / umiarkowany / wyraźny
+
+━━━ OBSZAR 4: NAPIĘCIE I SPRĘŻYSTOŚĆ TWARZY ━━━
+Sprężystość policzków: dobra / lekko opadające / wyraźnie opadające
+Zarys żuchwy: wyraźny / lekko niewyraźny / niewyraźny / tworzące się jowle
+Owal dolnej części twarzy: wyraźny / lekko miękki / miękki
+Ogólna sprężystość: doskonała / dobra / przeciętna / wymaga uwagi
+
+━━━ OBSZAR 5: OWAL TWARZY ━━━
+Proporcje twarzy (trójpodziały): zrównoważone / dominuje górna część / dominuje dolna część
+Zarys brody: wyraźny / łagodny / cofnięty
+Ogólny owal: dobrze zarysowany / dobry / miękki
+
+━━━ OBSZAR 6: PRZEBARWIENIA ━━━
+Plamy słoneczne / ciemne przebarwienia: brak / 1-2 małe / kilka / rozległe
+Ślady po trądziku: brak / 1-2 / kilka / wiele
+Ogólny stan przebarwień: czysta / drobne / umiarkowane / wyraźne
+
+━━━ OBSZAR 7: NACZYNKA / RUMIEŃ ━━━
+Ogólne zaczerwienienie: brak / łagodne / umiarkowane / wyraźne
+Widoczne naczynka: brak / kilka / umiarkowanie / wiele
+Wzorzec zaczerwienienia: brak / łagodny / wyraźny
+Ogólny problem naczyniowy: brak / łagodny / umiarkowany / wyraźny
+
+━━━ MOCNE STRONY ━━━
+Wymień 3-5 konkretnych rzeczy, które naprawdę dobrze wyglądają na tej twarzy:
+1.
+2.
+3.
+(4.)
+(5.)
+
+━━━ PODSUMOWANIE ━━━
+Jedno zdanie: jakie jest ogólne wrażenie tej twarzy?"""
+
+OBSERVATION_PROMPT_EN = """Look at this face photo and fill in the assessment form below. Be specific about what you actually see. Plain language, no jargon. Answer ONLY in English.
 
 STOP CONDITIONS (answer first):
 - Sunglasses or glasses blocking eyes → write "EYES_BLOCKED" and stop
@@ -53,7 +115,7 @@ Overall pigmentation: clear / minor / moderate / significant
 ━━━ AREA 7: VASCULAR / REDNESS ━━━
 General redness: none / mild / moderate / strong
 Visible broken capillaries: none / a few / moderate / many
-Rosacea signs: none / possible / likely
+Redness pattern: none / mild / notable
 Overall vascular concern: none / mild / moderate / significant
 
 ━━━ POSITIVES ━━━
@@ -74,30 +136,26 @@ One sentence: what is the overall impression of this face?"""
 
 TREATMENTS_PL = [
     "Toksyna botulinowa",
-    "RF mikroigłowa",
-    "Mezoterapia",
-    "Peelingi chemiczne",
-    "Laser frakcyjny",
-    "Stymulatory tkankowe",
-    "Osocze bogatopłytkowe (PRP)",
-    "Fibryna bogatokomórkowa (PRF)",
     "Filler HA",
+    "Stymulatory tkankowe",
+    "Fibryna bogatokomórkowa",
+    "Laser frakcyjny",
     "Laser naczyniowy",
-    "Elektrokoagulacja",
+    "Radiofrekwencja mikroigłowa",
+    "Mezoterapia",
+    "Peelingi",
 ]
 
 TREATMENTS_EN = [
     "Botulinum toxin",
-    "Microneedling RF",
-    "Mesotherapy",
-    "Chemical peels",
-    "Fractional laser",
-    "Tissue stimulators",
-    "Platelet-rich plasma (PRP)",
-    "Platelet-rich fibrin (PRF)",
     "HA filler",
+    "Tissue stimulators",
+    "Platelet-rich fibrin",
+    "Fractional laser",
     "Vascular laser",
-    "Electrocoagulation",
+    "Microneedling radiofrequency",
+    "Mesotherapy",
+    "Peels",
 ]
 
 REPORT_PROMPT_PL = """Na podstawie obserwacji napisz przyjazny raport analizy twarzy dla pacjenta. Ton: ciepły, pozytywny beauty-doradca — nie lekarz.
@@ -246,7 +304,8 @@ def _call_raw(openai_client, messages: list, model: str, max_tokens: int) -> str
     choice  = response.choices[0]
     raw     = choice.message.content or ''
     refusal = getattr(choice.message, 'refusal', None)
-    print(f"[API] finish={choice.finish_reason} refusal={bool(refusal)} len={len(raw)}")
+    print(f"[API] finish={choice.finish_reason} refusal={bool(refusal)} len={len(raw)}", flush=True)
+    print(f"[API] raw_content={repr(raw[:200])}", flush=True)
     if refusal or not raw or len(raw) < 20:
         raise ValueError(f"API refused or returned empty (finish={choice.finish_reason})")
     if any(raw.lower().startswith(p) for p in _SOFT_REFUSALS):
@@ -276,30 +335,37 @@ def _extract_json(text: str) -> dict:
 # Pipeline steps
 # ═══════════════════════════════════════════════════════════════════
 
-def _observe(openai_client, images_data: dict, model: str, validation_context: dict = None) -> str:
+def _observe(openai_client, images_data: dict, model: str, validation_context: dict = None, lang: str = 'pl') -> str:
     user_content = []
     if 'en_face' in images_data:
         img = images_data['en_face']
         user_content.append({"type": "image_url", "image_url": {"url": f"data:{img['media_type']};base64,{img['data']}"}})
 
-    observation_text = OBSERVATION_PROMPT
+    observation_text = OBSERVATION_PROMPT_PL if lang == 'pl' else OBSERVATION_PROMPT_EN
     if validation_context:
-        ctx_lines = ["[PRE-VALIDATION CONTEXT]:"]
+        ctx_lines = ["[KONTEKST PRE-WALIDACJI]:" if lang == 'pl' else "[PRE-VALIDATION CONTEXT]:"]
         hp = validation_context.get('head_pose', {})
         if hp:
-            ctx_lines.append(f"  Head pose: yaw={hp.get('yaw','?')} pitch={hp.get('pitch','?')}")
+            ctx_lines.append(f"  Kąt głowy: yaw={hp.get('yaw','?')} pitch={hp.get('pitch','?')}")
         if not validation_context.get('neck_visible', True):
-            ctx_lines.append("  Neck not visible in frame")
+            ctx_lines.append("  Szyja niewidoczna w kadrze" if lang == 'pl' else "  Neck not visible in frame")
         if not validation_context.get('hairline_visible', True):
-            ctx_lines.append("  Hairline not visible in frame")
+            ctx_lines.append("  Linia włosów niewidoczna" if lang == 'pl' else "  Hairline not visible in frame")
         observation_text = "\n".join(ctx_lines) + "\n\n" + observation_text
 
     user_content.append({"type": "text", "text": observation_text})
+    system_msg = (
+        "Jesteś specjalistą od estetycznej analizy twarzy. Wypełnij formularz oceny na podstawie tego, co widzisz na zdjęciu. Bądź konkretny i szczery zarówno co do mocnych stron, jak i obszarów do poprawy. Odpowiadaj WYŁĄCZNIE po polsku."
+        if lang == 'pl' else
+        "You are an aesthetic face analysis specialist. Fill in the assessment form based on what you see in the photo. Be specific and honest about both positive features and areas for improvement. Answer ONLY in English."
+    )
     messages = [
-        {"role": "system", "content": "You are an aesthetic face analysis specialist. Fill in the assessment form based on what you see in the photo. Be specific and honest about both positive features and areas for improvement."},
+        {"role": "system", "content": system_msg},
         {"role": "user",   "content": user_content},
     ]
-    return _call_raw(openai_client, messages, model, max_tokens=1500)
+    result = _call_raw(openai_client, messages, model, max_tokens=1500)
+    print(f"[OBSERVE RAW] lang={lang} first_300={repr(result[:300])}", flush=True)
+    return result
 
 
 def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> dict:
@@ -308,8 +374,11 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
     prompt = prompt_template.format(treatments=treatments)
 
     system_msg = (
+        "Jesteś przyjaznym beauty-doradcą piszącym spersonalizowaną analizę twarzy dla pacjenta. "
+        "Bądź ciepły, pozytywny i konkretny. Wszystkie teksty pisz WYŁĄCZNIE po polsku. Zwróć tylko poprawny JSON — bez markdown, bez dodatkowego tekstu."
+        if lang == 'pl' else
         "You are a friendly beauty advisor writing a personalised face analysis for a patient. "
-        "Be warm, positive, and specific. Return only valid JSON — no markdown, no extra text."
+        "Be warm, positive, and specific. Write ALL text ONLY in English. Return only valid JSON — no markdown, no extra text."
     )
 
     messages = [
@@ -318,8 +387,11 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
     ]
     for attempt in range(2):
         raw = _call_raw(openai_client, messages, model, max_tokens=2000)
+        print(f"[REPORT RAW] attempt={attempt+1} lang={lang} first_500={repr(raw[:500])}", flush=True)
         try:
-            return _extract_json(raw)
+            parsed = _extract_json(raw)
+            print(f"[REPORT PARSED] intro={repr(parsed.get('intro',''))} overall_score={parsed.get('overall_score')} areas={parsed.get('areas')}", flush=True)
+            return parsed
         except (ValueError, json.JSONDecodeError) as e:
             print(f"[REPORT] JSON parse failed attempt {attempt+1}: {e} — raw[:200]: {repr(raw[:200])}")
             if attempt == 1:
@@ -374,10 +446,10 @@ def _validate_result(result: dict, lang: str = 'pl') -> None:
     area_str = ' '.join(f"{k[:5]}={areas[k]}" for k in REQUIRED_AREAS)
     print(f"[SCORES] overall={result['overall_score']} | {area_str}")
 
-    # intro: score-range fallback if GPT gave a generic one
+    # intro: log what GPT returned; fallback ONLY if missing or too short
     intro = result.get('intro', '')
-    generic_intros = {'oto twoja', 'here is your', 'twoja twarz', 'your face'}
-    if not isinstance(intro, str) or len(intro) < 10 or any(g in intro.lower() for g in generic_intros):
+    print(f"[INTRO GPT] lang={lang} intro={repr(intro)}", flush=True)
+    if not isinstance(intro, str) or len(intro.strip()) < 15:
         score = result['overall_score']
         if lang == 'pl':
             if score >= 8:
@@ -393,6 +465,9 @@ def _validate_result(result: dict, lang: str = 'pl') -> None:
                 result['intro'] = "You have lovely facial features — a few targeted treatments will enhance them even further."
             else:
                 result['intro'] = "There are a few areas worth addressing — you have great potential that the right treatments can beautifully enhance."
+        print(f"[INTRO FALLBACK USED] score={score} intro={repr(result['intro'])}", flush=True)
+    else:
+        print(f"[INTRO GPT KEPT] intro={repr(intro)}", flush=True)
 
     # Add area labels for template
     labels = AREA_LABELS_PL if lang == 'pl' else AREA_LABELS_EN
@@ -437,8 +512,8 @@ def analyze_face_with_ai(
             validation = {}
 
     # Step 1: Observe
-    observations = _observe(openai_client, images_data, model, validation_context=validation)
-    print(f"[OBSERVE OK] {len(observations)} chars")
+    observations = _observe(openai_client, images_data, model, validation_context=validation, lang=lang)
+    print(f"[OBSERVE OK] lang={lang} {len(observations)} chars", flush=True)
 
     obs_upper = observations[:200].upper()
     if 'EYES_BLOCKED' in obs_upper:
