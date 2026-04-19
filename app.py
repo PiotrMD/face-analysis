@@ -133,14 +133,17 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         return None
 
 
+APP_VERSION = "a8443b3"  # hardcoded — update on each deploy to confirm Railway runs latest
+
+
 @app.route('/version')
 def version():
     import subprocess
     try:
-        commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], text=True).strip()
+        git_commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], text=True).strip()
     except Exception:
-        commit = 'unknown'
-    return jsonify({'commit': commit, 'started': STATIC_VERSION})
+        git_commit = 'unavailable'
+    return jsonify({'version': APP_VERSION, 'git': git_commit, 'started': STATIC_VERSION})
 
 
 @app.route('/demo')
@@ -224,6 +227,7 @@ def _analyze_inner():
             analysis_result = _run_analysis(token, saved_paths, lang=lang)
         except ValueError as e:
             msg = str(e)
+            print(f"[ANALYZE ERROR] ValueError routing: {repr(msg[:200])}", flush=True)
             if 'EYES_BLOCKED' in msg:
                 user_msg = ('Photo with sunglasses detected — eye area analysis not possible. Please upload a photo without sunglasses.'
                             if lang == 'en' else
