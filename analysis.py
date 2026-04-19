@@ -22,10 +22,11 @@ Face direction: EN FACE / TILTED / LOOKING DOWN / PROFILE
 Photo quality: ADEQUATE / BLURRY / DARK / CROPPED
 Mimics: NEUTRAL / SMILING / GRIMACING
 
-If eyes are covered → write "EYES_BLOCKED: [cause]" and STOP.
-If face is NOT en face → write "PHOTO_UNSUITABLE: face not en face — [direction]" and STOP.
-If photo quality inadequate → write "PHOTO_UNSUITABLE: [reason]" and STOP.
-If OK → write "PHOTO_OK" and continue.
+If eyes are completely hidden by sunglasses or opaque object → write "EYES_BLOCKED: [cause]" and STOP.
+If face is clearly in profile (one eye fully hidden, >35° yaw) → write "PHOTO_UNSUITABLE: face not en face — [direction]" and STOP.
+If NO human face at all (photo of object, animal, landscape) → write "PHOTO_UNSUITABLE: no face detected" and STOP.
+If face is totally unrecognizable (completely dark, completely out of focus) → write "PHOTO_UNSUITABLE: [reason]" and STOP.
+Otherwise → write "PHOTO_OK" and continue. Use "CANNOT ASSESS — [specific reason]" only for individual steps where visibility genuinely prevents assessment. Do NOT block the whole analysis for letterboxing, mild blur, cropped hairline, crossed arms, or partial chin.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 STEP 1 — POSITIVE FEATURES (document first — do not skip)
@@ -674,6 +675,8 @@ def _call_raw(openai_client, messages: list, model: str, max_tokens: int) -> str
     print(f"[API] finish={choice.finish_reason} refusal={bool(refusal)} len={len(raw) if raw else 0}")
     if refusal or not raw or len(raw) < 20:
         raise ValueError(f"API refused or returned empty (finish={choice.finish_reason})")
+    if choice.finish_reason == 'length':
+        raise ValueError(f"API response truncated — max_tokens={max_tokens} insufficient")
     return raw
 
 
@@ -709,7 +712,7 @@ def _observe(openai_client, images_data: dict, model: str, validation_context: d
         {"role": "system", "content": "You are a dermatologist writing structured clinical observation notes from patient photographs. Document both strengths and concerns. Note confidence per section. Be specific and honest."},
         {"role": "user",   "content": user_content},
     ]
-    return _call_raw(openai_client, messages, model, max_tokens=1200)
+    return _call_raw(openai_client, messages, model, max_tokens=2000)
 
 
 LANG_REQUIREMENT_EN = """━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -924,8 +927,15 @@ def _report(openai_client, observations: str, model: str, lang: str = 'pl') -> d
         },
         {"role": "user", "content": prompt},
     ]
-    raw = _call_raw(openai_client, messages, model, max_tokens=5000)
-    return _extract_json(raw)
+    for attempt in range(2):
+        raw = _call_raw(openai_client, messages, model, max_tokens=8000)
+        try:
+            return _extract_json(raw)
+        except (ValueError, json.JSONDecodeError) as e:
+            print(f"[REPORT] JSON parse failed attempt {attempt+1}: {e} — raw[:200]: {repr(raw[:200])}")
+            if attempt == 1:
+                raise
+    raise ValueError("_report: exhausted retries")
 
 
 def analyze_face_with_ai(

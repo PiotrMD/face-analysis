@@ -20,26 +20,32 @@ VALIDATION_PROMPT = """Analyze this face photograph for clinical suitability. Re
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BLOCKING CONDITIONS — set image_valid: false if ANY applies
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-B1. More than one face visible in the photo
-B2. Face not fully visible: hairline, eyes, nose, mouth, jawline must all be present
-B3. Eyes covered by sunglasses, opaque glasses, hair, hand, or any occlusion
-B4. Strong beauty filter, skin smoothing filter, or AI-generated appearance detected
-B5. Head yaw (left-right rotation) estimated above 25 degrees (near-profile)
-B6. Head pitched strongly down (looking at floor) — eyes barely or not visible
-B7. Photo severely blurry (cannot assess skin or eye area), very dark, or badly overexposed
-B8. Face occupies less than 12% of the image area
-B9. Strong non-neutral expression: wide open smile showing teeth, strong squint, raised eyebrows, open mouth
-B10. Partial face: chin or forehead cut off by frame
+B1. No human face present (photo of object, animal, document, landscape, etc.)
+B2. More than one person visible in the photo
+B3. ANY glasses present — sunglasses OR regular corrective glasses (glasses of any kind block orbital area assessment)
+B4. Face is unrecognizable: completely dark, severely out of focus throughout, face features indistinguishable
+B5. Head yaw above 35 degrees — clearly near-profile, one eye mostly hidden
+B6. Strong beauty filter or clearly AI-generated face (plastic skin texture, airbrushed appearance)
+
+NOT blocking — pass through with warnings:
+- Black borders or letterboxing around the photo
+- Partial hairline or chin slightly cut off
+- Mild blur or lower resolution (webcam, screenshot)
+- Slight smile, mild expression
+- Arms crossed or slight pose variation
+- Professional/clinic photos
+- Face smaller than ideal but still clearly visible
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 WARNINGS (do not block, but set warning flags)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-W1. Mild head rotation (8–25 degrees yaw) — allow but note reduced confidence for symmetry/jawline
-W2. Single-sided strong shadow — note reduced confidence for volume assessment
-W3. Mild non-neutral expression (subtle smile, slight tension)
-W4. Neck not visible in frame — cannot assess neck region
-W5. Hairline not visible — cannot assess hairline/forehead region
-W6. Corrective glasses present (non-sunglasses) — may partially obscure upper orbital rim
+W1. Head rotation 15–35 degrees — reduced confidence for symmetry/jawline
+W2. Single-sided strong shadow — reduced confidence for volume
+W3. Non-neutral expression (mild smile, slight tension)
+W4. Neck not visible — cannot assess neck region
+W5. Hairline not visible or cut off — cannot assess hairline
+W6. Photo quality moderate (webcam, mild blur) — reduced skin texture confidence
+W7. Black borders or letterboxing detected
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HEAD POSE ASSESSMENT
@@ -121,16 +127,17 @@ RETURN THIS EXACT JSON STRUCTURE
 }"""
 
 REJECTION_MESSAGES = {
-    'sunglasses': 'Wykryto okulary przeciwsłoneczne — zakrywają kluczowy obszar oczu. Wgraj zdjęcie bez okularów.',
+    'glasses':    'Wykryto okulary — zasłaniają obszar oczu niezbędny do analizy. Wgraj zdjęcie bez okularów.',
+    'sunglasses': 'Wykryto okulary — zasłaniają obszar oczu niezbędny do analizy. Wgraj zdjęcie bez okularów.',
     'filter':     'Wykryto filtr upiększający lub retusz AI — analiza skóry i tkanek niemożliwa. Wgraj nieretuszowane zdjęcie.',
-    'pose_large': 'Głowa jest zbyt mocno obrócona lub pochylona. Ustaw twarz prosto do aparatu i spróbuj ponownie.',
-    'multi_face': 'Na zdjęciu widać więcej niż jedną twarz. Wgraj zdjęcie, na którym jesteś tylko Ty.',
-    'no_face':    'Nie wykryto twarzy. Upewnij się, że twarz jest wyraźnie widoczna i zajmuje znaczną część zdjęcia.',
+    'pose_large': 'Głowa jest zbyt mocno obrócona. Ustaw twarz prosto do aparatu i spróbuj ponownie.',
+    'multi_face': 'Na zdjęciu widać więcej niż jedną osobę. Wgraj zdjęcie, na którym jesteś tylko Ty.',
+    'no_face':    'Nie wykryto twarzy człowieka. Wgraj zdjęcie twarzy en face.',
     'cropped':    'Twarz jest ucięta — musi być widoczna cała twarz od linii włosów do podbródka.',
     'eyes':       'Oczy nie są widoczne lub są zasłonięte. Wgraj zdjęcie z widocznymi, otwartymi oczami.',
     'blurry':     'Zdjęcie jest zbyt niewyraźne do analizy. Zrób ostrzejsze zdjęcie w dobrym świetle.',
     'expression': 'Mimika nie jest neutralna. Wgraj zdjęcie z neutralnym wyrazem twarzy.',
-    'default':    'Nie mogę wykonać wiarygodnej analizy. Proszę wgrać pojedyncze zdjęcie twarzy na wprost, patrząc prosto w aparat, z neutralną mimiką, bez filtrów, bez zasłonięcia twarzy, przy równym świetle i z dobrą ostrością.',
+    'default':    'Wgraj pojedyncze zdjęcie twarzy en face: twarz prosto do aparatu, oba oczy widoczne, bez okularów, bez filtrów.',
 }
 
 PHOTO_INSTRUCTIONS = 'Zrób pojedyncze zdjęcie twarzy na wprost, patrząc prosto w aparat, z neutralną mimiką, bez filtrów, bez okularów, z odsłoniętą twarzą i widoczną szyją, przy równym świetle, z dobrą ostrością.'
@@ -154,8 +161,8 @@ def _user_rejection_message(result: dict) -> str:
     """Pick the most appropriate user-facing rejection message."""
     r = result
     occlusion = r.get('occlusion_type') or ''
-    if occlusion == 'sunglasses' or not r.get('eyes_visible', True):
-        return REJECTION_MESSAGES['sunglasses']
+    if occlusion in ('sunglasses', 'glasses') or not r.get('eyes_visible', True):
+        return REJECTION_MESSAGES['glasses']
     if r.get('filter_detected'):
         return REJECTION_MESSAGES['filter']
     if r.get('head_pose', {}).get('acceptable_for_analysis') is False:
@@ -304,7 +311,7 @@ def validate_face_ai(image_path: str, openai_client, model: str = "gpt-4o") -> d
     if not result['image_valid']:
         msg = _user_rejection_message(result)
         occlusion = result.get('occlusion_type') or ''
-        if occlusion == 'sunglasses' or not result.get('eyes_visible', True):
+        if occlusion in ('sunglasses', 'glasses') or not result.get('eyes_visible', True):
             raise ValueError(f"EYES_BLOCKED: {msg}")
         if result.get('filter_detected'):
             raise ValueError(f"PHOTO_UNSUITABLE: {msg}")
