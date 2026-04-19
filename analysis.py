@@ -549,6 +549,86 @@ def _patch_prompt_for_lang(prompt: str, lang: str) -> str:
     prompt = prompt.replace("po polsku", "in English")
     prompt = prompt.replace("(język polski)", "(English)")
     prompt = prompt.replace("Polish medical procedure name", "English medical procedure name")
+    prompt = prompt.replace("po angielsku", "in English")
+
+    # 2b. Output format field templates — replace Polish directives with English
+    prompt = prompt.replace(
+        '"biological_age_estimate": "<XX-XX lat — specific clinical sign>",',
+        '"biological_age_estimate": "<XX-XX years — specific clinical sign>",')
+    prompt = prompt.replace(
+        '"freshness": "<świeży|neutralny|zmęczony>",',
+        '"freshness": "<swiezy|neutralny|zmeczony>",')
+    prompt = prompt.replace(
+        '"apparent_age": "<młodszy niż wiek biologiczny|odpowiedni do wieku|starszy niż wiek biologiczny>",',
+        '"apparent_age": "<younger than biological age|age-appropriate|older than biological age>",')
+    prompt = prompt.replace(
+        '"impression": "<one sentence in Polish: what the overall face communicates aesthetically — cause + effect + perception>"',
+        '"impression": "<one sentence in English: what the overall face communicates aesthetically — cause + effect + perception>"')
+    prompt = prompt.replace(
+        '"primary": "<main anatomical factor creating tired appearance, in Polish — or \'brak cech zmęczenia\' if face looks fresh>",',
+        '"primary": "<main anatomical factor creating tired appearance, in English — or \'no signs of fatigue\' if face looks fresh>",')
+    prompt = prompt.replace(
+        '"contributing": ["<factor in Polish>", "<factor in Polish>"],',
+        '"contributing": ["<factor in English>", "<factor in English>"],')
+    prompt = prompt.replace(
+        '"explanation": "<one sentence: cause → effect → perceived fatigue, in Polish>"',
+        '"explanation": "<one sentence: cause → effect → perceived fatigue, in English>"')
+    prompt = prompt.replace(
+        '"under_eye": "<po polsku: napięcie/wiotkość, efekt percepcyjny>",',
+        '"under_eye": "<in English: tension/laxity, perceptual effect>",')
+    prompt = prompt.replace(
+        '"cheeks": "<po polsku: napięcie/opadanie tkanek, efekt percepcyjny>",',
+        '"cheeks": "<in English: tension/tissue descent, perceptual effect>",')
+    prompt = prompt.replace(
+        '"jawline": "<po polsku: definicja linii żuchwy lub zatarcie przez opadanie tkanek>",',
+        '"jawline": "<in English: jawline definition or blurring by tissue descent>",')
+    prompt = prompt.replace(
+        '"neck": "<po polsku: znalezisko lub \'Ocena szyi ograniczona przez kadr zdjęcia.\'>"',
+        '"neck": "<in English: finding or \'Neck assessment limited by photo frame.\'>"')
+    prompt = prompt.replace(
+        '"disclaimer": "Dokumentacja kliniczna sporządzona na podstawie fotografii. Nie zastępuje badania lekarskiego.",',
+        '"disclaimer": "Clinical documentation based on a photograph. Does not replace a medical examination.",')
+    prompt = prompt.replace(
+        '"name": "<finding name in Polish>",',
+        '"name": "<finding name in English>",')
+    prompt = prompt.replace(
+        '"area": "<anatomical location in Polish>",',
+        '"area": "<anatomical location in English>",')
+    prompt = prompt.replace(
+        '"wplyw_estetyczny": "<one sentence in Polish: cause → effect → perception>",',
+        '"wplyw_estetyczny": "<one sentence in English: cause → effect → perception>",')
+    prompt = prompt.replace(
+        '"dlaczego_wazne": "<one sentence in Polish>",',
+        '"dlaczego_wazne": "<one sentence in English>",')
+    prompt = prompt.replace(
+        '"co_moze_sie_poglebiac": "<one sentence in Polish — progresja bez interwencji>",',
+        '"co_moze_sie_poglebiac": "<one sentence in English — progression without intervention>",')
+    prompt = prompt.replace(
+        '"co_wdrozyc_najpierw": "<one sentence in Polish — pierwszy krok>"',
+        '"co_wdrozyc_najpierw": "<one sentence in English — first step>"')
+
+    # 2c. FINDINGS_EXTENSION Polish section headers
+    prompt = prompt.replace(
+        "EXTENDED FIELDS — dodaj do tego samego JSON",
+        "EXTENDED FIELDS — add to the same JSON")
+    prompt = prompt.replace(
+        "Uwzględnij w obiekcie JSON dwa dodatkowe pola na końcu:",
+        "Include in the JSON object two additional fields at the end:")
+    prompt = prompt.replace(
+        '"nazwa zmiany po polsku"', '"finding name in English"')
+    prompt = prompt.replace(
+        '"lokalizacja anatomiczna po polsku"', '"anatomical location in English"')
+    prompt = prompt.replace(
+        '"jedno zdanie po polsku — wpływ na wygląd"', '"one sentence in English — aesthetic impact"')
+    prompt = prompt.replace(
+        '"jedno zdanie"', '"one sentence in English"')
+    prompt = prompt.replace(
+        '"jedno zdanie — progresja bez interwencji"', '"one sentence — progression without intervention"')
+    prompt = prompt.replace(
+        '"jedno zdanie — pierwszy krok"', '"one sentence — first step"')
+    prompt = prompt.replace(
+        "Uwzględnij 4–10 findings — tylko rzeczywiście widoczne lub sugerowane zmiany.",
+        "Include 4–10 findings — only actually visible or suggested changes.")
 
     # 3. Procedure / treatment direction examples  (CLINICAL_PROMPT line)
     prompt = prompt.replace(
@@ -642,6 +722,60 @@ def _patch_prompt_for_lang(prompt: str, lang: str) -> str:
     prompt = prompt.replace(
         'write "brak istotnych nieprawidłowości klinicznych w [structure]"',
         'write "no significant clinical abnormalities in [structure]"'
+    )
+
+    # 11. FINDINGS_EXTENSION — definicje kategorii (Polish category definitions)
+    prompt = prompt.replace(
+        "Definicje kategorii:\n"
+        "skin_quality → pory, tekstura, nawilżenie — skóra twarzy\n"
+        "pigment_vascular → przebarwienia, naczynka, rumień\n"
+        "eye_area → dolina łez (tear trough), cienie, obrzęki, zmarszczki okolicy oczu, napięcie powieki dolnej\n"
+        "  WAŻNE dla eye_area: zawsze udokumentuj tear trough (głębokość), charakter cieni (naczyniowy/objętościowy/pigmentacyjny), czy obszar tworzy efekt zmęczenia\n"
+        "volume_contour → objętość policzków, owal twarzy, linia żuchwy\n"
+        "forehead_hairline → linia włosów, gęstość, czoło\n"
+        "lesions → blizny, brodawki, włókniaki — ZAWSZE wymaga_potwierdzenia: true; użyj: \"obraz sugeruje\", \"cechy zgodne z\"\n"
+        "neck → skóra szyi, napięcie, zmarszczki poziome, przebarwienia — jeśli niewidoczna: dodaj finding z nasilenie: \"brak\" i note \"Ocena ograniczona przez kadr\"\n"
+        "skin_tension → napięcie skóry policzków, napięcie żuchwy, opadanie tkanek — wplyw_estetyczny MUSI zawierać: \"wpływa na odbiór zmęczenia twarzy\" lub \"nie wpływa istotnie na odbiór zmęczenia\"",
+        "Category definitions:\n"
+        "skin_quality → pores, texture, hydration — facial skin\n"
+        "pigment_vascular → pigmentation, vascular changes, redness\n"
+        "eye_area → tear trough, shadows, puffiness, periorbital lines, lower eyelid laxity\n"
+        "  IMPORTANT for eye_area: always document tear trough (depth), shadow character (vascular/volumetric/pigmentary), whether area creates tired appearance\n"
+        "volume_contour → cheek volume, facial oval, jawline\n"
+        "forehead_hairline → hairline, density, forehead\n"
+        "lesions → scars, warts, fibromas — ALWAYS wymaga_potwierdzenia: true; use: \"image suggests\", \"features consistent with\"\n"
+        "neck → neck skin, tension, horizontal lines, pigmentation — if not visible: add finding with nasilenie: \"brak\" and note \"Assessment limited by frame\"\n"
+        "skin_tension → cheek skin tension, jawline tension, tissue descent — wplyw_estetyczny MUST include: \"affects the tired-face appearance\" or \"does not significantly affect tired-face appearance\""
+    )
+
+    # 12. skin_health_note description
+    prompt = prompt.replace(
+        '"skin_health_note": "<jedno zdanie po polsku: dlaczego poprawa jakości skóry tej osoby zwiększa trwałość i przewidywalność efektów procedur estetycznych>"',
+        '"skin_health_note": "<one sentence in English: why improving skin quality in this patient increases longevity and predictability of aesthetic procedures>"'
+    )
+
+    # 13. Final Polish note about eye_area
+    prompt = prompt.replace(
+        "Ten obszar ma kluczowy wpływ na odbiór zmęczenia twarzy — musi być udokumentowany w każdej analizie: eye_area finding.",
+        "This area has a key impact on the tired-face appearance — must be documented in every analysis: eye_area finding."
+    )
+
+    # 14. CLINICAL_PROMPT forbidden phrases (Polish) — add English context
+    prompt = prompt.replace(
+        'FORBIDDEN generic phrases (these make documentation clinically invalid):\n'
+        '  "zbliżone do normy", "obszary wymagające uwagi", "harmonijne", "dobrze zdefiniowane",\n'
+        '  "wygląda naturalnie", "ogólnie dobra", "proporcje są dobre", "twarz jest symetryczna",\n'
+        '  "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń", "zadowalający"',
+        'FORBIDDEN generic phrases (these make documentation clinically invalid):\n'
+        '  "within normal limits", "areas requiring attention", "harmonious", "well-defined",\n'
+        '  "looks natural", "generally good", "proportions are good", "face is symmetric",\n'
+        '  "looks healthy", "normal", "no concerns", "satisfactory"'
+    )
+
+    # 15. Overall_perception and skin_health_note format placeholders
+    prompt = prompt.replace(
+        '"impression": "<one sentence in English: what the overall face communicates aesthetically — cause + effect + perception>"',
+        '"impression": "<one sentence: what the overall face communicates aesthetically — cause + effect + perception>"'
     )
 
     return prompt
