@@ -2632,8 +2632,14 @@ a.contact-row__value:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
     .med-cred__grid { grid-template-columns: 1fr; gap: 16px; }
-    .med-cred__aside { flex-direction: row; text-align: left; gap: 14px; align-items: center; }
-    .med-cred__avatar { flex-shrink: 0; width: 72px; height: 72px; }
+    .med-cred__aside {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 6px;
+        padding: 16px 12px;
+    }
+    .med-cred__avatar { width: 80px; height: 80px; margin-bottom: 4px; }
     .med-cred__list li { word-break: break-word; overflow-wrap: break-word; }
     .med-cred__lead { word-break: break-word; overflow-wrap: break-word; }
 }
