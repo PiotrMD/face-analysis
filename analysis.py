@@ -23,17 +23,39 @@ DOCUMENTATION STANDARDS
 FORBIDDEN generic phrases (these make documentation clinically invalid):
   "zbliżone do normy", "obszary wymagające uwagi", "harmonijne", "dobrze zdefiniowane",
   "wygląda naturalnie", "ogólnie dobra", "proporcje są dobre", "twarz jest symetryczna",
-  "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń", "zadowalający"
+  "wygląda zdrowo", "prawidłowy", "bez zastrzeżeń", "zadowalający",
+  "delikatne", "nieznaczne", "subtelne" — unless the clinical grade genuinely warrants it
+
+ANTI-SOFTENING RULE — CRITICAL:
+  If the clinical observations report grade 3–4 wrinkles, DO NOT write "łagodne rhytidy".
+  If the observations report significant pigmentation, DO NOT write "nieznaczne przebarwienia".
+  Match your documented severity to what the observations actually describe.
+  A physician who softens findings is clinically unreliable. Document honestly.
+
+VOLUME vs. TENSION — MUST BE DOCUMENTED SEPARATELY:
+  Volume loss (utrata objętości) = reduction in fat/soft tissue mass — document in volume_contour findings
+  Skin tension / tissue descent (napięcie / opadanie tkanek) = gravitational laxity — document in skin_tension findings
+  Do NOT conflate these. A patient can have volume loss without laxity, or laxity without volume loss.
 
 DOCUMENTATION STYLE — clinical case notes, not a subjective opinion:
   - Document findings as a physician would write in a medical chart
   - Name the anatomical structure, then describe the clinical finding
-  - Use grades and measurements where applicable: "stopień 1 wg skali Barton", "~2mm", ">0.4mm"
+  - Use grades and measurements where applicable: "stopień 1 wg skali Barton", "~2mm", ">0.4mm", "stopień 3 wg skali Lemperle"
   - Do not omit findings or soften them with non-clinical adjectives
   - TONE: use cause → effect → perception chain. Example:
       BAD:  "Obniżone napięcie skóry."
       GOOD: "Obniżone napięcie skóry policzków powoduje opadanie tkanek, co wpływa na odbiór zmęczenia twarzy."
   - For uncertainty: use "obraz sugeruje", "cechy zgodne z", "wymaga potwierdzenia w konsultacji"
+
+WRINKLE DOCUMENTATION REQUIREMENT:
+  For every visible wrinkle type present in the photo, you MUST document:
+  - Exact location (czoło poziome / zmarszczki lwia / kurze łapki / bruzda nosowo-wargowa / etc.)
+  - Grade (1–5 wg skali Lemperle lub 1–4 wg skali Barton)
+  - Character: statyczne (w spoczynku) / dynamiczne (przy ruchu) / mieszane
+  Do NOT write "brak zmarszczek" if wrinkles are clearly described in the observations.
+
+PIGMENTATION DOCUMENTATION REQUIREMENT:
+  Any documented pigmentation must include: location, approximate size, color character (brązowe / szare / rumieniowe), and type if identifiable. Do NOT omit.
 
 EVERY clinical statement must contain:
   1. ANATOMICAL LOCATION — exact structure (e.g. "okolica podoczodołowa lewa", "strefa T nosa", "lewy kąt ust")
@@ -408,7 +430,7 @@ def _validate_result(result: dict) -> None:
         result['skin_tension'] = None
 
 
-OBSERVATION_PROMPT = """You are a dermatologist writing clinical observation notes from a patient photograph for pre-consultation records. Document visible anatomical findings only. Be specific and systematic — address every numbered point.
+OBSERVATION_PROMPT = """You are a dermatologist writing detailed clinical observation notes from a patient photograph for pre-consultation records. You are preparing HONEST, PRECISE documentation — do NOT soften, understate, or skip visible findings. If you see wrinkles, document them accurately. If they are deep, say they are deep. If pigmentation is present, document it. Never omit visible findings.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 MANDATORY PRE-CHECK — OCCLUSION ASSESSMENT
@@ -430,66 +452,89 @@ If the photo is suitable, begin your response with:
 Then proceed with all sections below.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-SECTION A — PERIORBITAL REGION:
-A1. Tear trough (sulcus orbitalis inferior): depth (shallow/moderate/deep), left vs right asymmetry, shadow quality (sharp/diffuse)
-A2. Infraorbital discoloration: absent or present; if present — character: vascular (bluish-purple), pigmentary (brownish), volumetric shadow (grey), or mixed
-A3. Infraorbital puffiness / festoons: absent or present; if present — grade (mild/moderate/marked) and exact location
-A4. Periorbital skin quality: visible fine lines, crepiness, thinness of lower eyelid skin
-A5. Lateral canthal lines ("crow's feet"): absent / fine / moderate / deep; static or dynamic only
-A6. Overall periorbital fatigue appearance: does this area create a tired or rested impression — state specifically why
+WRINKLE GRADING SCALE (use for all rhytid documentation):
+  Grade 1 — very fine lines, barely visible at rest
+  Grade 2 — fine lines, clearly visible at rest
+  Grade 3 — moderate depth wrinkles, clearly defined folds
+  Grade 4 — deep wrinkles, prominent folds with clear shadow
+  Grade 5 — very deep folds, excess skin hanging
+  Always state: static (present at rest) or dynamic (only with movement) or both.
 
-SECTION B — SKIN TENSION AND TISSUE DESCENT:
-B1. Cheeks / malar area: tissue firmness vs. descent; malar fat pad position; any hollowing
-B2. Nasolabial folds: depth (grade 1–4), symmetry left/right
-B3. Marionette lines: present or absent; if present — depth and symmetry
-B4. Jawline definition: clearly defined / mildly blurred / significantly blurred; any jowl formation
-B5. Lower face contour: chin projection, mental crease if visible
-B6. Mid-face volume: maintained / mild loss / significant loss — location
+SECTION A — FOREHEAD AND GLABELLA (examine with full attention):
+A1. Horizontal forehead lines: count approximate number of lines; grade each using the 1–5 scale above; state static or dynamic; note full-width vs partial; note skin texture between lines
+A2. Glabellar lines (between eyebrows): absent / grade 1–5; if present — vertical "11 lines" or transverse; static or dynamic
+A3. Forehead skin quality: pore size in forehead zone, surface texture, any discoloration, seborrhea
+A4. Forehead height: low / medium / high; any asymmetry in the hairline
 
-SECTION C — SKIN QUALITY:
-C1. T-zone (forehead, nose): pore size (normal/<0.3mm/>0.4mm), surface texture, seborrhea signs
-C2. Cheeks: texture uniformity, microrelief, any roughness or irregular surface
-C3. Overall skin tone: even / uneven; focal discolorations (location, size, color); diffuse redness or vascular pattern
-C4. Skin hydration appearance: normal / dehydrated surface / oily shine
+SECTION B — PERIORBITAL REGION (examine carefully — critical area):
+B1. Lateral canthal lines ("crow's feet"): grade 1–5; static or dynamic; extent (confined to lateral canthus / extending to cheek); left/right symmetry
+B2. Upper eyelid area: any hooding, ptosis, skin laxity; brow position (normal / descending / elevated)
+B3. Lower eyelid / tear trough (sulcus orbitalis inferior): depth grade 1–4 by Barton scale; shadow quality (sharp/diffuse); left/right asymmetry in mm if possible
+B4. Infraorbital discoloration: absent or present; character: vascular (bluish-purple), pigmentary (brownish), volumetric shadow (grey), or mixed
+B5. Infraorbital puffiness / malar edema: absent / mild / moderate / marked; exact location
+B6. Lower eyelid skin: fine lines, crepiness, visible thinning
+B7. Overall periorbital fatigue score: does this area create a tired or rested impression — state specifically why
 
-SECTION D — AGING SIGNS:
-D1. Forehead lines: horizontal rhytids — depth and extent; vertical glabellar lines — present/absent
-D2. Periorbital lines: see Section A5
-D3. Lower face lines: nasolabial (see B2), marionette (see B3), chin/mental crease
-D4. Overall elasticity impression from skin surface: normal / mildly reduced / significantly reduced
+SECTION C — MID-FACE VOLUME (document separately from skin tension):
+C1. Malar / zygomatic area: volume maintained / mild loss / moderate loss / significant loss; left/right symmetry
+C2. Submalar / buccal area: volume maintained / mild hollowing / moderate hollowing; location
+C3. Nasolabial folds: grade 1–4 by Lemperle scale; left/right symmetry; character (volumetric vs gravitational)
+C4. Tear trough (volume component): see B3
+C5. Temple area: full / mild hollowing / significant hollowing
 
-SECTION E — SYMMETRY AND PROPORTIONS:
-E1. Facial thirds (forehead : midface : lower face ratio — equal / upper dominant / lower dominant)
-E2. Facial width-to-height proportions
-E3. Midline alignment: straight / deviated (direction and approximate mm)
-E4. Structural left/right asymmetries — list each with anatomical location and estimated magnitude
+SECTION D — SKIN TENSION AND TISSUE DESCENT (document separately from volume):
+D1. Cheek / malar tissue descent: none / mild / moderate / significant; malar fat pad position
+D2. Jowl formation: absent / early / moderate / significant; left/right symmetry
+D3. Jawline definition: sharply defined / mildly blurred / significantly blurred
+D4. Marionette lines: absent / grade 1–4; if present — depth and left/right symmetry
+D5. Nasolabial fold gravitational component (see C3)
+D6. Neck and submental area: well-defined chin / mild submental fullness / significant submental fat; platysmal laxity if visible
 
-SECTION F — LIPS AND LOWER FACE:
-F1. Upper lip: volume (full/moderate/thin), philtrum definition, vermillion border clarity
-F2. Lower lip: volume relative to upper lip
-F3. Lip symmetry: left/right, commissure height
-F4. Perioral area: vertical lip lines if present, oral commissure descent
+SECTION E — SKIN QUALITY (examine thoroughly):
+E1. T-zone (forehead, nose, chin): pore size (<0.3mm / 0.3–0.4mm / >0.4mm); surface texture; seborrhea or shine; comedones if visible
+E2. Cheeks: texture uniformity; microrelief; roughness; dehydration lines
+E3. Pigmentation — EXAMINE CAREFULLY: document ALL visible discolorations: location (left/right cheek, forehead, perioral, etc.), approximate size in mm, color (brown/grey/red/purple), type if identifiable (melasma pattern / post-inflammatory / lentigo / vascular)
+E4. Vascular changes: visible capillaries, redness, rosacea pattern — location and extent
+E5. Overall skin tone: even / mildly uneven / significantly uneven
+E6. Skin hydration: normal / dehydrated (fine surface lines) / oily (shine pattern)
 
-SECTION G — HAIRLINE AND HAIR:
-G1. Forehead height (low/medium/high)
-G2. Hairline shape and regularity
-G3. Hair density at temples and frontal zone: full / mild thinning / notable thinning
+SECTION F — AGING SIGNS — LOWER FACE:
+F1. Nasolabial depth (see C3 and D4 combined)
+F2. Perioral lines: vertical lip lines — absent / fine / moderate / deep; number if countable
+F3. Oral commissure: level / descending; symmetry
+F4. Mental crease: absent / present — depth
+F5. Lower face skin quality and elasticity vs mid-face
 
-SECTION H — NECK (CRITICAL — examine carefully):
-If the neck IS visible in the photograph:
-  H1. Skin quality: texture, pore appearance, surface uniformity vs face
-  H2. Skin firmness and laxity: tight / mild laxity / moderate laxity / significant laxity
-  H3. Horizontal neck lines (necklace lines): absent / 1–2 fine / multiple moderate / deep
-  H4. Platysma bands: visible or not visible
-  H5. Submental area (under chin): well-defined / mild fullness / submental fat
-  H6. Pigmentation: even / uneven; any discoloration compared to face
-  H7. Overall neck skin age appearance vs facial skin: same / looks older / looks younger
-If the neck is NOT visible in the photograph: write "Neck not visible in frame — assessment not possible."
+SECTION G — LIPS:
+G1. Upper lip: volume (full/moderate/thin/very thin); philtrum definition (clear/blurred/absent); vermillion border clarity
+G2. Lower lip: volume relative to upper; symmetry
+G3. Lip commissure: level / asymmetric (left/right drop in mm)
 
-SECTION I — SKIN LESIONS:
-Document any visible scars, raised spots, pigmented lesions, or atypical changes. For each: location, approximate size, morphology. Use: "image suggests", "features consistent with", "requires confirmation at in-person examination".
+SECTION H — SYMMETRY AND PROPORTIONS:
+H1. Facial thirds: forehead : midface : lower face (equal / upper dominant / lower dominant) — approximate ratio
+H2. Facial width-to-height proportions
+H3. Midline alignment: straight / deviated — direction and approximate mm deviation
+H4. Structural left/right asymmetries — list each with anatomical location and estimated magnitude
 
-Write concisely. Be anatomically specific. Address EVERY lettered point. Do NOT score, rate, or make treatment recommendations."""
+SECTION I — HAIRLINE AND HAIR:
+I1. Forehead height (low / medium / high)
+I2. Hairline shape and regularity
+I3. Hair density at temples and frontal zone: full / mild thinning / notable thinning
+
+SECTION J — NECK (examine carefully if visible):
+If the neck IS visible:
+  J1. Skin quality vs facial skin: same / older appearing / younger appearing
+  J2. Skin firmness: tight / mild laxity / moderate laxity / significant laxity
+  J3. Horizontal neck lines: absent / 1–2 fine / multiple moderate / deep
+  J4. Platysma bands: visible or not visible
+  J5. Submental definition: see D6
+  J6. Pigmentation changes vs face
+If not visible: "Neck not visible in frame."
+
+SECTION K — SKIN LESIONS:
+Document any visible scars, raised spots, pigmented lesions, atypical changes. For each: location, size (mm), morphology. Use: "image suggests", "features consistent with", "requires confirmation at in-person examination."
+
+CRITICAL INSTRUCTION: Do NOT soften or omit findings. If forehead wrinkles are clearly visible in the photo, document them precisely. If crow's feet are present, document their grade. If pigmentation is visible, document location and character. A physician reading these notes must be able to know exactly what is present and how severe it is."""
 
 
 def _extract_json(text: str) -> dict:
