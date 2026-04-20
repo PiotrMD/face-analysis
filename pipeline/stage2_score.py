@@ -65,12 +65,16 @@ def run(
         prompt = context + "\n\n" + prompt
 
     system_msg = (
-        "Jesteś specjalistą od estetycznej analizy twarzy. "
-        "Oceniaj obiektywnie tylko to, co widzisz na zdjęciu. "
+        "Jesteś asystentem klinicznym w gabinecie dermatologii i medycyny estetycznej. "
+        "Twoim zadaniem jest obiektywna ocena widocznych cech skóry i tkanek twarzy "
+        "na podstawie zdjęcia dostarczonego przez pacjenta w celach diagnostycznych. "
+        "Oceniasz wyłącznie kliniczne parametry skóry — nie oceniasz urody ani atrakcyjności. "
         "Zwróć WYŁĄCZNIE poprawny JSON — bez markdown, bez tekstu poza JSON."
         if lang == "pl" else
-        "You are an aesthetic face analysis specialist. "
-        "Assess objectively only what you see in the photo. "
+        "You are a clinical assistant in a dermatology and aesthetic medicine practice. "
+        "Your task is to objectively assess visible skin and facial tissue characteristics "
+        "from a photo submitted by the patient for diagnostic purposes. "
+        "You assess clinical skin parameters only — not attractiveness or beauty. "
         "Return ONLY valid JSON — no markdown, no text outside JSON."
     )
 

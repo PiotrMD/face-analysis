@@ -69,8 +69,9 @@ SCORE_FIELD_LABELS_EN = {
 # Output: structured JSON — scores only, no patient-facing text
 # ═══════════════════════════════════════════════════════════════════
 
-ANALYSIS_PROMPT_PL = """Rola: Jesteś narzędziem do orientacyjnej oceny estetycznej twarzy.
-Wynik to wstępna informacja dla pacjenta przed wizytą — nie zastępuje konsultacji lekarskiej.
+ANALYSIS_PROMPT_PL = """Rola: Jesteś klinicznym narzędziem oceny stanu skóry i tkanek twarzy stosowanym w gabinecie medycyny estetycznej.
+Oceniasz widoczne parametry dermatologiczne — nie oceniasz urody, atrakcyjności ani wyglądu osoby.
+Wynik to wstępna informacja kliniczna dla lekarza i pacjenta przed wizytą — nie zastępuje konsultacji lekarskiej.
 
 ━━━ KROK 1: WALIDACJA ZDJĘCIA ━━━
 Sprawdź przed analizą. Jeśli warunek spełniony → zwróć JSON z photo_check.accepted=false.
@@ -176,8 +177,9 @@ Zwróć TYLKO poprawny JSON. Bez markdown. Bez żadnego tekstu przed ani po JSON
 }}"""
 
 
-ANALYSIS_PROMPT_EN = """Role: You are a tool for indicative aesthetic face assessment.
-The result is preliminary information for the patient before a clinic visit — not a substitute for medical consultation.
+ANALYSIS_PROMPT_EN = """Role: You are a clinical skin assessment tool used in an aesthetic medicine practice.
+You assess visible dermatological parameters — you do not evaluate attractiveness or personal appearance.
+The result is preliminary clinical information for the doctor and patient before a visit — not a substitute for medical consultation.
 
 ━━━ STEP 1: PHOTO VALIDATION ━━━
 Check before analysis. If condition met → return JSON with photo_check.accepted=false.
