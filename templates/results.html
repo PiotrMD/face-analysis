@@ -250,38 +250,39 @@
     </main>
 
     <!-- ── MODAL KONSULTACJI ── -->
-    <div class="modal-overlay" id="modalOverlay" aria-hidden="true" role="dialog" aria-modal="true">
-        <div class="modal">
-            <div class="modal__inner">
-            <button class="modal__close" id="modalClose" aria-label="Zamknij">✕</button>
-            <h2 class="modal__title">{{ t.modal_title }}</h2>
-            <p class="modal__lead">{{ t.modal_lead_results }}</p>
-            <form class="consult-form" id="consultFormEl" novalidate>
-                <div class="consult-form__row">
-                    <input class="consult-form__input" type="text" id="cf_full_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
-                </div>
-                <div class="consult-form__row">
-                    <input class="consult-form__input" type="tel" id="cf_phone" placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
-                </div>
-                <div class="consult-form__row">
-                    <input class="consult-form__input" type="email" id="cf_email" placeholder="{{ t.ph_email }}" autocomplete="email" required>
-                </div>
-                <div class="consult-form__row">
-                    <textarea class="consult-form__input consult-form__input--textarea" id="cf_message" rows="3" placeholder="{{ t.ph_message }}"></textarea>
-                </div>
-                <div class="consult-form__consent-row">
+    <div id="modalOverlay" aria-hidden="true" role="dialog" aria-modal="true"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;
+                align-items:flex-end;justify-content:center;overflow-y:auto;">
+        <div style="background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;
+                    padding:28px 24px 36px;position:relative;box-shadow:0 -8px 40px rgba(0,0,0,.18);
+                    box-sizing:border-box;">
+            <button id="modalClose" aria-label="Zamknij"
+                    style="position:absolute;top:16px;right:18px;background:none;border:none;
+                           font-size:1.4rem;color:#888;cursor:pointer;line-height:1;padding:4px 8px;">✕</button>
+            <div style="width:40px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 20px;"></div>
+            <h2 style="font-size:1.2rem;font-weight:700;color:#111;margin:0 0 6px;">{{ t.modal_title }}</h2>
+            <p style="font-size:.85rem;color:#777;margin:0 0 20px;line-height:1.55;">{{ t.modal_lead_results }}</p>
+            <form id="consultFormEl" novalidate style="display:flex;flex-direction:column;gap:10px;">
+                <input class="consult-form__input" type="text" id="cf_full_name"
+                       placeholder="{{ t.ph_name }}" autocomplete="name" required>
+                <input class="consult-form__input" type="tel" id="cf_phone"
+                       placeholder="{{ t.ph_phone }}" autocomplete="tel" required>
+                <input class="consult-form__input" type="email" id="cf_email"
+                       placeholder="{{ t.ph_email }}" autocomplete="email" required>
+                <textarea class="consult-form__input" id="cf_message" rows="2"
+                          placeholder="{{ t.ph_message }}" style="resize:none;"></textarea>
+                <div style="display:flex;align-items:flex-start;gap:10px;">
                     <input type="checkbox" id="cf_consent" class="consult-form__checkbox" required>
-                    <label for="cf_consent" class="consult-form__consent-label">{{ t.consent_text | safe }}</label>
+                    <label for="cf_consent" style="font-size:.75rem;color:#888;line-height:1.5;cursor:pointer;">{{ t.consent_text | safe }}</label>
                 </div>
                 <div class="consult-form__error" id="consultError" style="display:none;"></div>
-                <button type="submit" class="consult-form__btn">{{ t.submit_btn }}</button>
+                <button type="submit" class="consult-form__btn" style="width:100%;padding:15px;font-size:1rem;">{{ t.submit_btn }}</button>
             </form>
-            <div class="consult-success" id="consultSuccess" style="display:none;">
-                <p>{{ t.success_msg }}</p>
+            <div id="consultSuccess" style="display:none;text-align:center;padding:20px 0;">
+                <p style="font-size:1rem;font-weight:600;color:#2D4A26;">{{ t.success_msg }}</p>
             </div>
-            </div><!-- /modal__inner -->
-        </div><!-- /modal -->
-    </div><!-- /modal-overlay -->
+        </div>
+    </div>
 
 </div><!-- /page -->
 
@@ -294,12 +295,12 @@ var _T = {{ t | tojson }};
     var openBtn  = document.getElementById('openConsultBtn');
     var closeBtn = document.getElementById('modalClose');
     function openModal() {
-        overlay.classList.add('modal-overlay--open');
+        overlay.style.display = 'flex';
         overlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
     }
     function closeModal() {
-        overlay.classList.remove('modal-overlay--open');
+        overlay.style.display = 'none';
         overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
     }
