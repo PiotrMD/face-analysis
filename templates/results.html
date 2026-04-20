@@ -251,10 +251,11 @@
 
     <!-- ── MODAL KONSULTACJI ── -->
     <div class="modal-overlay" id="modalOverlay" aria-hidden="true" role="dialog" aria-modal="true">
-        <div class="modal-box">
-            <button class="modal-close" id="modalClose" aria-label="Zamknij">✕</button>
-            <h2 class="modal-title">{{ t.modal_title }}</h2>
-            <p class="modal-sub">{{ t.modal_lead_results }}</p>
+        <div class="modal">
+            <div class="modal__inner">
+            <button class="modal__close" id="modalClose" aria-label="Zamknij">✕</button>
+            <h2 class="modal__title">{{ t.modal_title }}</h2>
+            <p class="modal__lead">{{ t.modal_lead_results }}</p>
             <form class="consult-form" id="consultFormEl" novalidate>
                 <div class="consult-form__row">
                     <input class="consult-form__input" type="text" id="cf_full_name" placeholder="{{ t.ph_name }}" autocomplete="name" required>
@@ -278,8 +279,9 @@
             <div class="consult-success" id="consultSuccess" style="display:none;">
                 <p>{{ t.success_msg }}</p>
             </div>
-        </div>
-    </div>
+            </div><!-- /modal__inner -->
+        </div><!-- /modal -->
+    </div><!-- /modal-overlay -->
 
 </div><!-- /page -->
 
