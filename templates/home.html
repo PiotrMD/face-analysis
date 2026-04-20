@@ -126,6 +126,26 @@
         </div>
     </main>
 
+    <!-- SHARE SECTION -->
+    <div style="text-align:center;padding:18px 16px 24px;max-width:420px;margin:0 auto;">
+        <p style="font-size:.78rem;color:#999;margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
+            {% if lang == 'en' %}Share with friends{% else %}Wyślij znajomym{% endif %}
+        </p>
+        <button id="shareBtn"
+                style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;
+                       border:1.5px solid #C6A062;border-radius:10px;background:none;
+                       color:#C6A062;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            {% if lang == 'en' %}Link to free face analysis{% else %}Link do darmowej analizy twarzy{% endif %}
+        </button>
+        <p id="shareCopied" style="display:none;font-size:.8rem;color:#4a7c4e;margin:8px 0 0;">
+            {% if lang == 'en' %}Link copied!{% else %}Link skopiowany!{% endif %}
+        </p>
+    </div>
+
     <footer class="home-footer">
         <p>{{ t.footer }}</p>
     </footer>
@@ -696,6 +716,27 @@
                 btn.textContent = _T.btn_start;
             });
     }
+    /* ── Share button ── */
+    (function() {
+        var btn     = document.getElementById('shareBtn');
+        var copied  = document.getElementById('shareCopied');
+        if (!btn) return;
+        var url   = window.location.origin + '/';
+        var title = '{% if lang == "en" %}Free face analysis{% else %}Darmowa analiza twarzy{% endif %}';
+        var text  = '{% if lang == "en" %}Check out this free aesthetic face analysis!{% else %}Sprawdź darmową analizę estetyczną twarzy!{% endif %}';
+        btn.addEventListener('click', function() {
+            if (navigator.share) {
+                navigator.share({ title: title, text: text, url: url }).catch(function(){});
+            } else {
+                navigator.clipboard.writeText(url).then(function() {
+                    copied.style.display = 'block';
+                    setTimeout(function() { copied.style.display = 'none'; }, 2500);
+                }).catch(function() {
+                    prompt('Skopiuj link:', url);
+                });
+            }
+        });
+    })();
     </script>
 </body>
 </html>
