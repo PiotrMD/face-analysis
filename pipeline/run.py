@@ -106,14 +106,16 @@ def _assemble(score_result: dict, lang: str) -> dict:
     # intro — generated in Python from overall_score (no API call)
     intro = _build_intro(overall_score, lang)
 
-    # strengths/concerns — field keys → label + score pairs
+    strength_keys  = score_result.get("strengths", [])
+    concern_keys   = score_result.get("improvements", [])
+
     strengths_items = [
-        {"label": labels.get(k, k), "score": scores.get(k, 5)}
-        for k in score_result.get("strengths", [])
+        {"label": labels.get(k, k), "score": scores.get(k, 5), "key": k}
+        for k in strength_keys
     ]
     concerns_items = [
-        {"label": labels.get(k, k), "score": scores.get(k, 5)}
-        for k in score_result.get("improvements", [])
+        {"label": labels.get(k, k), "score": scores.get(k, 5), "key": k}
+        for k in concern_keys
     ]
 
     return {
@@ -127,6 +129,7 @@ def _assemble(score_result: dict, lang: str) -> dict:
         "health_note":     score_result.get("health_note", ""),
         "areas":           areas_flat,
         "area_labels":     area_labels,
+        "scores":          scores,
         "lang":            lang,
     }
 

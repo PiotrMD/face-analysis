@@ -11,7 +11,7 @@ import time as _time
 from database import init_db, Analysis, ContactRequest, FollowUpEmail
 from validators import validate_file_technical
 from analysis import analyze_face_with_ai
-from pipeline.run import analyze as pipeline_analyze
+from pipeline.run import analyze as pipeline_analyze, _build_intro
 from demo_data import DEMO_RESULT
 
 # Switch: True = new 3-stage pipeline, False = old analysis.py path
@@ -297,10 +297,35 @@ def results(token):
 
     force_results = request.args.get('force') == '1'
 
+    def _retranslate(result_data):
+        """Re-translate labels if current session lang differs from stored lang."""
+        current_lang = session.get('lang', 'pl')
+        if result_data.get('lang') == current_lang:
+            return result_data
+        from prompts import SCORE_FIELD_LABELS_PL, SCORE_FIELD_LABELS_EN
+        from treatments import AREA_LABELS_PL, AREA_LABELS_EN, recommend_treatments
+        labels     = SCORE_FIELD_LABELS_PL if current_lang == 'pl' else SCORE_FIELD_LABELS_EN
+        area_labels = AREA_LABELS_PL if current_lang == 'pl' else AREA_LABELS_EN
+        scores = result_data.get('scores', {})
+        def remap(items):
+            return [{"label": labels.get(i.get("key", ""), i["label"]), "score": i["score"], "key": i.get("key", "")} for i in items]
+        s_items = remap(result_data.get('strengths_items', []))
+        c_items = remap(result_data.get('concerns_items', []))
+        result_data = dict(result_data)
+        result_data['strengths_items'] = s_items
+        result_data['concerns_items']  = c_items
+        result_data['strengths']       = [i["label"] for i in s_items]
+        result_data['concerns']        = [i["label"] for i in c_items]
+        result_data['area_labels']     = area_labels
+        result_data['treatments']      = recommend_treatments(scores, current_lang)
+        result_data['intro']           = _build_intro(result_data.get('overall_score', 5), current_lang)
+        result_data['lang']            = current_lang
+        return result_data
+
     # Skip memory cache entirely when force=1
     if token in results_storage and not force_results:
         print(f"[CACHE HIT] token={token}")
-        result_data = results_storage[token]['analysis']
+        result_data = _retranslate(results_storage[token]['analysis'])
         return render_template('results.html', result=result_data, token=token)
 
     if force_results:
@@ -310,7 +335,7 @@ def results(token):
     analysis = Analysis.get_by_token(token)
     if analysis and analysis.analysis_result:
         import json
-        result_data = json.loads(analysis.analysis_result)
+        result_data = _retranslate(json.loads(analysis.analysis_result))
         # Also cache in memory
         results_storage[token] = {'analysis': result_data}
         return render_template('results.html', result=result_data, token=token)
