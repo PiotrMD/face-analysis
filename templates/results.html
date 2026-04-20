@@ -181,9 +181,14 @@
             <!-- ── 7. KONSULTACJA ── -->
             <div class="res-cta">
                 <div class="res-cta__buttons">
-                    <button class="res-cta__btn res-cta__btn--primary" id="openConsultBtn">
-                        {% if lang == 'en' %}Book a consultation{% else %}Umów konsultację{% endif %}
-                    </button>
+                    <div style="display:flex;flex-direction:column;gap:5px;align-items:stretch;">
+                        <button class="res-cta__btn res-cta__btn--primary" id="openConsultBtn">
+                            {% if lang == 'en' %}Book a consultation{% else %}Umów konsultację{% endif %}
+                        </button>
+                        <p style="margin:0;font-size:.75rem;color:#aaa;text-align:center;line-height:1.4;">
+                            {% if lang == 'en' %}Discuss your results with a doctor and choose the best treatment plan.{% else %}Omów wynik z lekarzem i dobierz najlepszy plan postępowania.{% endif %}
+                        </p>
+                    </div>
                     <a href="tel:+48690584584" class="res-cta__btn res-cta__btn--phone">
                         +48&nbsp;690&nbsp;584&nbsp;584
                     </a>
