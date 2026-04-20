@@ -498,14 +498,16 @@ def feedback():
             f.write(_json.dumps(entry, ensure_ascii=False) + '\n')
     except Exception as e:
         print(f"[FEEDBACK] write error: {e}", flush=True)
-    try:
-        from mailer import _send
-        subject = f"Feedback z aplikacji — {token or 'brak tokenu'}"
-        body = f"Token: {token or '-'}\nE-mail: {email or '-'}\nData: {entry['ts']}\n\n{text}"
-        _send(to='piotr@spirometria.pl', subject=subject, body=body)
-        print(f"[FEEDBACK] mail sent", flush=True)
-    except Exception as e:
-        print(f"[FEEDBACK] mail failed: {e}", flush=True)
+    def _send_feedback_mail():
+        try:
+            from mailer import _send
+            subject = f"Feedback z aplikacji — {token or 'brak tokenu'}"
+            body = f"Token: {token or '-'}\nE-mail: {email or '-'}\nData: {entry['ts']}\n\n{text}"
+            _send(to='piotr@spirometria.pl', subject=subject, body=body)
+            print(f"[FEEDBACK] mail sent", flush=True)
+        except Exception as e:
+            print(f"[FEEDBACK] mail failed: {e}", flush=True)
+    threading.Thread(target=_send_feedback_mail, daemon=True).start()
     return jsonify({'success': True})
 
 
