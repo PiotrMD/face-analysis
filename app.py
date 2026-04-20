@@ -36,6 +36,9 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # Initialize database
 init_db()
+_db_url = os.getenv('DATABASE_URL', '')
+print(f"[STARTUP] DATABASE_URL raw={repr(_db_url[:50])}", flush=True)
+print(f"[STARTUP] Using {'PostgreSQL' if 'postgresql' in _db_url or 'postgres' in _db_url else 'SQLite'}", flush=True)
 
 # Initialize OpenAI client
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
