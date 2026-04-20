@@ -125,7 +125,7 @@ def send_followup_day7(to_email: str, full_name: str):
 def send_discount_code(to_email: str, lang: str = 'pl') -> None:
     """Send FACE10 discount code to the patient. Falls back to console log if SMTP not configured."""
     cfg = _cfg()
-    if not cfg['host'] or not cfg['user'] or not cfg['mail_from']:
+    if not cfg['resend_key']:
         if lang == 'pl':
             print(f"[MAIL TEST] Do: {to_email}", flush=True)
             print(f"[MAIL TEST] Temat: Twój kod po analizie twarzy", flush=True)
