@@ -71,6 +71,7 @@ body {
     color: var(--ink);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
 /* ════════════════════════════════════════
@@ -222,6 +223,7 @@ body {
     display: flex;
     align-items: center;
     padding: 64px 32px;
+    overflow-x: hidden;
 }
 
 .hero {
@@ -295,18 +297,19 @@ body {
     border-radius: var(--r-xl);
     padding: 36px;
     box-shadow: var(--shadow-md);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .upload-card__app-name {
-    font-size: 1.45rem;
+    font-size: clamp(1rem, 4.2vw, 1.45rem);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .08em;
+    letter-spacing: .07em;
     color: #B8914F;
     margin: 0 0 8px;
     text-align: center;
     line-height: 1.2;
-    white-space: nowrap;
 }
 
 .upload-card__title {
