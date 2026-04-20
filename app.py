@@ -177,9 +177,11 @@ def demo():
     return render_template('results.html', result=DEMO_RESULT, token='demo', is_demo=True)
 
 
+BASE_ANALYSES_COUNT = int(os.getenv('BASE_ANALYSES_COUNT', '127'))
+
 @app.route('/')
 def index():
-    analyses_count = Analysis.count_completed()
+    analyses_count = BASE_ANALYSES_COUNT + Analysis.count_completed()
     return render_template('home.html', analyses_count=analyses_count)
 
 
