@@ -6,10 +6,16 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Database setup
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///face_analysis.db')
+DATABASE_URL = os.getenv('DATABASE_URL', '')
 # Railway uses postgres:// but SQLAlchemy requires postgresql://
 if DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+# Fallback to SQLite if URL is missing or invalid
+if not DATABASE_URL or not (DATABASE_URL.startswith('postgresql://') or DATABASE_URL.startswith('sqlite://')):
+    print(f"[DB] Invalid or missing DATABASE_URL={repr(DATABASE_URL[:40])} — falling back to SQLite", flush=True)
+    DATABASE_URL = 'sqlite:///face_analysis.db'
+else:
+    print(f"[DB] Using DATABASE_URL={DATABASE_URL[:30]}...", flush=True)
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
