@@ -33,12 +33,19 @@ def _send(to: str, subject: str, body: str, cc: str = None):
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
     recipients = [to] + ([cc] if cc else [])
-    with smtplib.SMTP(cfg['host'], cfg['port'], timeout=15) as srv:
-        srv.ehlo()
-        srv.starttls()
-        srv.ehlo()
-        srv.login(cfg['user'], cfg['password'])
-        srv.sendmail(cfg['mail_from'], recipients, msg.as_bytes())
+    port = cfg['port']
+    if port == 465:
+        with smtplib.SMTP_SSL(cfg['host'], port, timeout=20) as srv:
+            srv.ehlo()
+            srv.login(cfg['user'], cfg['password'])
+            srv.sendmail(cfg['mail_from'], recipients, msg.as_bytes())
+    else:
+        with smtplib.SMTP(cfg['host'], port, timeout=20) as srv:
+            srv.ehlo()
+            srv.starttls()
+            srv.ehlo()
+            srv.login(cfg['user'], cfg['password'])
+            srv.sendmail(cfg['mail_from'], recipients, msg.as_bytes())
 
 
 def send_clinic_notification(full_name: str, phone: str, email: str,
