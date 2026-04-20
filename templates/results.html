@@ -179,27 +179,33 @@
             </div>
 
             <!-- ── 7. KONSULTACJA ── -->
-            <div class="res-cta">
-                <div class="res-cta__buttons">
-                    <div style="display:flex;flex-direction:column;gap:5px;align-items:stretch;">
-                        <button class="res-cta__btn res-cta__btn--primary" id="openConsultBtn">
-                            {% if lang == 'en' %}Book a consultation{% else %}Umów konsultację{% endif %}
-                        </button>
-                        <p style="margin:0;font-size:.75rem;color:#aaa;text-align:center;line-height:1.4;">
-                            {% if lang == 'en' %}Discuss your results with a doctor and choose the best treatment plan.{% else %}Omów wynik z lekarzem i dobierz najlepszy plan postępowania.{% endif %}
-                        </p>
-                    </div>
-                    <a href="tel:+48690584584" class="res-cta__btn res-cta__btn--phone">
+            <div style="background:linear-gradient(135deg,#1a1a1a 0%,#2d2410 100%);
+                        border-radius:16px;padding:28px 22px;text-align:center;
+                        box-shadow:0 8px 32px rgba(0,0,0,.22);border:1px solid rgba(198,160,98,.25);">
+                <p style="font-size:.72rem;font-weight:700;color:#C6A062;text-transform:uppercase;
+                          letter-spacing:.1em;margin:0 0 8px;">
+                    {% if lang == 'en' %}Medical consultation{% else %}Konsultacja lekarska{% endif %}
+                </p>
+                <p style="font-size:1.05rem;font-weight:700;color:#fff;margin:0 0 6px;line-height:1.35;">
+                    {% if lang == 'en' %}Discuss your results with a doctor{% else %}Omów wynik z lekarzem{% endif %}
+                </p>
+                <p style="font-size:.82rem;color:rgba(255,255,255,.55);margin:0 0 22px;line-height:1.5;">
+                    {% if lang == 'en' %}Choose the best treatment plan tailored to you.{% else %}Dobierz najlepszy plan postępowania dopasowany do Ciebie.{% endif %}
+                </p>
+                <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                    <button id="openConsultBtn"
+                            style="padding:14px 28px;background:#C6A062;color:#111;border:none;border-radius:10px;
+                                   font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;
+                                   letter-spacing:.02em;white-space:nowrap;">
+                        {% if lang == 'en' %}Book a consultation{% else %}Umów konsultację{% endif %}
+                    </button>
+                    <a href="tel:+48690584584"
+                       style="padding:14px 24px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);
+                              border-radius:10px;font-size:.95rem;font-weight:600;text-decoration:none;
+                              white-space:nowrap;display:inline-block;">
                         +48&nbsp;690&nbsp;584&nbsp;584
                     </a>
                 </div>
-                <p class="res-cta__disclaimer">
-                    {% if lang == 'en' %}
-                        Analysis based on a photo — does not replace a medical examination. Use SPF 50+ daily.
-                    {% else %}
-                        Analiza na podstawie zdjęcia — nie zastępuje badania lekarskiego. Stosuj SPF 50+ każdego dnia.
-                    {% endif %}
-                </p>
             </div>
 
             <!-- ── 7. KOD RABATOWY ── -->
