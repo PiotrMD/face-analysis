@@ -91,7 +91,7 @@ TRANSLATIONS = {
         'ph_phone':          '+48 600 000 000',
         'ph_email':          'jan@example.com',
         'ph_message':        'Dodatkowe informacje lub pytania...',
-        'consent_text':      'Wyra\u017cam zgod\u0119 na przetwarzanie moich danych osobowych przez Centrum Estetyki Medycznej w celu um\u00f3wienia konsultacji lekarskiej.',
+        'consent_text':      'Wyrażam zgodę na przetwarzanie moich danych osobowych przez Specjalistyczną Praktykę Lekarską, lek. Piotr Niedziałkowski w celu umówienia konsultacji lekarskiej.',
         'submit_btn':        'Wy\u015blij zg\u0142oszenie',
         'success_msg':       'Dzi\u0119kujemy. Skontaktujemy si\u0119 z Tob\u0105 mo\u017cliwie szybko w godzinach pracy kliniki, wtorek\u2013pi\u0105tek 12:00\u201320:00.',
         'consult_note':      'Konsultacja prowadzona jest osobi\u015bcie przez lekarza. Ka\u017cdy plan post\u0119powania opiera si\u0119 na indywidualnej ocenie klinicznej.',
