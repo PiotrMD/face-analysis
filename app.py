@@ -298,17 +298,29 @@ def results(token):
     force_results = request.args.get('force') == '1'
 
     def _retranslate(result_data):
-        """Re-translate labels if current session lang differs from stored lang."""
+        """Re-translate labels to current session lang."""
         current_lang = session.get('lang', 'pl')
         if result_data.get('lang') == current_lang:
             return result_data
         from prompts import SCORE_FIELD_LABELS_PL, SCORE_FIELD_LABELS_EN
         from treatments import AREA_LABELS_PL, AREA_LABELS_EN, recommend_treatments
-        labels     = SCORE_FIELD_LABELS_PL if current_lang == 'pl' else SCORE_FIELD_LABELS_EN
+        labels_pl   = SCORE_FIELD_LABELS_PL
+        labels_en   = SCORE_FIELD_LABELS_EN
+        labels      = labels_pl if current_lang == 'pl' else labels_en
         area_labels = AREA_LABELS_PL if current_lang == 'pl' else AREA_LABELS_EN
-        scores = result_data.get('scores', {})
+        scores      = result_data.get('scores', {})
+        # Build reverse map: any label → field key (covers old results without 'key')
+        reverse = {}
+        for k, v in labels_pl.items():
+            reverse[v] = k
+        for k, v in labels_en.items():
+            reverse[v] = k
         def remap(items):
-            return [{"label": labels.get(i.get("key", ""), i["label"]), "score": i["score"], "key": i.get("key", "")} for i in items]
+            out = []
+            for i in items:
+                key = i.get("key") or reverse.get(i.get("label", ""), "")
+                out.append({"label": labels.get(key, i["label"]), "score": i["score"], "key": key})
+            return out
         s_items = remap(result_data.get('strengths_items', []))
         c_items = remap(result_data.get('concerns_items', []))
         result_data = dict(result_data)
