@@ -3837,7 +3837,7 @@ a.contact-row__value:hover { text-decoration: underline; }
 }
 .res-feedback__email:focus { outline: none; border-color: var(--gold); }
 .res-feedback__btn {
-    align-self: flex-start;
+    align-self: center;
     padding: 9px 20px;
     background: var(--dark);
     color: #fff;
