@@ -1,51 +1,39 @@
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.utils import make_msgid, formatdate
+import requests
 
 
 def _cfg():
     return {
-        'host':       os.getenv('SMTP_HOST', ''),
-        'port':       int(os.getenv('SMTP_PORT', 587)),
-        'user':       os.getenv('SMTP_USER', ''),
-        'password':   os.getenv('SMTP_PASS', ''),
-        'mail_from':  os.getenv('MAIL_FROM', ''),
-        'to_primary': os.getenv('MAIL_TO_PRIMARY', ''),
-        'to_cc':      os.getenv('MAIL_TO_CC', ''),
+        'resend_key':  os.getenv('RESEND_API_KEY', ''),
+        'mail_from':   os.getenv('MAIL_FROM', 'analiza@estetykamedyczna.pl'),
+        'to_primary':  os.getenv('MAIL_TO_PRIMARY', ''),
+        'to_cc':       os.getenv('MAIL_TO_CC', ''),
     }
 
 
 def _send(to: str, subject: str, body: str, cc: str = None):
     cfg = _cfg()
-    if not cfg['host'] or not cfg['user'] or not cfg['mail_from']:
-        raise ValueError("SMTP not configured — set SMTP_HOST, SMTP_USER, MAIL_FROM in .env")
+    api_key = cfg['resend_key']
+    if not api_key:
+        raise ValueError("RESEND_API_KEY not configured")
 
-    msg = MIMEMultipart('alternative')
-    msg['From']       = cfg['mail_from']
-    msg['To']         = to
-    msg['Subject']    = subject
-    msg['Message-ID'] = make_msgid(domain='estetykamedyczna.pl')
-    msg['Date']       = formatdate(localtime=True)
+    payload = {
+        "from":    cfg['mail_from'],
+        "to":      [to],
+        "subject": subject,
+        "text":    body,
+    }
     if cc:
-        msg['Cc'] = cc
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        payload["cc"] = [cc]
 
-    recipients = [to] + ([cc] if cc else [])
-    port = cfg['port']
-    if port == 465:
-        with smtplib.SMTP_SSL(cfg['host'], port, timeout=20) as srv:
-            srv.ehlo()
-            srv.login(cfg['user'], cfg['password'])
-            srv.sendmail(cfg['mail_from'], recipients, msg.as_bytes())
-    else:
-        with smtplib.SMTP(cfg['host'], port, timeout=20) as srv:
-            srv.ehlo()
-            srv.starttls()
-            srv.ehlo()
-            srv.login(cfg['user'], cfg['password'])
-            srv.sendmail(cfg['mail_from'], recipients, msg.as_bytes())
+    resp = requests.post(
+        "https://api.resend.com/emails",
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        json=payload,
+        timeout=15,
+    )
+    if resp.status_code not in (200, 201):
+        raise ValueError(f"Resend error {resp.status_code}: {resp.text[:200]}")
 
 
 def send_clinic_notification(full_name: str, phone: str, email: str,
