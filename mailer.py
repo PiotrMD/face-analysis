@@ -62,8 +62,6 @@ def send_patient_confirmation_with_link(to_email: str, full_name: str, token: st
     body = (
         f"Szanowna/y Pani/Pan {full_name},\n\n"
         "Dziękujemy za przesłanie zgłoszenia.\n\n"
-        "Poniżej znajdzie Pani/Pan link do swojej analizy estetycznej twarzy:\n"
-        f"{results_url}\n\n"
         "Skontaktujemy się z Tobą możliwie szybko w godzinach pracy kliniki,\n"
         "wtorek–piątek 12:00–20:00.\n\n"
         "Serdecznie pozdrawiamy,\n"
