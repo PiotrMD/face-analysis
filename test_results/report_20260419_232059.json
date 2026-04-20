@@ -1,0 +1,39 @@
+{
+  "run_id": "20260419_232059",
+  "model": "gpt-4o",
+  "lang": "pl",
+  "timestamp": "2026-04-19T23:21:03.551787",
+  "warnings": [],
+  "photos": [
+    {
+      "name": "en_face.jpg",
+      "elapsed": 2.35,
+      "error": "Error code: 400 - {'error': {'message': \"You uploaded an unsupported image. Please make sure your image has of one the following formats: ['png', 'jpeg', 'gif', 'webp'].\", 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_image_format'}}",
+      "saved": null,
+      "scores": null,
+      "strengths": null,
+      "improvements": null,
+      "treatments": null
+    },
+    {
+      "name": "profile_left.jpg",
+      "elapsed": 0.47,
+      "error": "Error code: 400 - {'error': {'message': \"You uploaded an unsupported image. Please make sure your image has of one the following formats: ['png', 'jpeg', 'gif', 'webp'].\", 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_image_format'}}",
+      "saved": null,
+      "scores": null,
+      "strengths": null,
+      "improvements": null,
+      "treatments": null
+    },
+    {
+      "name": "profile_right.jpg",
+      "elapsed": 0.84,
+      "error": "Error code: 400 - {'error': {'message': \"You uploaded an unsupported image. Please make sure your image has of one the following formats: ['png', 'jpeg', 'gif', 'webp'].\", 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_image_format'}}",
+      "saved": null,
+      "scores": null,
+      "strengths": null,
+      "improvements": null,
+      "treatments": null
+    }
+  ]
+}
