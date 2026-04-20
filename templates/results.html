@@ -158,7 +158,7 @@
                     {% if lang == 'en' %}Treatments to discuss{% else %}Zabiegi do omówienia{% endif %}
                 </div>
                 <div class="res-tags">
-                    {% for t_name in result.treatments %}
+                    {% for t_name in result.treatments[:4] %}
                     <span class="res-tag">{{ t_name }}</span>
                     {% endfor %}
                 </div>
