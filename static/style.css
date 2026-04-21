@@ -362,7 +362,7 @@ body {
     background: #0d0d0d;
     cursor: pointer;
     transition: border-color .2s, background .2s;
-    min-height: 148px;
+    min-height: 80px;
     text-align: center;
     gap: 10px;
     overflow: hidden;
@@ -419,8 +419,8 @@ body {
     animation: none;
 }
 .upload-area__logo {
-    width: 180px;
-    height: 180px;
+    width: 120px;
+    height: 120px;
     object-fit: contain;
     flex-shrink: 0;
     animation: face-breathe 3.5s ease-in-out infinite;
