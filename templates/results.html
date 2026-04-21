@@ -133,35 +133,46 @@
                 <div class="res-bio-age__label">
                     {% if lang == 'en' %}Biological face age{% else %}Wiek biologiczny twarzy{% endif %}
                 </div>
+
                 <div class="res-bio-age__value">{{ result.bio_prefix }}{{ result.bio_age_min }}–{{ result.bio_age_max }} {% if lang == 'en' %}years{% else %}lat{% endif %}</div>
+
                 {% if result.user_age %}
                     {% set bio_mid = ((result.bio_age_min + result.bio_age_max) / 2) | int %}
                     {% set diff = result.user_age - bio_mid %}
                     {% if diff > 2 %}
                     <div class="res-bio-age__delta res-bio-age__delta--good">
-                        {% if lang == 'en' %}you look younger than your age{% else %}wyglądasz młodziej niż wskazuje wiek metrykalny{% endif %}
+                        {% if lang == 'en' %}✓ Your face looks younger than your calendar age{% else %}✓ Wygląd twarzy jest młodszy niż wiek metrykalny{% endif %}
                     </div>
                     {% elif diff < -2 %}
                     <div class="res-bio-age__delta res-bio-age__delta--concern">
-                        {% if lang == 'en' %}you look older than your age{% else %}wyglądasz starzej niż wskazuje wiek metrykalny{% endif %}
+                        {% if lang == 'en' %}↑ Your face appears older than your calendar age{% else %}↑ Wygląd twarzy jest starszy niż wiek metrykalny{% endif %}
                     </div>
                     {% else %}
                     <div class="res-bio-age__delta">
-                        {% if lang == 'en' %}appearance matches your age{% else %}wygląd zgodny z wiekiem metrykalnym{% endif %}
+                        {% if lang == 'en' %}→ Appearance consistent with your age{% else %}→ Wygląd zgodny z wiekiem metrykalnym{% endif %}
                     </div>
                     {% endif %}
                 {% endif %}
-                <div class="res-bio-age__note">{% if lang == 'en' %}Indicative result based on facial appearance analysis.{% else %}Wynik orientacyjny oparty na analizie wyglądu twarzy.{% endif %}</div>
+
                 {% if result.bio_factors %}
+                <div class="res-bio-age__divider"></div>
                 <div class="res-bio-age__factors">
-                    {% if result.bio_factors_type == 'positive' %}
-                    <span class="res-bio-age__factors-lbl">{% if lang == 'en' %}Supporting younger appearance:{% else %}Wspierają młodszy wygląd:{% endif %}</span>
-                    {% else %}
-                    <span class="res-bio-age__factors-lbl">{% if lang == 'en' %}Main factors influencing the result:{% else %}Główne czynniki wpływające na wynik:{% endif %}</span>
-                    {% endif %}
-                    {{ result.bio_factors | join(', ') }}
+                    <span class="res-bio-age__factors-lbl">
+                        {% if result.bio_factors_type == 'positive' %}
+                            {% if lang == 'en' %}What supports a younger look:{% else %}Co wspiera młodszy wygląd:{% endif %}
+                        {% else %}
+                            {% if lang == 'en' %}What most affects the perceived age:{% else %}Co najbardziej wpływa na odbiór wieku:{% endif %}
+                        {% endif %}
+                    </span>
+                    <div class="res-bio-age__chips">
+                        {% for factor in result.bio_factors %}
+                        <span class="res-bio-age__chip {% if result.bio_factors_type == 'positive' %}res-bio-age__chip--good{% else %}res-bio-age__chip--concern{% endif %}">{{ factor }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% endif %}
+
+                <div class="res-bio-age__note">{% if lang == 'en' %}Indicative result based on facial appearance analysis.{% else %}Wynik orientacyjny oparty na analizie wyglądu twarzy.{% endif %}</div>
             </div>
             {% endif %}
 
