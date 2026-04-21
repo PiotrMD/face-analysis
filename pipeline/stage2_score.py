@@ -315,16 +315,18 @@ def _normalize(data: dict, allowed_treatments: list) -> dict:
         "reject_reason": pc_raw.get("reject_reason") if isinstance(pc_raw, dict) else None,
     }
 
-    # biological_age range — clamp to 18–80
-    try:
-        bio_min = max(18, min(80, int(data.get("biological_age_min", 0) or 0)))
-        bio_max = max(18, min(80, int(data.get("biological_age_max", 0) or 0)))
-        if bio_min == 0 and bio_max == 0:
-            bio_min = bio_max = None
-        elif bio_min > bio_max:
-            bio_min, bio_max = bio_max, bio_min
-    except (TypeError, ValueError):
-        bio_min = bio_max = None
+    # image_quality — from GPT's assessment (used for bio age confidence)
+    iq_raw = data.get("image_quality", {})
+    if not isinstance(iq_raw, dict):
+        iq_raw = {}
+    valid_sharpness = {"high", "medium", "low"}
+    valid_lighting  = {"good", "adequate", "poor"}
+    image_quality = {
+        "sharpness":          iq_raw.get("sharpness", "medium") if iq_raw.get("sharpness") in valid_sharpness else "medium",
+        "lighting":           iq_raw.get("lighting",  "adequate") if iq_raw.get("lighting") in valid_lighting else "adequate",
+        "face_fully_visible": bool(iq_raw.get("face_fully_visible", True)),
+        "neck_visible":       bool(iq_raw.get("neck_visible", False)),
+    }
 
     return {
         "photo_check":          photo_check,
@@ -333,8 +335,7 @@ def _normalize(data: dict, allowed_treatments: list) -> dict:
         "improvements":         improvements,
         "suggested_treatments": treatments,
         "health_note":          health_note.strip(),
-        "biological_age_min":   bio_min,
-        "biological_age_max":   bio_max,
+        "image_quality":        image_quality,
         "doctor_consultation":  True,
     }
 

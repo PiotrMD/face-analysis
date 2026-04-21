@@ -142,19 +142,14 @@ Maksymalnie 4 zabiegi. Jeśli wszystkie widoczne pola ≥8 → pusta lista [].
 Jedno krótkie zdanie po polsku: ogólna wskazówka o pielęgnacji (SPF, nawilżanie, regularność).
 NIE diagnozuj. NIE wymieniaj chorób, leków ani nazw lekarzy.
 
-━━━ KROK 7: WIEK BIOLOGICZNY TWARZY ━━━
+━━━ KROK 7: JAKOŚĆ OBRAZU ━━━
 
-Na podstawie zdjęcia oszacuj wiek biologiczny twarzy jako przedział 4-letni (np. 28–32).
-Oceń według 7 kryteriów:
-1. Zmarszczki — głębokość i ilość: czoło, okolice oczu (kurze łapki), fałdy nosowo-wargowe, okolice ust, lwia zmarszczka między brwiami
-2. Napięcie i owal twarzy — opadanie policzków, utrata definicji konturu szczęki, zwiotczenie skóry szyi
-3. Utrata objętości — spłaszczenie policzków, okolice skroniowe, dolina łez
-4. Przebarwienia — plamy, nierówny koloryt, przebarwienia posłoneczne
-5. Tekstura i pory — rozszerzone pory, szorstkość, brak blasku, blizny
-6. Okolica oczu — cienie, worki, wklęśnięcie okolicy podoczodołowej
-7. Ogólna jakość skóry — nawilżenie, elastyczność, blask, świeżość
+Oceń jakość zdjęcia pod kątem wiarygodności analizy. Odpowiedz na 4 pytania:
 
-Zwróć dwie liczby całkowite: "biological_age_min" i "biological_age_max" (przedział ~4 lata, zakres 18–80). Bez komentarza.
+sharpness:          "high" (ostre, wyraźne szczegóły) | "medium" (akceptowalne) | "low" (nieostre, rozmazane)
+lighting:           "good" (równomierne, naturalne) | "adequate" (wystarczające) | "poor" (prześwietlone, niedoświetlone lub ostre cienie zasłaniające rysy)
+face_fully_visible: true (pełna twarz w kadrze, brak zasłonięć) | false (twarz częściowo zasłonięta lub obcięta)
+neck_visible:       true (szyja widoczna w kadrze) | false (szyja poza kadrem lub zasłonięta)
 
 ━━━ FORMAT ODPOWIEDZI — WYŁĄCZNIE JSON ━━━
 
@@ -187,8 +182,12 @@ Zwróć TYLKO poprawny JSON. Bez markdown. Bez żadnego tekstu przed ani po JSON
   "improvements":         ["<klucz_pola>", "<klucz_pola>", "<klucz_pola>"],
   "suggested_treatments": ["<nazwa z listy>"],
   "health_note":          "<jedno zdanie po polsku>",
-  "biological_age_min":   <liczba całkowita 18-80>,
-  "biological_age_max":   <liczba całkowita 18-80, biological_age_min + ~4>,
+  "image_quality": {{
+    "sharpness":           "high|medium|low",
+    "lighting":            "good|adequate|poor",
+    "face_fully_visible":  true,
+    "neck_visible":        true
+  }},
   "doctor_consultation":  true
 }}"""
 
@@ -266,19 +265,14 @@ Maximum 4 treatments. If all visible fields ≥8 → empty list [].
 One short sentence in English: general skincare tip (SPF, hydration, routine).
 Do NOT diagnose. Do NOT mention diseases, medications, or doctor names.
 
-━━━ STEP 7: BIOLOGICAL SKIN AGE ━━━
+━━━ STEP 7: IMAGE QUALITY ━━━
 
-Based on the photo, estimate the biological skin age as an integer (range 18–80).
-Assess using 7 criteria:
-1. Wrinkles — depth and count: forehead, crow's feet, nasolabial folds, perioral lines, glabellar line (between brows)
-2. Skin firmness and oval — cheek descent, jawline definition loss, neck laxity
-3. Volume loss — flattened cheeks, temporal hollowing, tear trough
-4. Pigmentation — sun spots, uneven tone, post-sun discolouration
-5. Texture and pores — enlarged pores, roughness, lack of glow, scars
-6. Eye area — dark circles, under-eye bags, infraorbital hollowing
-7. Overall skin quality — hydration, elasticity, radiance, freshness
+Assess the image quality for analysis reliability. Answer 4 questions:
 
-Return ONLY an integer in the "biological_age" field. No commentary.
+sharpness:          "high" (sharp, clear details) | "medium" (acceptable) | "low" (blurry, out of focus)
+lighting:           "good" (even, natural) | "adequate" (sufficient) | "poor" (overexposed, underexposed, or harsh shadows obscuring features)
+face_fully_visible: true (full face in frame, no occlusions) | false (face partially covered or cropped)
+neck_visible:       true (neck visible in frame) | false (neck out of frame or covered)
 
 ━━━ RESPONSE FORMAT — JSON ONLY ━━━
 
@@ -311,8 +305,12 @@ Return ONLY valid JSON. No markdown. No text before or after the JSON.
   "improvements":         ["<field_key>", "<field_key>", "<field_key>"],
   "suggested_treatments": ["<treatment name from list>"],
   "health_note":          "<one sentence in English>",
-  "biological_age_min":   <integer 18-80>,
-  "biological_age_max":   <integer 18-80, biological_age_min + ~4>,
+  "image_quality": {{
+    "sharpness":           "high|medium|low",
+    "lighting":            "good|adequate|poor",
+    "face_fully_visible":  true,
+    "neck_visible":        true
+  }},
   "doctor_consultation":  true
 }}"""
 
