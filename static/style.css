@@ -356,7 +356,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 28px 16px 22px;
+    padding: 14px 16px 12px;
     border: 1.5px dashed rgba(198,160,98,.55);
     border-radius: var(--r-md);
     background: #0d0d0d;
