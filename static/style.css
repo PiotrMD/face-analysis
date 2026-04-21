@@ -340,7 +340,7 @@ body {
 
 .photo-grid--single {
     grid-template-columns: 1fr;
-    max-width: 220px;
+    max-width: 268px;
     margin-left: auto;
     margin-right: auto;
 }
