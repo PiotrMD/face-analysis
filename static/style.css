@@ -3901,6 +3901,7 @@ a.contact-row__value:hover { text-decoration: underline; }
     font-family: inherit;
     color: var(--ink);
     background: var(--bg-surface);
+    text-align: center;
     appearance: textfield;
     box-sizing: border-box;
 }
