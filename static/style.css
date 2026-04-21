@@ -385,12 +385,12 @@ body {
 .upload-area__preview {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: center top;
     position: absolute;
     inset: 0;
     border-radius: var(--r-md);
     pointer-events: none;
-    background: #000;
 }
 
 .upload-area.filled .file-name {
@@ -407,7 +407,7 @@ body {
     white-space: nowrap;
 }
 .upload-area:hover  { border-color: var(--gold); background: var(--bg-card); animation: none; box-shadow: 0 0 0 6px rgba(198,160,98,.15); }
-.upload-area.filled { border-color: var(--gold); border-style: solid; background: #000; min-height: 320px; animation: none; box-shadow: none; }
+.upload-area.filled { border-color: var(--gold); border-style: solid; background: var(--bg-card); min-height: 320px; animation: none; box-shadow: none; }
 .upload-area .icon  { width: 26px; height: 26px; color: var(--ink-4); stroke-width: 1.5; }
 .upload-area.filled .icon { color: var(--gold-dark); }
 .upload-area p      { font-size: .77rem; font-weight: 600; color: var(--ink-3); }
