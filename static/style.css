@@ -3863,48 +3863,54 @@ a.contact-row__value:hover { text-decoration: underline; }
 .bio-inputs__row {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
 }
-.bio-input-item {
+.bio-optional { font-weight: 400; opacity: .7; }
+
+/* Bio tiles */
+.bio-tile {
     flex: 1;
-    min-width: 80px;
-}
-.bio-optional {
-    font-weight: 400;
-    opacity: .7;
-}
-.bio-input__unit-wrap {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 10px 8px 8px;
+    cursor: pointer;
+    text-align: center;
 }
-.bio-unit {
-    font-size: .72rem;
+.bio-tile__label {
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
     color: var(--ink-4);
+    line-height: 1;
+}
+.bio-tile__input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    font-family: inherit;
+    padding: 2px 0;
+    appearance: textfield;
+    -moz-appearance: textfield;
+    outline: none;
+    line-height: 1.2;
+}
+.bio-tile__input::-webkit-outer-spin-button,
+.bio-tile__input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.bio-tile__input::placeholder { color: var(--ink-4); font-weight: 400; font-size: 1rem; }
+.bio-tile__unit {
+    font-size: .68rem;
+    color: var(--ink-4);
+    line-height: 1;
     white-space: nowrap;
 }
-.age-input__label {
-    display: block;
-    font-size: .72rem;
-    color: var(--ink-4);
-    margin-bottom: 5px;
-}
-.age-input__field {
-    width: 100%;
-    min-width: 0;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    font-size: .9rem;
-    font-family: inherit;
-    color: var(--ink);
-    background: var(--bg-surface);
-    text-align: center;
-    appearance: textfield;
-    box-sizing: border-box;
-}
-.age-input__field::-webkit-outer-spin-button,
-.age-input__field::-webkit-inner-spin-button { -webkit-appearance: none; }
 
 .bmi-result {
     display: flex;
