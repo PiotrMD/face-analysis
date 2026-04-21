@@ -340,6 +340,9 @@ body {
 
 .photo-grid--single {
     grid-template-columns: 1fr;
+    max-width: 220px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .photo-upload { position: relative; }
@@ -356,7 +359,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 14px 16px 12px;
+    padding: 28px 16px 22px;
     border: 1.5px dashed rgba(198,160,98,.55);
     border-radius: var(--r-md);
     background: #0d0d0d;
