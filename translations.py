@@ -11,7 +11,7 @@ TRANSLATIONS = {
         'twitter_desc':     'Wgraj zdjęcie i otrzymaj szczegółową ocenę kliniczną twarzy. Bezpłatnie, online.',
 
         # Topbar
-        'brand':              'Analiza Estetyczna',
+        'brand':              'Analiza Twarzy',
         'clinic_name':        'Centrum Estetyki Medycznej',
         'doctor_full':        'dr n. med. Piotr Niedziałkowski',
         'doctor_creds':       'Specjalista chorób wewnętrznych · alergolog · dyplomowany lekarz medycyny estetycznej',

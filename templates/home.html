@@ -30,7 +30,10 @@
 
     <header class="topbar">
         <div class="topbar__inner">
-            <a href="/" class="topbar__brand">{{ t.brand }}</a>
+            <a href="/" class="topbar__brand">
+                <img src="{{ url_for('static', filename='img/Analiza twarzy.png') }}" class="topbar__logo" alt="">
+                {{ t.brand }}
+            </a>
             <div class="topbar__doctor">
                 <span class="topbar__doctor-name">{{ t.doctor_full }}</span>
                 <span class="topbar__doctor-creds">{{ t.doctor_creds }}</span>

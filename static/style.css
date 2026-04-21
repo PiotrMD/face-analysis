@@ -97,13 +97,22 @@ body {
 .topbar__brand {
     font-family: var(--serif);
     font-size: .9rem;
-    font-weight: 400;
+    font-weight: 600;
     color: var(--ink);
-    letter-spacing: .04em;
+    letter-spacing: .02em;
     white-space: nowrap;
     flex-shrink: 0;
     text-decoration: none;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.topbar__logo {
+    height: 22px;
+    width: auto;
+    display: block;
+    flex-shrink: 0;
 }
 
 .topbar__doctor {
