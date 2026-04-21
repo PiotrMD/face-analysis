@@ -128,21 +128,22 @@
             {% endif %}
 
             <!-- ── WIEK BIOLOGICZNY ── -->
-            {% if result.biological_age %}
+            {% if result.biological_age_min and result.biological_age_max %}
             <div class="res-bio-age">
                 <div class="res-bio-age__label">
-                    {% if lang == 'en' %}Biological skin age{% else %}Wiek biologiczny skóry{% endif %}
+                    {% if lang == 'en' %}Biological face age{% else %}Wiek biologiczny twarzy{% endif %}
                 </div>
-                <div class="res-bio-age__value">{{ result.biological_age }} {% if lang == 'en' %}years{% else %}lat{% endif %}</div>
+                <div class="res-bio-age__value">{{ result.biological_age_min }}–{{ result.biological_age_max }} {% if lang == 'en' %}years{% else %}lat{% endif %}</div>
                 {% if result.user_age %}
-                    {% set diff = result.user_age - result.biological_age %}
-                    {% if diff > 0 %}
+                    {% set bio_mid = ((result.biological_age_min + result.biological_age_max) / 2) | int %}
+                    {% set diff = result.user_age - bio_mid %}
+                    {% if diff > 2 %}
                     <div class="res-bio-age__delta res-bio-age__delta--good">
-                        {% if lang == 'en' %}{{ diff }} years younger in appearance{% else %}wyglądasz o {{ diff }} {% if diff == 1 %}rok{% elif diff < 5 %}lata{% else %}lat{% endif %} młodziej{% endif %}
+                        {% if lang == 'en' %}you look younger than your age{% else %}wyglądasz młodziej niż wskazuje wiek metrykalny{% endif %}
                     </div>
-                    {% elif diff < 0 %}
+                    {% elif diff < -2 %}
                     <div class="res-bio-age__delta res-bio-age__delta--concern">
-                        {% if lang == 'en' %}{{ diff|abs }} years older in appearance{% else %}wyglądasz o {{ diff|abs }} {% if diff|abs == 1 %}rok{% elif diff|abs < 5 %}lata{% else %}lat{% endif %} starzej{% endif %}
+                        {% if lang == 'en' %}you look older than your age{% else %}wyglądasz starzej niż wskazuje wiek metrykalny{% endif %}
                     </div>
                     {% else %}
                     <div class="res-bio-age__delta">

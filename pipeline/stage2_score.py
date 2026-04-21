@@ -315,12 +315,16 @@ def _normalize(data: dict, allowed_treatments: list) -> dict:
         "reject_reason": pc_raw.get("reject_reason") if isinstance(pc_raw, dict) else None,
     }
 
-    # biological_age — clamp to 18–80
-    bio_age_raw = data.get("biological_age")
+    # biological_age range — clamp to 18–80
     try:
-        bio_age = max(18, min(80, int(bio_age_raw)))
+        bio_min = max(18, min(80, int(data.get("biological_age_min", 0) or 0)))
+        bio_max = max(18, min(80, int(data.get("biological_age_max", 0) or 0)))
+        if bio_min == 0 and bio_max == 0:
+            bio_min = bio_max = None
+        elif bio_min > bio_max:
+            bio_min, bio_max = bio_max, bio_min
     except (TypeError, ValueError):
-        bio_age = None
+        bio_min = bio_max = None
 
     return {
         "photo_check":          photo_check,
@@ -329,7 +333,8 @@ def _normalize(data: dict, allowed_treatments: list) -> dict:
         "improvements":         improvements,
         "suggested_treatments": treatments,
         "health_note":          health_note.strip(),
-        "biological_age":       bio_age,
+        "biological_age_min":   bio_min,
+        "biological_age_max":   bio_max,
         "doctor_consultation":  True,
     }
 

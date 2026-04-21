@@ -133,8 +133,9 @@ def _assemble(score_result: dict, lang: str, user_age: int | None = None) -> dic
         "area_labels":     area_labels,
         "scores":          scores,
         "lang":            lang,
-        "biological_age":  score_result.get("biological_age"),
-        "user_age":        user_age,
+        "biological_age_min": score_result.get("biological_age_min"),
+        "biological_age_max": score_result.get("biological_age_max"),
+        "user_age":           user_age,
     }
 
 

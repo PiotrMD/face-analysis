@@ -142,9 +142,9 @@ Maksymalnie 4 zabiegi. Jeśli wszystkie widoczne pola ≥8 → pusta lista [].
 Jedno krótkie zdanie po polsku: ogólna wskazówka o pielęgnacji (SPF, nawilżanie, regularność).
 NIE diagnozuj. NIE wymieniaj chorób, leków ani nazw lekarzy.
 
-━━━ KROK 7: WIEK BIOLOGICZNY SKÓRY ━━━
+━━━ KROK 7: WIEK BIOLOGICZNY TWARZY ━━━
 
-Na podstawie zdjęcia oszacuj wiek biologiczny skóry jako liczbę całkowitą (zakres 18–80).
+Na podstawie zdjęcia oszacuj wiek biologiczny twarzy jako przedział 4-letni (np. 28–32).
 Oceń według 7 kryteriów:
 1. Zmarszczki — głębokość i ilość: czoło, okolice oczu (kurze łapki), fałdy nosowo-wargowe, okolice ust, lwia zmarszczka między brwiami
 2. Napięcie i owal twarzy — opadanie policzków, utrata definicji konturu szczęki, zwiotczenie skóry szyi
@@ -154,7 +154,7 @@ Oceń według 7 kryteriów:
 6. Okolica oczu — cienie, worki, wklęśnięcie okolicy podoczodołowej
 7. Ogólna jakość skóry — nawilżenie, elastyczność, blask, świeżość
 
-Zwróć TYLKO liczbę całkowitą w polu "biological_age". Bez komentarza.
+Zwróć dwie liczby całkowite: "biological_age_min" i "biological_age_max" (przedział ~4 lata, zakres 18–80). Bez komentarza.
 
 ━━━ FORMAT ODPOWIEDZI — WYŁĄCZNIE JSON ━━━
 
@@ -187,7 +187,8 @@ Zwróć TYLKO poprawny JSON. Bez markdown. Bez żadnego tekstu przed ani po JSON
   "improvements":         ["<klucz_pola>", "<klucz_pola>", "<klucz_pola>"],
   "suggested_treatments": ["<nazwa z listy>"],
   "health_note":          "<jedno zdanie po polsku>",
-  "biological_age":       <liczba całkowita 18-80>,
+  "biological_age_min":   <liczba całkowita 18-80>,
+  "biological_age_max":   <liczba całkowita 18-80, biological_age_min + ~4>,
   "doctor_consultation":  true
 }}"""
 
@@ -310,7 +311,8 @@ Return ONLY valid JSON. No markdown. No text before or after the JSON.
   "improvements":         ["<field_key>", "<field_key>", "<field_key>"],
   "suggested_treatments": ["<treatment name from list>"],
   "health_note":          "<one sentence in English>",
-  "biological_age":       <integer 18-80>,
+  "biological_age_min":   <integer 18-80>,
+  "biological_age_max":   <integer 18-80, biological_age_min + ~4>,
   "doctor_consultation":  true
 }}"""
 
