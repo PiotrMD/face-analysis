@@ -3868,6 +3868,7 @@ a.contact-row__value:hover { text-decoration: underline; }
     font-size: .72rem;
     color: var(--ink-4);
     margin-bottom: 5px;
+    text-align: center;
 }
 .age-input__field {
     width: 100%;
