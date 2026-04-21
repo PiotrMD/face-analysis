@@ -137,19 +137,27 @@
                 <div class="res-bio-age__value">{{ result.bio_prefix }}{{ result.bio_age_min }}–{{ result.bio_age_max }} {% if lang == 'en' %}years{% else %}lat{% endif %}</div>
 
                 {% if result.user_age %}
-                    {% set bio_mid = ((result.bio_age_min + result.bio_age_max) / 2) | int %}
+                    {% set bio_mid = (result.bio_age_min + result.bio_age_max) / 2 %}
                     {% set diff = result.user_age - bio_mid %}
-                    {% if diff > 2 %}
+                    {% if diff >= 5 %}
                     <div class="res-bio-age__delta res-bio-age__delta--good">
-                        {% if lang == 'en' %}✓ Your face looks younger than your calendar age{% else %}✓ Wygląd twarzy jest młodszy niż wiek metrykalny{% endif %}
+                        {% if lang == 'en' %}Your face suggests a younger age than your calendar age{% else %}Wygląd twarzy wskazuje na młodszy wiek niż metrykalny{% endif %}
                     </div>
-                    {% elif diff < -2 %}
+                    {% elif diff >= 2 %}
+                    <div class="res-bio-age__delta res-bio-age__delta--good">
+                        {% if lang == 'en' %}Your face appears slightly younger than your calendar age{% else %}Twarz sprawia wrażenie nieco młodszej niż wiek metrykalny{% endif %}
+                    </div>
+                    {% elif diff >= -2 %}
+                    <div class="res-bio-age__delta">
+                        {% if lang == 'en' %}Your face appearance is close to your calendar age{% else %}Wygląd twarzy jest zbliżony do wieku metrykalnego{% endif %}
+                    </div>
+                    {% elif diff >= -5 %}
                     <div class="res-bio-age__delta res-bio-age__delta--concern">
-                        {% if lang == 'en' %}↑ Your face appears older than your calendar age{% else %}↑ Wygląd twarzy jest starszy niż wiek metrykalny{% endif %}
+                        {% if lang == 'en' %}Your face appears slightly older than your calendar age{% else %}Twarz sprawia wrażenie nieco starszej niż wiek metrykalny{% endif %}
                     </div>
                     {% else %}
-                    <div class="res-bio-age__delta">
-                        {% if lang == 'en' %}→ Appearance consistent with your age{% else %}→ Wygląd zgodny z wiekiem metrykalnym{% endif %}
+                    <div class="res-bio-age__delta res-bio-age__delta--concern">
+                        {% if lang == 'en' %}Your face suggests an older age than your calendar age{% else %}Wygląd twarzy wskazuje na starszy wiek niż metrykalny{% endif %}
                     </div>
                     {% endif %}
                 {% endif %}
