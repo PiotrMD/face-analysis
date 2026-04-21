@@ -348,22 +348,29 @@ body {
 .photo-upload { position: relative; }
 .photo-upload input[type="file"] { display: none; }
 
+@keyframes upload-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(198,160,98,.45); border-color: rgba(198,160,98,.55); }
+    60%  { box-shadow: 0 0 0 8px rgba(198,160,98,0); border-color: rgba(198,160,98,.9); }
+    100% { box-shadow: 0 0 0 0 rgba(198,160,98,0); border-color: rgba(198,160,98,.55); }
+}
+
 .upload-area {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px 10px;
-    border: 1.5px dashed var(--border-soft);
+    padding: 28px 16px 22px;
+    border: 1.5px dashed rgba(198,160,98,.55);
     border-radius: var(--r-md);
     background: var(--bg-surface);
     cursor: pointer;
     transition: border-color .2s, background .2s;
-    min-height: 108px;
+    min-height: 148px;
     text-align: center;
-    gap: 7px;
+    gap: 10px;
     overflow: hidden;
     position: relative;
+    animation: upload-pulse 2.8s ease-in-out infinite;
 }
 
 .upload-area__preview {
@@ -390,12 +397,34 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.upload-area:hover  { border-color: var(--gold); background: var(--bg-card); }
-.upload-area.filled { border-color: var(--gold); border-style: solid; background: #000; min-height: 320px; }
+.upload-area:hover  { border-color: var(--gold); background: var(--bg-card); animation: none; box-shadow: 0 0 0 6px rgba(198,160,98,.15); }
+.upload-area.filled { border-color: var(--gold); border-style: solid; background: #000; min-height: 320px; animation: none; box-shadow: none; }
 .upload-area .icon  { width: 26px; height: 26px; color: var(--ink-4); stroke-width: 1.5; }
 .upload-area.filled .icon { color: var(--gold-dark); }
 .upload-area p      { font-size: .77rem; font-weight: 600; color: var(--ink-3); }
 .upload-area.filled p { color: var(--gold-dark); }
+
+/* face icon in upload area */
+.upload-area__face-icon {
+    width: 64px;
+    height: 64px;
+    color: #C6A062;
+    opacity: .85;
+    flex-shrink: 0;
+}
+.upload-area__cta {
+    font-size: .88rem;
+    font-weight: 700;
+    color: #C6A062;
+    letter-spacing: .01em;
+    margin: 0;
+}
+.upload-area__sub {
+    font-size: .72rem;
+    font-weight: 400;
+    color: var(--ink-4);
+    margin: 0;
+}
 .file-name          { font-size: .67rem; color: var(--ink-4); word-break: break-all; line-height: 1.3; }
 .upload-area.filled .file-name { color: var(--gold-dark); }
 

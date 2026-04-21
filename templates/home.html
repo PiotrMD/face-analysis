@@ -71,11 +71,31 @@
                         <div class="photo-upload">
                             <div class="upload-area" id="area-en_face" onclick="document.getElementById('en_face').click()">
                                 <img class="upload-area__preview" id="preview-en_face" src="" alt="" style="display:none;">
-                                <svg class="icon" id="icon-en_face" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                <!-- face outline icon — hidden when filled -->
+                                <svg id="icon-en_face" class="upload-area__face-icon" viewBox="0 0 64 80" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <!-- head outline -->
+                                    <path d="M32 6 C16 6 10 18 10 30 C10 44 16 56 24 60 C26 61 29 62 32 62 C35 62 38 61 40 60 C48 56 54 44 54 30 C54 18 48 6 32 6 Z"/>
+                                    <!-- eyes -->
+                                    <ellipse cx="23" cy="30" rx="3" ry="2"/>
+                                    <ellipse cx="41" cy="30" rx="3" ry="2"/>
+                                    <!-- nose bridge -->
+                                    <path d="M32 34 L30 40 L34 40"/>
+                                    <!-- mouth -->
+                                    <path d="M25 48 Q32 53 39 48"/>
+                                    <!-- eyebrows -->
+                                    <path d="M19 25 Q23 22 27 25"/>
+                                    <path d="M37 25 Q41 22 45 25"/>
+                                    <!-- neck / shoulders hint -->
+                                    <path d="M24 62 Q20 68 14 72" stroke-opacity=".4"/>
+                                    <path d="M40 62 Q44 68 50 72" stroke-opacity=".4"/>
                                 </svg>
-                                <p class="upload-area__label" id="label-en_face">En Face</p>
-                                <span class="file-name" id="en_face_name">{{ t.no_file }}</span>
+                                <p class="upload-area__cta" id="label-en_face">
+                                    {% if lang == 'en' %}Tap to upload your photo{% else %}Dotknij, aby wgrać zdjęcie{% endif %}
+                                </p>
+                                <p class="upload-area__sub">
+                                    {% if lang == 'en' %}front-facing face photo{% else %}zdjęcie twarzy en face{% endif %}
+                                </p>
+                                <span class="file-name" id="en_face_name" style="display:none;"></span>
                             </div>
                             <input type="file" id="en_face" name="en_face" accept="image/*" onchange="setFileName('en_face_name', this)">
                             <button type="button" class="cam-open-btn" onclick="openCamera()">
@@ -371,16 +391,19 @@
         var label    = document.getElementById('label-' + key);
         var nameSpan = document.getElementById(spanId);
 
+        var area = document.getElementById('area-' + key);
+        var subEl = area ? area.querySelector('.upload-area__sub') : null;
+
         if (preview) {
             var url = URL.createObjectURL(file);
             preview.src = url;
             preview.style.display = 'block';
             if (icon)     icon.style.display     = 'none';
             if (label)    label.style.display    = 'none';
+            if (subEl)    subEl.style.display    = 'none';
             if (nameSpan) nameSpan.style.display = 'none';
         }
 
-        var area = document.getElementById('area-' + key);
         if (area) { area.classList.add('filled'); area.classList.remove('upload-error'); }
         hideSlotError(key);
         hideValidationBlock();
@@ -563,8 +586,10 @@
             var area     = document.getElementById('area-en_face');
 
             if (preview) { preview.src = url; preview.style.display = 'block'; }
+            var subEl = area ? area.querySelector('.upload-area__sub') : null;
             if (icon)     icon.style.display     = 'none';
             if (label)    label.style.display    = 'none';
+            if (subEl)    subEl.style.display    = 'none';
             if (nameSpan) { nameSpan.textContent = 'camera.jpg'; nameSpan.style.display = 'none'; }
             if (area)     { area.classList.add('filled'); area.classList.remove('upload-error'); }
 
