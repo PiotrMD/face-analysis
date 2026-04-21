@@ -3867,6 +3867,9 @@ a.contact-row__value:hover { text-decoration: underline; }
 .bio-input-item {
     flex: 1;
     min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .bio-optional {
     font-weight: 400;
@@ -3885,14 +3888,13 @@ a.contact-row__value:hover { text-decoration: underline; }
 }
 .age-input__label {
     display: block;
-    width: 100%;
     font-size: .72rem;
     color: var(--ink-4);
     margin-bottom: 5px;
     text-align: center;
 }
 .age-input__field {
-    width: 100%;
+    width: 72px;
     min-width: 0;
     padding: 8px 10px;
     border: 1px solid var(--border);
