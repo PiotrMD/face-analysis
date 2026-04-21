@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Analiza Twarzy</string>
+    <string name="title_activity_main">Analiza Twarzy</string>
+    <string name="package_name">com.estetykamedyczna.app</string>
+    <string name="custom_url_scheme">com.estetykamedyczna.app</string>
+</resources>

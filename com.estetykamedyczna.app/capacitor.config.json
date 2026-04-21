@@ -1,0 +1,9 @@
+{
+  "appId": "com.estetykamedyczna.app",
+  "appName": "Analiza Twarzy",
+  "webDir": "dist",
+  "server": {
+    "url": "https://analiza.estetykamedyczna.pl",
+    "cleartext": false
+  }
+}
