@@ -93,9 +93,6 @@
                                 <p class="upload-area__cta" id="label-en_face">
                                     {% if lang == 'en' %}Tap to upload your photo{% else %}Dotknij, aby wgrać zdjęcie{% endif %}
                                 </p>
-                                <p class="upload-area__sub">
-                                    {% if lang == 'en' %}front-facing face photo{% else %}zdjęcie twarzy en face{% endif %}
-                                </p>
                                 <span class="file-name" id="en_face_name" style="display:none;"></span>
                             </div>
                             <input type="file" id="en_face" name="en_face" accept="image/*" onchange="setFileName('en_face_name', this)">

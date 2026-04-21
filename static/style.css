@@ -362,7 +362,7 @@ body {
     padding: 28px 16px 22px;
     border: 1.5px dashed rgba(198,160,98,.55);
     border-radius: var(--r-md);
-    background: var(--bg-surface);
+    background: #f5f0eb;
     cursor: pointer;
     transition: border-color .2s, background .2s;
     min-height: 148px;
@@ -411,8 +411,8 @@ body {
 
 /* face icon in upload area */
 .upload-area__face-icon {
-    width: 76px;
-    height: 76px;
+    width: 88px;
+    height: 88px;
     color: #C6A062;
     opacity: .85;
     flex-shrink: 0;
