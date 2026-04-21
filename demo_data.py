@@ -14,10 +14,10 @@ DEMO_RESULT = {
         {"label": "Napięcie skóry",    "score": 6, "key": "skin_tension"},
     ],
     "treatments": [
-        "Toksyna botulinowa (relaksacja mięśni mimicznych)",
-        "Laser naczyniowy (redukcja naczynek i rumienia)",
-        "Mezoterapia (nawilżenie i rewitalizacja skóry)",
-        "Nici liftingujące (poprawa napięcia i owalu twarzy)",
+        "Toksyna botulinowa",
+        "Laser naczyniowy",
+        "Mezoterapia",
+        "Nici liftingujące",
     ],
     "areas": {
         "okolica_oczu":  7,
@@ -39,15 +39,14 @@ DEMO_RESULT = {
     },
     "health_note": "Regularne stosowanie filtra SPF 50+ to podstawa ochrony przed fotostarzeniem. Warto również zadbać o odpowiednie nawodnienie skóry od wewnątrz.",
     "lang": "pl",
-    # Bio age — calculated from demo scores:
-    # skin=8, wr=6, st=6, oval=8, eyes=7, pig=8, ve=6 (no neck)
-    # weighted = 7.02 → age = 33.4 → no corrections → range 31–36
-    # confidence = 0.90 (high quality photo) → ±2/+3 spread
-    "bio_age_min":    31,
-    "bio_age_max":    36,
-    "bio_prefix":     "",
-    "bio_confidence": 0.90,
-    "bio_factors":    ["jakość skóry", "owal twarzy", "przebarwienia"],
+    # Bio age — scores: skin=8, wr=6, st=6, oval=8, eyes=7, pig=8, ve=6 (no neck)
+    # weighted=7.02 → age=33.4 → no corrections → confidence=0.90 → range 31–36
+    # user_age=45, bio_mid=33.5, diff=+11.5 ≥ 5 → "wskazuje na młodszy wiek niż metrykalny"
+    "bio_age_min":      31,
+    "bio_age_max":      36,
+    "bio_prefix":       "",
+    "bio_confidence":   0.90,
+    "bio_factors":      ["jakość skóry", "owal twarzy", "przebarwienia"],
     "bio_factors_type": "positive",
     # User data
     "user_age":    45,
