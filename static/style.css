@@ -321,6 +321,9 @@ body {
     letter-spacing: -.01em;
     text-align: center;
     opacity: .75;
+    max-width: 22ch;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .upload-card__sub {
