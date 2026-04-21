@@ -3774,6 +3774,13 @@ a.contact-row__value:hover { text-decoration: underline; }
 .bio-inputs {
     margin-bottom: 16px;
 }
+.bio-inputs__hint {
+    font-size: .72rem;
+    color: #999;
+    text-align: center;
+    margin: 0 0 8px;
+    letter-spacing: .02em;
+}
 .bio-inputs__row {
     display: flex;
     gap: 10px;

@@ -104,23 +104,24 @@
                     <p id="formError" class="form-notice" style="display:none;"></p>
 
                     <div class="bio-inputs">
+                        <p class="bio-inputs__hint">{% if lang == 'en' %}Optional — enriches the analysis{% else %}Opcjonalne — wzbogaca analizę{% endif %}</p>
                         <div class="bio-inputs__row">
                             <div class="bio-input-item">
-                                <label class="age-input__label" for="user_age">{% if lang == 'en' %}Age{% else %}Wiek{% endif %} <span class="bio-optional">({% if lang == 'en' %}optional{% else %}opcjonalnie{% endif %})</span></label>
+                                <label class="age-input__label" for="user_age">{% if lang == 'en' %}Age{% else %}Wiek{% endif %}</label>
                                 <div class="bio-input__unit-wrap">
                                     <input class="age-input__field" type="number" id="user_age" name="user_age" min="18" max="99" placeholder="{% if lang == 'en' %}e.g. 35{% else %}np. 35{% endif %}">
                                     <span class="bio-unit">{% if lang == 'en' %}yr{% else %}lat{% endif %}</span>
                                 </div>
                             </div>
                             <div class="bio-input-item">
-                                <label class="age-input__label" for="user_height">{% if lang == 'en' %}Height{% else %}Wzrost{% endif %} <span class="bio-optional">({% if lang == 'en' %}optional{% else %}opcjonalnie{% endif %})</span></label>
+                                <label class="age-input__label" for="user_height">{% if lang == 'en' %}Height{% else %}Wzrost{% endif %}</label>
                                 <div class="bio-input__unit-wrap">
                                     <input class="age-input__field" type="number" id="user_height" name="user_height" min="140" max="220" placeholder="{% if lang == 'en' %}e.g. 170{% else %}np. 170{% endif %}">
                                     <span class="bio-unit">cm</span>
                                 </div>
                             </div>
                             <div class="bio-input-item">
-                                <label class="age-input__label" for="user_weight">{% if lang == 'en' %}Weight{% else %}Waga{% endif %} <span class="bio-optional">({% if lang == 'en' %}optional{% else %}opcjonalnie{% endif %})</span></label>
+                                <label class="age-input__label" for="user_weight">{% if lang == 'en' %}Weight{% else %}Waga{% endif %}</label>
                                 <div class="bio-input__unit-wrap">
                                     <input class="age-input__field" type="number" id="user_weight" name="user_weight" min="30" max="250" placeholder="{% if lang == 'en' %}e.g. 70{% else %}np. 70{% endif %}">
                                     <span class="bio-unit">kg</span>
