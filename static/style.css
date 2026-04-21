@@ -362,7 +362,7 @@ body {
     padding: 28px 16px 22px;
     border: 1.5px dashed rgba(198,160,98,.55);
     border-radius: var(--r-md);
-    background: #f5f0eb;
+    background: #0d0d0d;
     cursor: pointer;
     transition: border-color .2s, background .2s;
     min-height: 148px;
@@ -421,6 +421,15 @@ body {
 .upload-area.filled .upload-area__face-icon {
     animation: none;
 }
+.upload-area__logo {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    flex-shrink: 0;
+    animation: face-breathe 3.5s ease-in-out infinite;
+}
+.upload-area.filled .upload-area__logo { display: none; }
+
 .upload-area__cta {
     font-size: 1rem;
     font-weight: 700;

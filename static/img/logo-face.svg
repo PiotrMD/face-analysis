@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#C6A062" stroke-linecap="round" stroke-linejoin="round">
+  <!-- artistic hair line going up-left with cross element -->
+  <line x1="62" y1="38" x2="38" y2="14" stroke-width="5"/>
+  <line x1="28" y1="24" x2="54" y2="24" stroke-width="5"/>
+
+  <!-- face outline — continuous artistic path, slightly asymmetric -->
+  <path d="
+    M62 38
+    C58 30 56 20 65 16
+    C80 10 110 12 130 22
+    C155 36 165 68 160 100
+    C155 130 140 158 118 170
+    C104 178 88 178 76 168
+    C58 154 46 126 44 96
+    C42 72 48 52 62 38
+    Z
+  " stroke-width="5"/>
+
+  <!-- left eye — closed, simple arc -->
+  <path d="M68 88 Q78 82 88 88" stroke-width="4"/>
+
+  <!-- right eye — closed, simple arc -->
+  <path d="M112 84 Q124 78 134 84" stroke-width="4"/>
+
+  <!-- nose bridge + tip -->
+  <path d="M100 92 L96 128 Q100 132 104 128 L100 92" stroke-width="3.5"/>
+
+  <!-- upper lip -->
+  <path d="M84 152 Q92 146 100 150 Q108 146 116 152" stroke-width="4"/>
+  <!-- lower lip hint -->
+  <path d="M88 158 Q100 164 112 158" stroke-width="3.5"/>
+</svg>

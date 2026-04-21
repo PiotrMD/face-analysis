@@ -71,6 +71,7 @@
                         <div class="photo-upload">
                             <div class="upload-area" id="area-en_face" onclick="document.getElementById('en_face').click()">
                                 <img class="upload-area__preview" id="preview-en_face" src="" alt="" style="display:none;">
+                                <img src="{{ url_for('static', filename='img/logo-face.svg') }}" class="upload-area__logo" id="icon-en_face" alt="">
                                 <p class="upload-area__cta" id="label-en_face">
                                     {% if lang == 'en' %}Tap to upload your photo{% else %}Dotknij, aby wgrać zdjęcie{% endif %}
                                 </p>
