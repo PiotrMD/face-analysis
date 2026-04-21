@@ -154,6 +154,44 @@
             </div>
             {% endif %}
 
+            <!-- ── BMI ── -->
+            {% if result.user_bmi %}
+            {% set bmi = result.user_bmi %}
+            {% if bmi < 18.5 %}
+                {% set bmi_color = '#6b8cba' %}
+                {% set bmi_label = 'Niedowaga' if lang == 'pl' else 'Underweight' %}
+            {% elif bmi < 25 %}
+                {% set bmi_color = '#4a7c4e' %}
+                {% set bmi_label = 'Prawidłowa masa ciała' if lang == 'pl' else 'Normal weight' %}
+            {% elif bmi < 30 %}
+                {% set bmi_color = '#b8860b' %}
+                {% set bmi_label = 'Nadwaga' if lang == 'pl' else 'Overweight' %}
+            {% elif bmi < 35 %}
+                {% set bmi_color = '#c25a00' %}
+                {% set bmi_label = 'Otyłość I stopnia' if lang == 'pl' else 'Obesity class I' %}
+            {% else %}
+                {% set bmi_color = '#b91c1c' %}
+                {% set bmi_label = 'Otyłość II/III stopnia' if lang == 'pl' else 'Obesity class II/III' %}
+            {% endif %}
+            <div class="res-card res-bmi-card">
+                <div class="res-bmi-card__row">
+                    <div class="res-bmi-card__item">
+                        <div class="res-bmi-card__val">{{ result.user_height }} <span class="res-bmi-card__unit">cm</span></div>
+                        <div class="res-bmi-card__lbl">{% if lang == 'en' %}Height{% else %}Wzrost{% endif %}</div>
+                    </div>
+                    <div class="res-bmi-card__item">
+                        <div class="res-bmi-card__val">{{ result.user_weight }} <span class="res-bmi-card__unit">kg</span></div>
+                        <div class="res-bmi-card__lbl">{% if lang == 'en' %}Weight{% else %}Waga{% endif %}</div>
+                    </div>
+                    <div class="res-bmi-card__item">
+                        <div class="res-bmi-card__val" style="color:{{ bmi_color }};">{{ result.user_bmi }}</div>
+                        <div class="res-bmi-card__lbl">BMI</div>
+                    </div>
+                </div>
+                <div class="res-bmi-card__desc" style="color:{{ bmi_color }};">{{ bmi_label }}</div>
+            </div>
+            {% endif %}
+
             <!-- ── SZCZEGÓŁOWE OCENY (zwijane) ── -->
             {% if result.areas %}
             <details class="res-details" open>

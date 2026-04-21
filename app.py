@@ -259,6 +259,23 @@ def _analyze_inner():
     except (ValueError, TypeError):
         pass
 
+    # Read optional height / weight and compute BMI
+    user_height = None
+    user_weight = None
+    user_bmi = None
+    try:
+        h_raw = request.form.get('user_height', '').strip()
+        w_raw = request.form.get('user_weight', '').strip()
+        if h_raw and w_raw:
+            h = float(h_raw)
+            w = float(w_raw)
+            if 100 <= h <= 250 and 20 <= w <= 300:
+                user_height = int(h)
+                user_weight = round(w, 1)
+                user_bmi = round(w / ((h / 100) ** 2), 1)
+    except (ValueError, TypeError):
+        pass
+
     cached = results_storage.get(token)
     if cached and not force:
         print(f"[CACHE HIT] token={token}")
@@ -296,6 +313,11 @@ def _analyze_inner():
     if analysis_result is None:
         Analysis.save_result(token, None, error="OpenAI call failed")
         return jsonify({"success": False, "error": "Analiza nie powiodła się. Spróbuj ponownie."}), 500
+
+    # Inject body metrics into result
+    if user_height: analysis_result['user_height'] = user_height
+    if user_weight: analysis_result['user_weight'] = user_weight
+    if user_bmi:    analysis_result['user_bmi']    = user_bmi
 
     # ── STEP 6: Store ────────────────────────────────────────────────────────
     Analysis.save_result(token, analysis_result)

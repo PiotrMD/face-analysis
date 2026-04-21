@@ -38,4 +38,10 @@ DEMO_RESULT = {
     },
     "health_note": "Pamiętaj, że regularne stosowanie filtra SPF 50+ to podstawa ochrony przed fotostarzeniem.",
     "lang": "pl",
+    "biological_age_min": 32,
+    "biological_age_max": 36,
+    "user_age": 40,
+    "user_height": 170,
+    "user_weight": 68.0,
+    "user_bmi": 23.5,
 }
