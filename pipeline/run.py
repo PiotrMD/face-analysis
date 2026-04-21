@@ -37,6 +37,7 @@ def analyze(
     openai_client,
     model: str = "gpt-4o",
     lang: str = "pl",
+    user_age: int | None = None,
 ) -> dict:
     """
     Runs Stage 1 → Stage 2, then assembles the result.
@@ -69,11 +70,12 @@ def analyze(
         model=model,
         lang=lang,
         validation_metadata=val.get("metadata", {}),
+        user_age=user_age,
     )
     print("[PIPELINE] stage2 done", flush=True)
 
     # ── Assemble ──────────────────────────────────────────────────────────────
-    result = _assemble(score_result, lang)
+    result = _assemble(score_result, lang, user_age)
 
     print(
         f"[PIPELINE] complete overall={result['overall_score']} "
@@ -85,7 +87,7 @@ def analyze(
 
 # ── Internal ──────────────────────────────────────────────────────────────────
 
-def _assemble(score_result: dict, lang: str) -> dict:
+def _assemble(score_result: dict, lang: str, user_age: int | None = None) -> dict:
     """Build the template-compatible result dict from Stage 2 output."""
     scores  = score_result.get("scores", {})
     labels  = SCORE_FIELD_LABELS_PL if lang == "pl" else SCORE_FIELD_LABELS_EN
@@ -131,6 +133,8 @@ def _assemble(score_result: dict, lang: str) -> dict:
         "area_labels":     area_labels,
         "scores":          scores,
         "lang":            lang,
+        "biological_age":  score_result.get("biological_age"),
+        "user_age":        user_age,
     }
 
 

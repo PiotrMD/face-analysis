@@ -103,6 +103,14 @@
                     <div id="successState" class="upload-success" aria-live="polite"></div>
                     <p id="formError" class="form-notice" style="display:none;"></p>
 
+                    <div class="age-input-wrap">
+                        <label class="age-input__label" for="user_age">
+                            {% if lang == 'en' %}Your age (optional — for biological age comparison){% else %}Twój wiek (opcjonalnie — do porównania wieku biologicznego){% endif %}
+                        </label>
+                        <input class="age-input__field" type="number" id="user_age" name="user_age"
+                               min="18" max="99" placeholder="{% if lang == 'en' %}e.g. 35{% else %}np. 35{% endif %}">
+                    </div>
+
                     <button type="button" id="analyzeBtn" class="upload-card__btn" onclick="runAnalyze()"
                             style="background:#C6A062;color:#111111;font-weight:700;line-height:1.3;padding:16px 14px;">{{ t.analyze_btn }}</button>
                     <p class="demo-link"><a href="/demo">{{ t.demo_link }}</a></p>
@@ -604,6 +612,8 @@
             ? new File([f1], 'camera.jpg', { type: 'image/jpeg' })
             : f1;
         fd.append('en_face', fileToSend);
+        var ageVal = document.getElementById('user_age');
+        if (ageVal && ageVal.value) fd.append('user_age', ageVal.value);
 
         var force      = new URLSearchParams(window.location.search).get('force');
         var analyzeUrl = force === '1' ? '/analyze?force=1' : '/analyze';

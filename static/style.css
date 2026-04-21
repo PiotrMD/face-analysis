@@ -3738,6 +3738,63 @@ a.contact-row__value:hover { text-decoration: underline; }
 }
 
 /* ── Details / area bars ── */
+/* ── Biological age tile ── */
+.res-bio-age {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 18px 20px;
+    text-align: center;
+    margin-bottom: 12px;
+}
+.res-bio-age__label {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-4);
+    margin-bottom: 6px;
+}
+.res-bio-age__value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+    font-family: var(--serif);
+}
+.res-bio-age__delta {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ink-3);
+}
+.res-bio-age__delta--good    { color: #4a7c4e; }
+.res-bio-age__delta--concern { color: var(--danger-acc); }
+
+/* ── Age input on upload card ── */
+.age-input-wrap {
+    margin-bottom: 14px;
+    text-align: left;
+}
+.age-input__label {
+    display: block;
+    font-size: .72rem;
+    color: var(--ink-4);
+    margin-bottom: 5px;
+}
+.age-input__field {
+    width: 100px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-size: .9rem;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--bg-surface);
+    appearance: textfield;
+}
+.age-input__field::-webkit-outer-spin-button,
+.age-input__field::-webkit-inner-spin-button { -webkit-appearance: none; }
+
 .res-details {
     background: var(--bg-card);
     border: 1px solid var(--border);

@@ -45,6 +45,7 @@ def run(
     model: str = "gpt-4o",
     lang: str = "pl",
     validation_metadata: dict | None = None,
+    user_age: int | None = None,
 ) -> dict:
     """
     Returns analysis dict on success.
@@ -60,7 +61,7 @@ def run(
     prompt_template = ANALYSIS_PROMPT_PL if lang == "pl" else ANALYSIS_PROMPT_EN
     prompt = prompt_template.format(treatments=treatments_str)
 
-    context = _build_context(validation_metadata, lang)
+    context = _build_context(validation_metadata, lang, user_age)
     if context:
         prompt = context + "\n\n" + prompt
 
@@ -314,6 +315,13 @@ def _normalize(data: dict, allowed_treatments: list) -> dict:
         "reject_reason": pc_raw.get("reject_reason") if isinstance(pc_raw, dict) else None,
     }
 
+    # biological_age — clamp to 18–80
+    bio_age_raw = data.get("biological_age")
+    try:
+        bio_age = max(18, min(80, int(bio_age_raw)))
+    except (TypeError, ValueError):
+        bio_age = None
+
     return {
         "photo_check":          photo_check,
         "scores":               scores,
@@ -321,6 +329,7 @@ def _normalize(data: dict, allowed_treatments: list) -> dict:
         "improvements":         improvements,
         "suggested_treatments": treatments,
         "health_note":          health_note.strip(),
+        "biological_age":       bio_age,
         "doctor_consultation":  True,
     }
 
@@ -362,10 +371,12 @@ def _encode_image(image_path: str) -> tuple[str, str]:
         return base64.standard_b64encode(f.read()).decode("utf-8"), media_type
 
 
-def _build_context(metadata: dict | None, lang: str) -> str:
-    if not metadata:
-        return ""
+def _build_context(metadata: dict | None, lang: str, user_age: int | None = None) -> str:
     lines = []
+    if user_age and isinstance(user_age, int) and 18 <= user_age <= 99:
+        lines.append(f"[Wiek pacjenta: {user_age} lat]" if lang == "pl" else f"[Patient age: {user_age} years]")
+    if not metadata:
+        return "\n".join(lines)
     hp = metadata.get("head_pose", {})
     if hp and hp.get("yaw") not in (None, "minimal", "small"):
         lines.append(f"[Głowa obrócona: yaw={hp.get('yaw')}]" if lang == "pl" else f"[Head rotated: yaw={hp.get('yaw')}]")

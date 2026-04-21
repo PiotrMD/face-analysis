@@ -142,6 +142,20 @@ Maksymalnie 4 zabiegi. Jeśli wszystkie widoczne pola ≥8 → pusta lista [].
 Jedno krótkie zdanie po polsku: ogólna wskazówka o pielęgnacji (SPF, nawilżanie, regularność).
 NIE diagnozuj. NIE wymieniaj chorób, leków ani nazw lekarzy.
 
+━━━ KROK 7: WIEK BIOLOGICZNY SKÓRY ━━━
+
+Na podstawie zdjęcia oszacuj wiek biologiczny skóry jako liczbę całkowitą (zakres 18–80).
+Oceń według 7 kryteriów:
+1. Zmarszczki — głębokość i ilość: czoło, okolice oczu (kurze łapki), fałdy nosowo-wargowe, okolice ust, lwia zmarszczka między brwiami
+2. Napięcie i owal twarzy — opadanie policzków, utrata definicji konturu szczęki, zwiotczenie skóry szyi
+3. Utrata objętości — spłaszczenie policzków, okolice skroniowe, dolina łez
+4. Przebarwienia — plamy, nierówny koloryt, przebarwienia posłoneczne
+5. Tekstura i pory — rozszerzone pory, szorstkość, brak blasku, blizny
+6. Okolica oczu — cienie, worki, wklęśnięcie okolicy podoczodołowej
+7. Ogólna jakość skóry — nawilżenie, elastyczność, blask, świeżość
+
+Zwróć TYLKO liczbę całkowitą w polu "biological_age". Bez komentarza.
+
 ━━━ FORMAT ODPOWIEDZI — WYŁĄCZNIE JSON ━━━
 
 Zwróć TYLKO poprawny JSON. Bez markdown. Bez żadnego tekstu przed ani po JSON.
@@ -173,6 +187,7 @@ Zwróć TYLKO poprawny JSON. Bez markdown. Bez żadnego tekstu przed ani po JSON
   "improvements":         ["<klucz_pola>", "<klucz_pola>", "<klucz_pola>"],
   "suggested_treatments": ["<nazwa z listy>"],
   "health_note":          "<jedno zdanie po polsku>",
+  "biological_age":       <liczba całkowita 18-80>,
   "doctor_consultation":  true
 }}"""
 
@@ -250,6 +265,20 @@ Maximum 4 treatments. If all visible fields ≥8 → empty list [].
 One short sentence in English: general skincare tip (SPF, hydration, routine).
 Do NOT diagnose. Do NOT mention diseases, medications, or doctor names.
 
+━━━ STEP 7: BIOLOGICAL SKIN AGE ━━━
+
+Based on the photo, estimate the biological skin age as an integer (range 18–80).
+Assess using 7 criteria:
+1. Wrinkles — depth and count: forehead, crow's feet, nasolabial folds, perioral lines, glabellar line (between brows)
+2. Skin firmness and oval — cheek descent, jawline definition loss, neck laxity
+3. Volume loss — flattened cheeks, temporal hollowing, tear trough
+4. Pigmentation — sun spots, uneven tone, post-sun discolouration
+5. Texture and pores — enlarged pores, roughness, lack of glow, scars
+6. Eye area — dark circles, under-eye bags, infraorbital hollowing
+7. Overall skin quality — hydration, elasticity, radiance, freshness
+
+Return ONLY an integer in the "biological_age" field. No commentary.
+
 ━━━ RESPONSE FORMAT — JSON ONLY ━━━
 
 Return ONLY valid JSON. No markdown. No text before or after the JSON.
@@ -281,6 +310,7 @@ Return ONLY valid JSON. No markdown. No text before or after the JSON.
   "improvements":         ["<field_key>", "<field_key>", "<field_key>"],
   "suggested_treatments": ["<treatment name from list>"],
   "health_note":          "<one sentence in English>",
+  "biological_age":       <integer 18-80>,
   "doctor_consultation":  true
 }}"""
 

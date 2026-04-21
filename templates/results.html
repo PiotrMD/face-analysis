@@ -127,6 +127,32 @@
             </div>
             {% endif %}
 
+            <!-- ── WIEK BIOLOGICZNY ── -->
+            {% if result.biological_age %}
+            <div class="res-bio-age">
+                <div class="res-bio-age__label">
+                    {% if lang == 'en' %}Biological skin age{% else %}Wiek biologiczny skóry{% endif %}
+                </div>
+                <div class="res-bio-age__value">{{ result.biological_age }} {% if lang == 'en' %}years{% else %}lat{% endif %}</div>
+                {% if result.user_age %}
+                    {% set diff = result.user_age - result.biological_age %}
+                    {% if diff > 0 %}
+                    <div class="res-bio-age__delta res-bio-age__delta--good">
+                        {% if lang == 'en' %}{{ diff }} years younger in appearance{% else %}wyglądasz o {{ diff }} {% if diff == 1 %}rok{% elif diff < 5 %}lata{% else %}lat{% endif %} młodziej{% endif %}
+                    </div>
+                    {% elif diff < 0 %}
+                    <div class="res-bio-age__delta res-bio-age__delta--concern">
+                        {% if lang == 'en' %}{{ diff|abs }} years older in appearance{% else %}wyglądasz o {{ diff|abs }} {% if diff|abs == 1 %}rok{% elif diff|abs < 5 %}lata{% else %}lat{% endif %} starzej{% endif %}
+                    </div>
+                    {% else %}
+                    <div class="res-bio-age__delta">
+                        {% if lang == 'en' %}appearance matches your age{% else %}wygląd zgodny z wiekiem metrykalnym{% endif %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endif %}
+
             <!-- ── SZCZEGÓŁOWE OCENY (zwijane) ── -->
             {% if result.areas %}
             <details class="res-details" open>

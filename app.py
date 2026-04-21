@@ -137,7 +137,7 @@ def _run_analysis(token: str, saved_paths: dict, lang: str = 'pl'):
         return None
 
 
-def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl'):
+def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl', user_age: int | None = None):
     """3-stage pipeline: validate → score → report. Replaces _run_analysis when USE_NEW_PIPELINE=True."""
     if USE_MOCK_MODE:
         print(f"[NO API KEY] Pipeline unavailable — configure OPENAI_API_KEY. token={token}")
@@ -146,7 +146,7 @@ def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl'):
     client = openai_client or OpenAI(api_key=os.getenv('OPENAI_API_KEY', ''))
     try:
         print(f"[PIPELINE START] token={token} lang={lang}", flush=True)
-        result = pipeline_analyze(saved_paths, client, lang=lang)
+        result = pipeline_analyze(saved_paths, client, lang=lang, user_age=user_age)
         print(f"[PIPELINE SUCCESS] token={token}", flush=True)
         return result
     except ValueError as e:
@@ -247,6 +247,18 @@ def _analyze_inner():
 
     # ── STEP 5: Analysis ─────────────────────────────────────────────────────
     lang = session.get('lang', 'pl')
+
+    # Read optional user age
+    user_age = None
+    try:
+        age_raw = request.form.get('user_age', '').strip()
+        if age_raw:
+            age_val = int(age_raw)
+            if 18 <= age_val <= 99:
+                user_age = age_val
+    except (ValueError, TypeError):
+        pass
+
     cached = results_storage.get(token)
     if cached and not force:
         print(f"[CACHE HIT] token={token}")
@@ -256,7 +268,7 @@ def _analyze_inner():
         else: print(f"[CACHE MISS] token={token}")
         try:
             runner = _run_analysis_v2 if USE_NEW_PIPELINE else _run_analysis
-            analysis_result = runner(token, saved_paths, lang=lang)
+            analysis_result = runner(token, saved_paths, lang=lang, user_age=user_age)
         except ValueError as e:
             from validation_messages import get_message, get_hint
             msg = str(e)
