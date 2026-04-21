@@ -3681,6 +3681,61 @@ a.contact-row__value:hover { text-decoration: underline; }
     box-shadow: var(--shadow-xs);
 }
 
+/* Doctor expandable card */
+.res-doctor-details { padding: 0; }
+.res-doctor-details summary { list-style: none; }
+.res-doctor-details summary::-webkit-details-marker { display: none; }
+
+.res-doctor-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    cursor: pointer;
+}
+.res-doctor-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.res-doctor-summary__text { flex: 1; min-width: 0; }
+.res-doctor-summary__name  { font-weight: 700; font-size: .95rem; color: #111; }
+.res-doctor-summary__creds { font-size: .78rem; color: #6F6A63; margin-top: 3px; line-height: 1.45; }
+.res-doctor-summary__clinic { font-size: .78rem; color: #B8914F; margin-top: 3px; }
+
+.res-doctor-chevron {
+    font-size: 1.4rem;
+    color: #B8914F;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform .2s ease;
+}
+.res-doctor-details[open] .res-doctor-chevron {
+    transform: rotate(90deg);
+}
+
+.res-doctor-bio {
+    padding: 0 20px 18px;
+    border-top: 1px solid var(--border);
+}
+.res-doctor-bio p {
+    font-size: .82rem;
+    color: #4a4540;
+    line-height: 1.65;
+    margin: 12px 0 0;
+}
+.res-doctor-bio__links {
+    margin-top: 14px !important;
+}
+.res-doctor-bio__links a {
+    color: #B8914F;
+    text-decoration: none;
+    font-weight: 500;
+}
+.res-doctor-bio__links a:hover { text-decoration: underline; }
+
 .res-card__title {
     display: flex;
     align-items: center;

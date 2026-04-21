@@ -193,17 +193,35 @@
             {% endif %}
 
             <!-- ── 6. LEKARZ ── -->
-            <div class="res-card" style="display:flex;align-items:center;gap:16px;padding:18px 20px;">
-                <img src="{{ url_for('static', filename='img/doctor.jpg') }}"
-                     alt="{{ t.doctor_full }}"
-                     style="width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;"
-                     onerror="this.style.display='none'">
-                <div>
-                    <div style="font-weight:700;font-size:.95rem;color:#111;">{{ t.doctor_full }}</div>
-                    <div style="font-size:.78rem;color:#6F6A63;margin-top:3px;line-height:1.45;">{{ t.doctor_creds }}</div>
-                    <div style="font-size:.78rem;color:#B8914F;margin-top:3px;">{{ t.clinic_name }}</div>
+            <details class="res-card res-doctor-details">
+                <summary class="res-doctor-summary">
+                    <img src="{{ url_for('static', filename='img/doctor.jpg') }}"
+                         alt="{{ t.doctor_full }}"
+                         class="res-doctor-avatar"
+                         onerror="this.style.display='none'">
+                    <div class="res-doctor-summary__text">
+                        <div class="res-doctor-summary__name">{{ t.doctor_full }}</div>
+                        <div class="res-doctor-summary__creds">{{ t.doctor_creds }}</div>
+                        <div class="res-doctor-summary__clinic">{{ t.clinic_name }}</div>
+                    </div>
+                    <span class="res-doctor-chevron">&#8250;</span>
+                </summary>
+                <div class="res-doctor-bio">
+                    {% if lang == 'en' %}
+                    <p>Dr. Niedziałkowski is a specialist in internal medicine and allergology, and a certified aesthetic medicine physician. Graduate of the Medical Faculty of the Military Medical Academy in Łódź and the postgraduate aesthetic medicine programme at the Medical University of Warsaw.</p>
+                    <p>Academic teacher, member of the Polish Society of Allergology and societies dedicated to aesthetic medicine, anti-aging, and longevity. His practice is grounded in current medical knowledge and extensive clinical experience gained at prestigious institutions, including the Military Institute of Medicine in Warsaw.</p>
+                    <p>In his work he combines clinical medicine with a modern approach to aging processes, treating the body as a coherent whole. His broad expertise allows him to comprehensively assess a patient's health and design an individualised treatment plan.</p>
+                    <p>Patient health improvement is his primary priority. Aesthetic medicine procedures complement the therapeutic process and are chosen thoughtfully, with genuine biological needs in mind. He favours regenerative approaches and therapies that support natural biological processes, avoiding procedures that could disturb facial harmony or produce unnatural results.</p>
+                    <p class="res-doctor-bio__links"><a href="https://www.ocenazdrowia.pl" target="_blank" rel="noopener">www.ocenazdrowia.pl</a> &nbsp;·&nbsp; <a href="https://www.estetykamedyczna.pl" target="_blank" rel="noopener">www.estetykamedyczna.pl</a></p>
+                    {% else %}
+                    <p>Dr n. med. Piotr Niedziałkowski — specjalista chorób wewnętrznych i alergologii oraz dyplomowany lekarz medycyny estetycznej. Absolwent Wydziału Lekarskiego Wojskowej Akademii Medycznej w Łodzi oraz studiów podyplomowych z zakresu medycyny estetycznej Warszawskiego Uniwersytetu Medycznego.</p>
+                    <p>Nauczyciel akademicki, członek Polskiego Towarzystwa Alergologicznego oraz towarzystw zajmujących się medycyną estetyczną, przeciwstarzeniową i długowiecznością. Praktykę opiera na aktualnej wiedzy medycznej i wieloletnim doświadczeniu klinicznym zdobytym w renomowanych ośrodkach, m.in. w Wojskowym Instytucie Medycznym w Warszawie.</p>
+                    <p>W swojej pracy łączy medycynę kliniczną z nowoczesnym podejściem do procesów starzenia, traktując organizm jako spójną całość. Dzięki swojemu doświadczeniu potrafi kompleksowo ocenić stan zdrowia i dobrać indywidualny plan postępowania.</p>
+                    <p>Priorytetem jest poprawa ogólnego stanu zdrowia pacjenta. Zabiegi medycyny estetycznej stanowią uzupełnienie procesu terapeutycznego i są dobierane w sposób świadomy, z uwzględnieniem rzeczywistych potrzeb organizmu. Zwolennik podejścia regeneracyjnego oraz terapii wspierających naturalne procesy biologiczne. W praktyce unika procedur, które mogłyby zaburzyć harmonię twarzy lub prowadzić do nienaturalnych efektów, koncentrując się na rozwiązaniach bezpiecznych, długofalowych i spójnych z fizjologią.</p>
+                    <p class="res-doctor-bio__links"><a href="https://www.ocenazdrowia.pl" target="_blank" rel="noopener">www.ocenazdrowia.pl</a> &nbsp;·&nbsp; <a href="https://www.estetykamedyczna.pl" target="_blank" rel="noopener">www.estetykamedyczna.pl</a></p>
+                    {% endif %}
                 </div>
-            </div>
+            </details>
 
             <!-- ── 7. KONSULTACJA ── -->
             <div style="background:linear-gradient(135deg,#1a1a1a 0%,#2d2410 100%);
