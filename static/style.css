@@ -3875,6 +3875,7 @@ a.contact-row__value:hover { text-decoration: underline; }
 .bio-input__unit-wrap {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
 }
 .bio-unit {
@@ -3884,6 +3885,7 @@ a.contact-row__value:hover { text-decoration: underline; }
 }
 .age-input__label {
     display: block;
+    width: 100%;
     font-size: .72rem;
     color: var(--ink-4);
     margin-bottom: 5px;
