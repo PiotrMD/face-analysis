@@ -404,13 +404,22 @@ body {
 .upload-area p      { font-size: .77rem; font-weight: 600; color: var(--ink-3); }
 .upload-area.filled p { color: var(--gold-dark); }
 
+@keyframes face-breathe {
+    0%, 100% { transform: scale(1);   opacity: .8; }
+    50%       { transform: scale(1.06); opacity: 1; }
+}
+
 /* face icon in upload area */
 .upload-area__face-icon {
-    width: 64px;
-    height: 64px;
+    width: 76px;
+    height: 76px;
     color: #C6A062;
     opacity: .85;
     flex-shrink: 0;
+    animation: face-breathe 3.5s ease-in-out infinite;
+}
+.upload-area.filled .upload-area__face-icon {
+    animation: none;
 }
 .upload-area__cta {
     font-size: .88rem;
@@ -420,10 +429,13 @@ body {
     margin: 0;
 }
 .upload-area__sub {
-    font-size: .72rem;
+    font-size: .68rem;
     font-weight: 400;
     color: var(--ink-4);
     margin: 0;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    opacity: .6;
 }
 .file-name          { font-size: .67rem; color: var(--ink-4); word-break: break-all; line-height: 1.3; }
 .upload-area.filled .file-name { color: var(--gold-dark); }

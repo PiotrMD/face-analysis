@@ -72,22 +72,26 @@
                             <div class="upload-area" id="area-en_face" onclick="document.getElementById('en_face').click()">
                                 <img class="upload-area__preview" id="preview-en_face" src="" alt="" style="display:none;">
                                 <!-- face outline icon — hidden when filled -->
-                                <svg id="icon-en_face" class="upload-area__face-icon" viewBox="0 0 64 80" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                    <!-- head outline -->
-                                    <path d="M32 6 C16 6 10 18 10 30 C10 44 16 56 24 60 C26 61 29 62 32 62 C35 62 38 61 40 60 C48 56 54 44 54 30 C54 18 48 6 32 6 Z"/>
-                                    <!-- eyes -->
-                                    <ellipse cx="23" cy="30" rx="3" ry="2"/>
-                                    <ellipse cx="41" cy="30" rx="3" ry="2"/>
-                                    <!-- nose bridge -->
-                                    <path d="M32 34 L30 40 L34 40"/>
-                                    <!-- mouth -->
-                                    <path d="M25 48 Q32 53 39 48"/>
-                                    <!-- eyebrows -->
-                                    <path d="M19 25 Q23 22 27 25"/>
-                                    <path d="M37 25 Q41 22 45 25"/>
-                                    <!-- neck / shoulders hint -->
-                                    <path d="M24 62 Q20 68 14 72" stroke-opacity=".4"/>
-                                    <path d="M40 62 Q44 68 50 72" stroke-opacity=".4"/>
+                                <svg id="icon-en_face" class="upload-area__face-icon" viewBox="0 0 60 76" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <!-- head / face oval -->
+                                    <ellipse cx="30" cy="28" rx="20" ry="24" stroke-width="1.4"/>
+                                    <!-- horizontal thirds — hairline, brow, nose, chin -->
+                                    <line x1="14" y1="20" x2="46" y2="20" stroke-width=".7" stroke-opacity=".35"/>
+                                    <line x1="11" y1="28" x2="49" y2="28" stroke-width=".7" stroke-opacity=".35"/>
+                                    <line x1="14" y1="36" x2="46" y2="36" stroke-width=".7" stroke-opacity=".35"/>
+                                    <!-- vertical midline -->
+                                    <line x1="30" y1="4" x2="30" y2="52" stroke-width=".7" stroke-opacity=".35"/>
+                                    <!-- left/right eye marks -->
+                                    <line x1="20" y1="26" x2="20" y2="30" stroke-width="1.1"/>
+                                    <line x1="40" y1="26" x2="40" y2="30" stroke-width="1.1"/>
+                                    <!-- nose tip -->
+                                    <line x1="28" y1="36" x2="32" y2="36" stroke-width="1.1"/>
+                                    <!-- neck -->
+                                    <path d="M24 52 L22 62" stroke-width="1.2" stroke-opacity=".5"/>
+                                    <path d="M36 52 L38 62" stroke-width="1.2" stroke-opacity=".5"/>
+                                    <!-- shoulders -->
+                                    <path d="M10 68 Q16 62 22 62" stroke-width="1.2" stroke-opacity=".5"/>
+                                    <path d="M50 68 Q44 62 38 62" stroke-width="1.2" stroke-opacity=".5"/>
                                 </svg>
                                 <p class="upload-area__cta" id="label-en_face">
                                     {% if lang == 'en' %}Tap to upload your photo{% else %}Dotknij, aby wgrać zdjęcie{% endif %}
