@@ -3726,8 +3726,12 @@ a.contact-row__value:hover { text-decoration: underline; }
     line-height: 1.65;
     margin: 12px 0 0;
 }
-.res-doctor-bio__links {
+.res-doctor-bio__address {
     margin-top: 14px !important;
+    color: #6F6A63 !important;
+}
+.res-doctor-bio__links {
+    margin-top: 6px !important;
 }
 .res-doctor-bio__links a {
     color: #B8914F;
