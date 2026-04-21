@@ -340,9 +340,6 @@ body {
 
 .photo-grid--single {
     grid-template-columns: 1fr;
-    max-width: 260px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .photo-upload { position: relative; }
