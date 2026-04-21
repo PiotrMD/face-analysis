@@ -373,8 +373,6 @@ def _encode_image(image_path: str) -> tuple[str, str]:
 
 def _build_context(metadata: dict | None, lang: str, user_age: int | None = None) -> str:
     lines = []
-    if user_age and isinstance(user_age, int) and 18 <= user_age <= 99:
-        lines.append(f"[Wiek pacjenta: {user_age} lat]" if lang == "pl" else f"[Patient age: {user_age} years]")
     if not metadata:
         return "\n".join(lines)
     hp = metadata.get("head_pose", {})
