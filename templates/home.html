@@ -103,12 +103,35 @@
                     <div id="successState" class="upload-success" aria-live="polite"></div>
                     <p id="formError" class="form-notice" style="display:none;"></p>
 
-                    <div class="age-input-wrap">
-                        <label class="age-input__label" for="user_age">
-                            {% if lang == 'en' %}Your age (optional — for biological age comparison){% else %}Twój wiek (opcjonalnie — do porównania wieku biologicznego){% endif %}
-                        </label>
-                        <input class="age-input__field" type="number" id="user_age" name="user_age"
-                               min="18" max="99" placeholder="{% if lang == 'en' %}e.g. 35{% else %}np. 35{% endif %}">
+                    <div class="bio-inputs">
+                        <div class="bio-inputs__row">
+                            <div class="bio-input-item">
+                                <label class="age-input__label" for="user_age">{% if lang == 'en' %}Age{% else %}Wiek{% endif %} <span class="bio-optional">({% if lang == 'en' %}optional{% else %}opcjonalnie{% endif %})</span></label>
+                                <div class="bio-input__unit-wrap">
+                                    <input class="age-input__field" type="number" id="user_age" name="user_age" min="18" max="99" placeholder="{% if lang == 'en' %}e.g. 35{% else %}np. 35{% endif %}">
+                                    <span class="bio-unit">{% if lang == 'en' %}yr{% else %}lat{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="bio-input-item">
+                                <label class="age-input__label" for="user_height">{% if lang == 'en' %}Height{% else %}Wzrost{% endif %} <span class="bio-optional">({% if lang == 'en' %}optional{% else %}opcjonalnie{% endif %})</span></label>
+                                <div class="bio-input__unit-wrap">
+                                    <input class="age-input__field" type="number" id="user_height" name="user_height" min="140" max="220" placeholder="{% if lang == 'en' %}e.g. 170{% else %}np. 170{% endif %}">
+                                    <span class="bio-unit">cm</span>
+                                </div>
+                            </div>
+                            <div class="bio-input-item">
+                                <label class="age-input__label" for="user_weight">{% if lang == 'en' %}Weight{% else %}Waga{% endif %} <span class="bio-optional">({% if lang == 'en' %}optional{% else %}opcjonalnie{% endif %})</span></label>
+                                <div class="bio-input__unit-wrap">
+                                    <input class="age-input__field" type="number" id="user_weight" name="user_weight" min="30" max="250" placeholder="{% if lang == 'en' %}e.g. 70{% else %}np. 70{% endif %}">
+                                    <span class="bio-unit">kg</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="bmiResult" class="bmi-result" style="display:none;">
+                            <span class="bmi-result__label">BMI</span>
+                            <span class="bmi-result__value" id="bmiValue"></span>
+                            <span class="bmi-result__desc" id="bmiDesc"></span>
+                        </div>
                     </div>
 
                     <button type="button" id="analyzeBtn" class="upload-card__btn" onclick="runAnalyze()"
@@ -612,8 +635,12 @@
             ? new File([f1], 'camera.jpg', { type: 'image/jpeg' })
             : f1;
         fd.append('en_face', fileToSend);
-        var ageVal = document.getElementById('user_age');
-        if (ageVal && ageVal.value) fd.append('user_age', ageVal.value);
+        var ageVal    = document.getElementById('user_age');
+        var heightVal = document.getElementById('user_height');
+        var weightVal = document.getElementById('user_weight');
+        if (ageVal    && ageVal.value)    fd.append('user_age',    ageVal.value);
+        if (heightVal && heightVal.value) fd.append('user_height', heightVal.value);
+        if (weightVal && weightVal.value) fd.append('user_weight', weightVal.value);
 
         var force      = new URLSearchParams(window.location.search).get('force');
         var analyzeUrl = force === '1' ? '/analyze?force=1' : '/analyze';
@@ -732,6 +759,43 @@
                 btn.textContent = _T.btn_start;
             });
     }
+    /* ── BMI calculator ── */
+    (function() {
+        var heightEl = document.getElementById('user_height');
+        var weightEl = document.getElementById('user_weight');
+        var bmiResult = document.getElementById('bmiResult');
+        var bmiValue  = document.getElementById('bmiValue');
+        var bmiDesc   = document.getElementById('bmiDesc');
+        var lang = '{{ lang }}';
+
+        function calcBMI() {
+            var h = parseFloat(heightEl.value);
+            var w = parseFloat(weightEl.value);
+            if (!h || !w || h < 100 || w < 20) { bmiResult.style.display = 'none'; return; }
+            var bmi = w / ((h / 100) * (h / 100));
+            var bmiRounded = Math.round(bmi * 10) / 10;
+            var color, desc;
+            if (bmi < 18.5) {
+                color = '#6b8cba'; desc = lang === 'en' ? 'Underweight' : 'Niedowaga';
+            } else if (bmi < 25) {
+                color = '#4a7c4e'; desc = lang === 'en' ? 'Normal weight' : 'Prawidłowa masa ciała';
+            } else if (bmi < 30) {
+                color = '#b8860b'; desc = lang === 'en' ? 'Overweight' : 'Nadwaga';
+            } else if (bmi < 35) {
+                color = '#c25a00'; desc = lang === 'en' ? 'Obesity class I' : 'Otyłość I stopnia';
+            } else {
+                color = '#b91c1c'; desc = lang === 'en' ? 'Obesity class II/III' : 'Otyłość II/III stopnia';
+            }
+            bmiValue.textContent = bmiRounded;
+            bmiValue.style.color = color;
+            bmiDesc.textContent  = desc;
+            bmiDesc.style.color  = color;
+            bmiResult.style.display = 'flex';
+        }
+        if (heightEl) heightEl.addEventListener('input', calcBMI);
+        if (weightEl) weightEl.addEventListener('input', calcBMI);
+    })();
+
     /* ── Share button ── */
     (function() {
         var btn     = document.getElementById('shareBtn');
