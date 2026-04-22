@@ -330,22 +330,22 @@ def validate_face_ai(image_path: str, openai_client, model: str = "gpt-4o") -> d
           f"face_count={face_cnt} pose_yaw={pose.get('yaw')} "
           f"frontal={result.get('frontal_face')} sharpness={result.get('sharpness_ok')}")
 
-    # Hard-block: glasses
-    if occlusion in ('sunglasses', 'glasses') or not eyes_ok:
-        print(f"[VALIDATE_AI] REJECT reason=glasses occlusion={occlusion!r} eyes_visible={eyes_ok}")
+    # Hard-block: no face (check first — avoids misclassifying doorways as "glasses")
+    if face_cnt == 0:
+        print("[VALIDATE_AI] REJECT reason=no_face")
+        raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['no_face']}")
+    # Hard-block: multiple faces
+    if face_cnt > 1:
+        print(f"[VALIDATE_AI] REJECT reason=multiple_faces face_count={face_cnt}")
+        raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['multi_face']}")
+    # Hard-block: glasses (only when actual glasses/sunglasses detected — NOT when eyes hidden by angle)
+    if occlusion in ('sunglasses', 'glasses'):
+        print(f"[VALIDATE_AI] REJECT reason=glasses occlusion={occlusion!r}")
         raise ValueError(f"EYES_BLOCKED: {REJECTION_MESSAGES['glasses']}")
     # Hard-block: AI filter
     if filter_det:
         print("[VALIDATE_AI] REJECT reason=filter")
         raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['filter']}")
-    # Hard-block: no face
-    if face_cnt == 0:
-        print("[VALIDATE_AI] REJECT reason=no_face")
-        raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['no_face']}")
-    # Hard-block: multiple faces (was missing before — B2 in prompt had no corresponding code block)
-    if face_cnt > 1:
-        print(f"[VALIDATE_AI] REJECT reason=multiple_faces face_count={face_cnt}")
-        raise ValueError(f"PHOTO_UNSUITABLE: {REJECTION_MESSAGES['multi_face']}")
 
     # face_fully_visible=false is NEVER a hard block — log and continue
     if not result.get('face_fully_visible', True):
