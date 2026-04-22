@@ -19,7 +19,7 @@ TRANSLATIONS = {
 
         # Home hero
         'eyebrow':    'Centrum Estetyki Medycznej',
-        'hero_headline': 'Precyzyjna ocena<br>estetyki twarzy.',
+        'hero_headline': 'Zaawansowana analiza<br>estetyczna twarzy.',
         'hero_sub':   'Indywidualny plan postępowania dopasowany do Twojej twarzy.',
         'bullet_1':   'Kompleksowa analiza estetyczna twarzy',
         'bullet_2':   'Ocena 7 kategorii: symetria, skóra, oznaki starzenia, okolica oczu, wargi',
@@ -294,7 +294,7 @@ TRANSLATIONS = {
 
         # Home hero
         'eyebrow':       'Medical Aesthetics Centre',
-        'hero_headline': 'Precise facial<br>aesthetic assessment.',
+        'hero_headline': 'Advanced facial<br>aesthetic analysis.',
         'hero_sub':      'Individual treatment plan tailored to your face.',
         'bullet_1':      'Comprehensive facial aesthetic analysis',
         'bullet_2':      'Assessment of 7 categories: symmetry, skin quality, signs of ageing, eye area, lips',

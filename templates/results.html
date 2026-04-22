@@ -221,19 +221,19 @@
             {% set bmi = result.user_bmi %}
             {% if bmi < 18.5 %}
                 {% set bmi_color = '#6b8cba' %}
-                {% set bmi_label = 'Niedowaga' if lang == 'pl' else 'Underweight' %}
+                {% set bmi_label = 'niski' if lang == 'pl' else 'low' %}
             {% elif bmi < 25 %}
                 {% set bmi_color = '#4a7c4e' %}
-                {% set bmi_label = 'Prawidłowa masa ciała' if lang == 'pl' else 'Normal weight' %}
+                {% set bmi_label = 'w normie' if lang == 'pl' else 'normal' %}
             {% elif bmi < 30 %}
                 {% set bmi_color = '#b8860b' %}
-                {% set bmi_label = 'Nadwaga' if lang == 'pl' else 'Overweight' %}
+                {% set bmi_label = 'podwyższony' if lang == 'pl' else 'elevated' %}
             {% elif bmi < 35 %}
                 {% set bmi_color = '#c25a00' %}
-                {% set bmi_label = 'Otyłość I stopnia' if lang == 'pl' else 'Obesity class I' %}
+                {% set bmi_label = 'wysoki' if lang == 'pl' else 'high' %}
             {% else %}
                 {% set bmi_color = '#b91c1c' %}
-                {% set bmi_label = 'Otyłość II/III stopnia' if lang == 'pl' else 'Obesity class II/III' %}
+                {% set bmi_label = 'bardzo wysoki' if lang == 'pl' else 'very high' %}
             {% endif %}
             <div class="res-card res-bmi-card">
                 <div class="res-bmi-card__row">
@@ -250,7 +250,8 @@
                         <div class="res-bmi-card__lbl">BMI</div>
                     </div>
                 </div>
-                <div class="res-bmi-card__desc" style="color:{{ bmi_color }};">{{ bmi_label }}</div>
+                <div class="res-bmi-card__desc" style="color:{{ bmi_color }};">BMI {{ bmi_label }}</div>
+                <div class="res-bmi-card__note">{% if lang == 'en' %}Indicative interpretation based on BMI index.{% else %}Interpretacja orientacyjna na podstawie wskaźnika BMI.{% endif %}</div>
             </div>
             {% endif %}
 
@@ -284,6 +285,9 @@
                     <span class="res-card__icon res-card__icon--treatment">◈</span>
                     {% if lang == 'en' %}Treatments to discuss{% else %}Zabiegi do omówienia{% endif %}
                 </div>
+                <p style="font-size:.72rem;color:var(--ink-4);margin:0 0 10px;line-height:1.4;">
+                    {% if lang == 'en' %}Example directions for further consultation with a doctor.{% else %}Przykładowe kierunki dalszej konsultacji z lekarzem.{% endif %}
+                </p>
                 <div class="res-tags">
                     {% for t_name in result.treatments[:3] %}
                     <span class="res-tag">{{ t_name }}</span>

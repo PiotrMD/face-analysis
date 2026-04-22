@@ -4033,6 +4033,7 @@ a.contact-row__value:hover { text-decoration: underline; }
 .res-bmi-card__unit { font-size: .75rem; font-weight: 400; color: var(--ink-4); }
 .res-bmi-card__lbl  { font-size: .7rem; color: var(--ink-4); margin-top: 3px; text-transform: uppercase; letter-spacing: .06em; }
 .res-bmi-card__desc { text-align: center; font-size: .82rem; font-weight: 600; }
+.res-bmi-card__note { text-align: center; font-size: .65rem; color: var(--ink-4); margin-top: 6px; opacity: .7; }
 
 /* ── Percentile ranking ── */
 .res-percentile {
