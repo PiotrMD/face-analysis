@@ -158,8 +158,11 @@ def _opencv_gate(image_path: str) -> dict:
             largest = max(areas)
             second  = sorted(areas, reverse=True)[1]
             ratio   = second / largest
-            print(f"[STAGE1/opencv] multi_face second/largest={ratio:.2f} threshold=0.40", flush=True)
-            if ratio > 0.40:
+            # Also require second face to be meaningfully large in absolute terms
+            # (door handles, knobs, background objects are small false positives)
+            second_face_ratio = second / (w * h) if w * h > 0 else 0.0
+            print(f"[STAGE1/opencv] multi_face second/largest={ratio:.2f} second_abs={second_face_ratio:.4f} threshold=0.55/0.01", flush=True)
+            if ratio > 0.55 and second_face_ratio > 0.01:
                 details["single_face"] = False
                 print(f"[STAGE1/opencv] REJECT multiple_faces ratio={ratio:.2f}", flush=True)
                 return {"reject_reason": "multiple_faces", "details": details, "warnings": warnings}
