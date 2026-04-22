@@ -101,6 +101,7 @@ NIE oceniaj:
 
 Twoje oceny muszą być spójne i powtarzalne dla podobnych twarzy.
 Nie zmieniaj znacząco wyników tylko z powodu różnicy oświetlenia między zdjęciami.
+Jeśli różnice w obrazie wynikają wyłącznie z oświetlenia, zachowaj podobne wartości ocen.
 
 Unikaj skrajnych ocen (1–3 oraz 9–10), jeśli nie ma bardzo wyraźnych, jednoznacznych anatomicznych cech uzasadniających taką wartość.
 
@@ -246,6 +247,7 @@ Do NOT assess:
 
 Your scores must be consistent and repeatable for similar faces.
 Do not change results significantly based on lighting differences between photos.
+If differences in the image result solely from lighting, keep the score values similar.
 
 Avoid extreme scores (1–3 and 9–10) unless there are very clear, unambiguous anatomical features justifying such a value.
 

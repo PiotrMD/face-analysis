@@ -86,6 +86,9 @@
                                 {{ t.cam_btn }}
                             </button>
                             <p class="slot-hint" id="hint-en_face">{{ t.upload_hint }}</p>
+                            <p class="slot-hint" style="margin-top:4px;font-style:italic;">
+                                {% if lang == 'en' %}Take a photo facing forward, in even natural light. Avoid shadows and filters.{% else %}Zrób zdjęcie na wprost, w równym, naturalnym świetle. Unikaj cieni i filtrów.{% endif %}
+                            </p>
                             <p class="slot-error" id="slot-error-en_face" style="display:none;"></p>
                         </div>
                     </div>

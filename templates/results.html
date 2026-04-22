@@ -208,6 +208,11 @@
                 {% endif %}
 
                 <div class="res-bio-age__note">{% if lang == 'en' %}Indicative result based on facial appearance analysis.{% else %}Wynik orientacyjny oparty na analizie wyglądu twarzy.{% endif %}</div>
+                {% if result.bio_confidence and result.bio_confidence < 0.75 %}
+                <div class="res-bio-age__note" style="margin-top:6px;color:#b8860b;">
+                    {% if lang == 'en' %}Result may vary depending on lighting and photo quality.{% else %}Wynik może się różnić w zależności od oświetlenia i jakości zdjęcia.{% endif %}
+                </div>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -333,8 +338,8 @@
                 <p style="font-size:1.05rem;font-weight:700;color:#fff;margin:0 0 6px;line-height:1.35;">
                     {% if lang == 'en' %}Discuss your results with a doctor{% else %}Omów wynik z lekarzem{% endif %}
                 </p>
-                <p style="font-size:.75rem;color:rgba(255,255,255,.55);margin:0 0 22px;line-height:1.5;white-space:nowrap;">
-                    {% if lang == 'en' %}Choose the best treatment plan tailored to you.{% else %}Dobierz najlepszy plan postępowania dopasowany do Ciebie.{% endif %}
+                <p style="font-size:.82rem;color:rgba(255,255,255,.7);margin:0 0 22px;line-height:1.5;">
+                    {% if lang == 'en' %}Discuss your results and choose an individual treatment plan with a doctor.{% else %}Omów wynik i dobierz indywidualny plan z lekarzem.{% endif %}
                 </p>
                 <div style="display:flex;gap:10px;align-items:stretch;">
                     <button id="openConsultBtn"

@@ -137,7 +137,7 @@ def _call(client, messages: list, model: str, max_tokens: int) -> str | None:
         model=model,
         messages=messages,
         max_tokens=max_tokens,
-        temperature=0.5,   # 0.5: enough variance to reflect actual photo differences
+        temperature=0.2,   # 0.2: lower variance → more repeatable scores across lighting conditions
     )
     choice = response.choices[0]
     raw    = (choice.message.content or "").strip()
