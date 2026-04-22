@@ -164,8 +164,13 @@ def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl', user_age: 
 
 
 def _get_app_version() -> str:
-    import subprocess
+    # Railway sets RAILWAY_GIT_COMMIT_SHA on every deploy
+    sha = os.getenv('RAILWAY_GIT_COMMIT_SHA', '')
+    if sha:
+        return sha[:7]
+    # Local dev fallback — try git command
     try:
+        import subprocess
         return subprocess.check_output(
             ['git', 'rev-parse', '--short', 'HEAD'], text=True
         ).strip()
