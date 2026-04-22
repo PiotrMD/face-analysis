@@ -886,6 +886,13 @@ body {
     background: var(--bg-card);
     letter-spacing: .03em;
 }
+.home-footer__version {
+    font-size: .62rem;
+    color: var(--ink-5, #ccc);
+    margin-top: 4px;
+    letter-spacing: .05em;
+    opacity: .5;
+}
 
 /* ════════════════════════════════════════
    RESULTS PAGE

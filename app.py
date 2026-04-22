@@ -66,6 +66,7 @@ def inject_globals():
         lang = 'pl'
     return {
         'static_version': STATIC_VERSION,
+        'app_version':    APP_VERSION,
         'ga_id':       os.getenv('GA_MEASUREMENT_ID', ''),
         'og_base_url': os.getenv('APP_URL', 'https://www.estetykamedyczna.pl'),
         'lang': lang,
@@ -162,7 +163,16 @@ def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl', user_age: 
         return None
 
 
-APP_VERSION = "f7daef6-v10"  # hardcoded — update on each deploy to confirm Railway runs latest
+def _get_app_version() -> str:
+    import subprocess
+    try:
+        return subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'], text=True
+        ).strip()
+    except Exception:
+        return 'dev'
+
+APP_VERSION = _get_app_version()
 
 
 @app.route('/version')
