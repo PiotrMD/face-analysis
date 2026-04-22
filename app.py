@@ -332,6 +332,15 @@ def _analyze_inner():
     Analysis.save_result(token, analysis_result)
     results_storage[token] = {'analysis': analysis_result, 'files': saved_paths}
 
+    # Delete uploaded photo immediately after analysis
+    for path in saved_paths.values():
+        try:
+            if path and os.path.exists(path):
+                os.remove(path)
+                print(f"[PRIVACY] deleted photo: {path}", flush=True)
+        except Exception as e:
+            print(f"[PRIVACY] failed to delete {path}: {e}", flush=True)
+
     redirect_url = url_for('results', token=token) + ('?force=1' if force else '')
     print(f"[JSON RETURNED] redirect_url={redirect_url}")
     return jsonify({'success': True, 'redirect_url': redirect_url})
