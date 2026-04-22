@@ -449,6 +449,23 @@
         </div>
     </div>
 
+    <!-- ── MODAL NAKLEJKI ── -->
+    <div id="storiesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:3000;
+                                   flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+        <button id="storiesModalClose" style="position:absolute;top:16px;right:18px;background:none;border:none;
+               color:#fff;font-size:1.6rem;cursor:pointer;line-height:1;padding:4px 10px;">✕</button>
+        <img id="storiesModalImg" src="" alt="Naklejka na Stories"
+             style="max-width:min(420px,90vw);max-height:75vh;border-radius:12px;display:block;touch-action:pinch-zoom;">
+        <p style="color:rgba(255,255,255,.65);font-size:.8rem;margin:14px 0 10px;text-align:center;line-height:1.5;">
+            {% if lang == 'en' %}Press and hold the image to save to your gallery{% else %}Naciśnij i przytrzymaj zdjęcie, aby zapisać do galerii{% endif %}
+        </p>
+        <a id="storiesDlBtn" href="" download="analiza-twarzy.png"
+           style="display:inline-block;padding:11px 24px;border:1.5px solid #C6A062;border-radius:10px;
+                  color:#C6A062;font-size:.85rem;font-weight:600;text-decoration:none;">
+            {% if lang == 'en' %}⬇ Download{% else %}⬇ Pobierz{% endif %}
+        </a>
+    </div>
+
 </div><!-- /page -->
 
 <script>
@@ -789,11 +806,24 @@ var _T = {{ t | tojson }};
         ctx.font      = 'bold 34px Georgia, serif';
         ctx.fillText('➜ analiza.estetykamedyczna.pl', cx, 955);
 
-        /* Download */
-        var link = document.createElement('a');
-        link.download = 'analiza-twarzy.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        /* Show in modal */
+        var dataUrl = canvas.toDataURL('image/png');
+        var modal = document.getElementById('storiesModal');
+        var modalImg = document.getElementById('storiesModalImg');
+        var dlBtn = document.getElementById('storiesDlBtn');
+        modalImg.src = dataUrl;
+        dlBtn.href = dataUrl;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    });
+
+    /* Close modal */
+    document.getElementById('storiesModalClose').addEventListener('click', function() {
+        document.getElementById('storiesModal').style.display = 'none';
+        document.body.style.overflow = '';
+    });
+    document.getElementById('storiesModal').addEventListener('click', function(e) {
+        if (e.target === this) { this.style.display = 'none'; document.body.style.overflow = ''; }
     });
 })();
 </script>
