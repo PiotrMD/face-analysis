@@ -81,24 +81,32 @@
                 </div>
             </div>
 
-            <!-- ── PERCENTYL + STORIES ── -->
-            {% if result.percentile %}
+            <!-- ── PASEK WYNIKU + STORIES ── -->
             <div class="res-percentile">
                 <div class="res-percentile__bar-wrap">
-                    <div class="res-percentile__bar" id="pctBar" data-pct="{{ result.percentile }}" style="width:0;"></div>
+                    <div class="res-percentile__bar" id="pctBar" data-pct="{{ result.overall_score * 10 }}" style="width:0;"></div>
                 </div>
                 <div class="res-percentile__label">
                     {% if lang == 'en' %}
-                        Your result is better than <strong>{{ result.percentile }}%</strong> of users
+                        {% if result.overall_score >= 9 %}Result in the <strong>highest range</strong> of the scale
+                        {% elif result.overall_score >= 8 %}Result in the <strong>upper range</strong> of the scale
+                        {% elif result.overall_score >= 6 %}Result <strong>above average</strong>
+                        {% elif result.overall_score >= 4 %}Result in the <strong>middle range</strong> of the scale
+                        {% else %}Result <strong>below average</strong>
+                        {% endif %}
                     {% else %}
-                        Twój wynik jest lepszy niż <strong>{{ result.percentile }}%</strong> użytkowników
+                        {% if result.overall_score >= 9 %}Wynik w <strong>najwyższym przedziale</strong> skali
+                        {% elif result.overall_score >= 8 %}Wynik w <strong>górnym przedziale</strong> skali
+                        {% elif result.overall_score >= 6 %}Wynik <strong>powyżej średniej</strong>
+                        {% elif result.overall_score >= 4 %}Wynik w <strong>środkowym przedziale</strong> skali
+                        {% else %}Wynik <strong>poniżej średniej</strong>
+                        {% endif %}
                     {% endif %}
                 </div>
                 <button class="res-stories-btn" id="storiesBtn" type="button">
                     {% if lang == 'en' %}📸 Download Story card{% else %}📸 Pobierz naklejkę na Stories{% endif %}
                 </button>
             </div>
-            {% endif %}
 
             <!-- ── 3. MOCNE STRONY ── -->
             {% if result.strengths_items or result.strengths %}
@@ -740,24 +748,20 @@ var _T = {{ t | tojson }};
         ctx.textAlign = 'center';
         ctx.fillText(verdictPl, cx, 630);
 
-        /* Percentile bar */
-        var pct = {{ result.percentile or 0 }};
-        if (pct) {
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.font      = '30px Georgia, serif';
-            ctx.fillText('Wynik lepszy niż ' + pct + '% użytkowników', cx, 705);
+        /* Score bar */
+        var scorePct = {{ result.overall_score }} * 10;
+        var scoreLabel = '{{ "Wynik w najwyższym przedziale skali" if result.overall_score >= 9 else ("Wynik w górnym przedziale skali" if result.overall_score >= 8 else ("Wynik powyżej średniej" if result.overall_score >= 6 else ("Wynik w środkowym przedziale skali" if result.overall_score >= 4 else "Wynik poniżej średniej"))) }}';
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font      = '30px Georgia, serif';
+        ctx.fillText(scoreLabel, cx, 705);
 
-            var bx = SIZE/2 - 280, by = 726, bw2 = 560, bh2 = 14, br = 7;
-            /* track */
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            rRect(bx, by, bw2, bh2, br);
-            ctx.fill();
-            /* fill */
-            var fillW = bw2 * (pct / 100);
-            ctx.fillStyle = '#C6A062';
-            rRect(bx, by, fillW, bh2, br);
-            ctx.fill();
-        }
+        var bx = SIZE/2 - 280, by = 726, bw2 = 560, bh2 = 14, br = 7;
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        rRect(bx, by, bw2, bh2, br);
+        ctx.fill();
+        ctx.fillStyle = '#C6A062';
+        rRect(bx, by, bw2 * (scorePct / 100), bh2, br);
+        ctx.fill();
 
         /* Bio age */
         var bioMin = '{{ result.bio_age_min }}';

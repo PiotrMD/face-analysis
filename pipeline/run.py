@@ -14,9 +14,6 @@ from treatments import AREA_LABELS_PL, AREA_LABELS_EN, recommend_treatments
 
 
 # Maps 16-field keys → 7 template area keys (score bars)
-# Percentile lookup by overall_score (1–10)
-_PERCENTILE = {10: 95, 9: 87, 8: 74, 7: 58, 6: 42, 5: 27, 4: 15, 3: 8, 2: 4, 1: 2}
-
 _FIELD_TO_AREA = {
     "eye_area":     "okolica_oczu",
     "skin_quality": "jakosc_skory",
@@ -277,7 +274,6 @@ def _assemble(score_result: dict, lang: str, user_age: int | None = None) -> dic
         "bio_confidence":  bio["bio_confidence"],
         "bio_factors":     bio["bio_factors"],
         "bio_factors_type": bio["bio_factors_type"],
-        "percentile":      _PERCENTILE.get(overall_score, 50),
     }
 
 

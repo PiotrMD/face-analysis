@@ -49,7 +49,6 @@ DEMO_RESULT = {
     "bio_factors":      ["jakość skóry", "owal twarzy", "przebarwienia"],
     "bio_factors_type": "positive",
     # User data
-    "percentile":   58,
     "user_age":    45,
     "user_height": 172,
     "user_weight": 74.0,
