@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if lang == 'en' %}Privacy Policy{% else %}Polityka prywatności{% endif %} — {{ t.clinic_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_version }}">
+    <style>
+        .privacy-wrap { max-width: 680px; margin: 0 auto; padding: 32px 24px 60px; }
+        .privacy-wrap h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; }
+        .privacy-wrap h2 { font-size: 1rem; font-weight: 700; margin: 24px 0 8px; }
+        .privacy-wrap p, .privacy-wrap li { font-size: .88rem; line-height: 1.7; color: #444; }
+        .privacy-wrap ul { padding-left: 20px; margin: 8px 0; }
+        .privacy-back { display:inline-block; margin-bottom:24px; color:#C6A062; font-size:.85rem; text-decoration:none; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="res-topbar">
+        <a href="/" class="res-topbar__brand">{{ t.brand }}</a>
+    </header>
+    <main>
+        <div class="privacy-wrap">
+            <a href="/" class="privacy-back">← {% if lang == 'en' %}Back{% else %}Powrót{% endif %}</a>
+
+            {% if lang == 'en' %}
+            <h1>Privacy Policy</h1>
+            <p>This privacy policy applies to the Analiza Twarzy application operated by Centrum Estetyki Medycznej, dr Piotr Niedziałkowski.</p>
+
+            <h2>1. Data controller</h2>
+            <p>The data controller is dr n. med. Piotr Niedziałkowski, Centrum Estetyki Medycznej, ul. Leszno 21, 01-199 Warsaw.</p>
+
+            <h2>2. What data we process</h2>
+            <ul>
+                <li>The photo you upload (face image) — used solely for analysis, not stored permanently.</li>
+                <li>Optional: age, height, weight — used only to enhance the analysis.</li>
+                <li>Contact data (name, phone, email) — only if you book a consultation.</li>
+            </ul>
+
+            <h2>3. Purpose of processing</h2>
+            <p>Your photo is processed solely to generate an indicative aesthetic analysis of the face. The result does not constitute a medical diagnosis.</p>
+
+            <h2>4. Data retention</h2>
+            <p>Uploaded photos are not permanently stored. Analysis results are kept temporarily in session memory and deleted automatically.</p>
+
+            <h2>5. Your rights</h2>
+            <p>You have the right to access, rectify and delete your data. Contact: piotr@spirometria.pl</p>
+
+            <h2>6. Contact</h2>
+            <p>For privacy-related questions: piotr@spirometria.pl</p>
+
+            {% else %}
+            <h1>Polityka prywatności</h1>
+            <p>Niniejsza polityka prywatności dotyczy aplikacji Analiza Twarzy prowadzonej przez Centrum Estetyki Medycznej, dr n. med. Piotra Niedziałkowskiego.</p>
+
+            <h2>1. Administrator danych</h2>
+            <p>Administratorem danych jest dr n. med. Piotr Niedziałkowski, Centrum Estetyki Medycznej, ul. Leszno 21, 01-199 Warszawa.</p>
+
+            <h2>2. Jakie dane przetwarzamy</h2>
+            <ul>
+                <li>Zdjęcie twarzy — używane wyłącznie do analizy, nieprzechowywane trwale.</li>
+                <li>Opcjonalnie: wiek, wzrost, waga — wyłącznie w celu wzbogacenia analizy.</li>
+                <li>Dane kontaktowe (imię, telefon, e-mail) — tylko jeśli umawiasz konsultację.</li>
+            </ul>
+
+            <h2>3. Cel przetwarzania</h2>
+            <p>Zdjęcie jest przetwarzane wyłącznie w celu wygenerowania orientacyjnej analizy estetycznej twarzy. Wynik nie stanowi diagnozy medycznej.</p>
+
+            <h2>4. Okres przechowywania</h2>
+            <p>Wgrane zdjęcia nie są trwale przechowywane. Wyniki analizy są przechowywane tymczasowo w pamięci sesji i usuwane automatycznie.</p>
+
+            <h2>5. Twoje prawa</h2>
+            <p>Masz prawo dostępu, sprostowania i usunięcia swoich danych. Kontakt: piotr@spirometria.pl</p>
+
+            <h2>6. Kontakt</h2>
+            <p>W sprawach dotyczących prywatności: piotr@spirometria.pl</p>
+            {% endif %}
+        </div>
+    </main>
+</div>
+</body>
+</html>

@@ -151,6 +151,28 @@
                         </div>
                     </div>
 
+                    <!-- Zgody -->
+                    <div class="consent-block">
+                        <label class="consent-block__item">
+                            <input type="checkbox" id="consentPhoto" class="consent-block__cb">
+                            <span class="consent-block__text">
+                                {% if lang == 'en' %}I consent to the analysis of my photo for the purpose of facial appearance assessment.{% else %}Wyrażam zgodę na analizę mojego zdjęcia w celu oceny wyglądu twarzy.{% endif %}
+                            </span>
+                        </label>
+                        <label class="consent-block__item">
+                            <input type="checkbox" id="consentMedical" class="consent-block__cb">
+                            <span class="consent-block__text">
+                                {% if lang == 'en' %}I understand that the result is indicative only and does not constitute a medical diagnosis.{% else %}Rozumiem, że wynik ma charakter orientacyjny i nie stanowi diagnozy medycznej.{% endif %}
+                            </span>
+                        </label>
+                        <p class="consent-block__privacy">
+                            <a href="/privacy" class="consent-block__privacy-link">{% if lang == 'en' %}Privacy Policy{% else %}Polityka prywatności{% endif %}</a>
+                        </p>
+                        <p class="consent-block__err" id="consentErr" style="display:none;">
+                            {% if lang == 'en' %}Please accept both consents to continue.{% else %}Zaznacz obie zgody, aby kontynuować.{% endif %}
+                        </p>
+                    </div>
+
                     <button type="button" id="analyzeBtn" class="upload-card__btn" onclick="runAnalyze()"
                             style="background:#C6A062;color:#111111;font-weight:700;line-height:1.3;padding:16px 14px;">{{ t.analyze_btn }}</button>
                     <p class="demo-link"><a href="/demo">{{ t.demo_link }}</a></p>
@@ -637,6 +659,18 @@
         var errDiv = document.getElementById('formError');
 
         clearAllValidation();
+
+        /* Check consents */
+        var cb1 = document.getElementById('consentPhoto');
+        var cb2 = document.getElementById('consentMedical');
+        var consentErr = document.getElementById('consentErr');
+        if (!cb1.checked || !cb2.checked) {
+            consentErr.style.display = 'block';
+            cb1.closest('.consent-block__item').style.opacity = cb1.checked ? '1' : '0.6';
+            cb2.closest('.consent-block__item').style.opacity = cb2.checked ? '1' : '0.6';
+            return;
+        }
+        consentErr.style.display = 'none';
 
         var f1 = document.getElementById('en_face').files[0] || _camBlob;
 

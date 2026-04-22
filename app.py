@@ -166,6 +166,14 @@ def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl', user_age: 
 APP_VERSION = "1.2"
 
 
+@app.route('/privacy')
+def privacy():
+    from translations import TRANSLATIONS
+    lang = session.get('lang', 'pl')
+    t = TRANSLATIONS.get(lang, TRANSLATIONS['pl'])
+    return render_template('privacy.html', lang=lang, t=t)
+
+
 @app.route('/version')
 def version():
     import subprocess
