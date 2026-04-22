@@ -163,7 +163,7 @@ def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl', user_age: 
         return None
 
 
-APP_VERSION = time.strftime('%Y-%m-%d')
+APP_VERSION = "1.0"
 
 
 @app.route('/version')
