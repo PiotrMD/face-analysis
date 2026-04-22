@@ -801,10 +801,10 @@ var _T = {{ t | tojson }};
         ctx.lineTo(SIZE/2 + 200, 910);
         ctx.stroke();
 
-        /* Footer URL — wyróżniony */
-        ctx.fillStyle = '#C6A062';
-        ctx.font      = 'bold 34px Georgia, serif';
-        ctx.fillText('➜ analiza.estetykamedyczna.pl', cx, 955);
+        /* Footer URL */
+        ctx.fillStyle = 'rgba(198,160,98,0.75)';
+        ctx.font      = '28px Georgia, serif';
+        ctx.fillText('analiza.estetykamedyczna.pl', cx, 955);
 
         /* Show in modal */
         var dataUrl = canvas.toDataURL('image/png');
