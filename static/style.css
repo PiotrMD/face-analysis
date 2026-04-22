@@ -477,6 +477,74 @@ body {
     padding: 0 4px;
 }
 
+/* Upload tip block */
+.upload-tip {
+    margin-top: 8px;
+    text-align: center;
+}
+.upload-tip__text {
+    font-size: .68rem;
+    color: var(--ink-4);
+    line-height: 1.5;
+    margin: 0 0 6px;
+}
+.upload-tip__info-wrap {
+    position: relative;
+    display: inline-block;
+}
+.upload-tip__info-btn {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-4);
+    background: none;
+    color: var(--ink-4);
+    font-size: .65rem;
+    font-weight: 700;
+    font-style: italic;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color .2s, color .2s;
+}
+.upload-tip__info-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+.upload-tip__tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: .72rem;
+    line-height: 1.5;
+    padding: 10px 14px;
+    border-radius: 10px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+    z-index: 100;
+    pointer-events: none;
+}
+.upload-tip__tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1a1a1a;
+}
+.upload-tip__tooltip--visible {
+    display: block;
+}
+
 /* per-slot error — shown instead of hint when validation fails */
 .slot-error {
     font-size: .72rem;

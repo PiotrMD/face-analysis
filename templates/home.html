@@ -86,9 +86,25 @@
                                 {{ t.cam_btn }}
                             </button>
                             <p class="slot-hint" id="hint-en_face">{{ t.upload_hint }}</p>
-                            <p class="slot-hint" style="margin-top:4px;font-style:italic;">
-                                {% if lang == 'en' %}Take a photo facing forward, in even natural light. Avoid shadows and filters.{% else %}Zrób zdjęcie na wprost, w równym, naturalnym świetle. Unikaj cieni i filtrów.{% endif %}
-                            </p>
+                            <div class="upload-tip">
+                                <p class="upload-tip__text">
+                                    {% if lang == 'en' %}
+                                        Face forward, in even daylight.<br>Avoid shadows, filters and glasses.
+                                    {% else %}
+                                        Zrób zdjęcie na wprost, w równym świetle dziennym.<br>Unikaj cieni, filtrów i okularów.
+                                    {% endif %}
+                                </p>
+                                <div class="upload-tip__info-wrap">
+                                    <button class="upload-tip__info-btn" id="tipInfoBtn" type="button" aria-label="Więcej informacji">i</button>
+                                    <div class="upload-tip__tooltip" id="tipTooltip" role="tooltip">
+                                        {% if lang == 'en' %}
+                                            Best results with even, natural light.<br>Photos in low light may give less accurate results.
+                                        {% else %}
+                                            Najlepsze efekty uzyskasz przy naturalnym, równym oświetleniu.<br>Zdjęcia w słabym świetle mogą dawać mniej dokładne wyniki.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                             <p class="slot-error" id="slot-error-en_face" style="display:none;"></p>
                         </div>
                     </div>
@@ -817,6 +833,20 @@
                     prompt('Skopiuj link:', url);
                 });
             }
+        });
+    })();
+
+    /* Tooltip (i) */
+    (function() {
+        var btn = document.getElementById('tipInfoBtn');
+        var tip = document.getElementById('tipTooltip');
+        if (!btn || !tip) return;
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            tip.classList.toggle('upload-tip__tooltip--visible');
+        });
+        document.addEventListener('click', function() {
+            tip.classList.remove('upload-tip__tooltip--visible');
         });
     })();
     </script>
