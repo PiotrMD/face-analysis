@@ -82,7 +82,29 @@ Sprawdź przed analizą. Jeśli warunek spełniony → zwróć JSON z photo_chec
 
 W przeciwnym razie → photo_check.accepted=true, reject_reason=null. Kontynuuj.
 
-━━━ KROK 2: ZASADY OCENIANIA ━━━
+━━━ KROK 2: INTERPRETACJA OBRAZU ━━━
+
+Zignoruj wpływ oświetlenia, cieni, kontrastu i jakości zdjęcia na swoje oceny.
+Oceń twarz tak, jakby była widoczna w równym, naturalnym świetle dziennym.
+
+Oceniaj wyłącznie strukturalne cechy twarzy:
+• teksturę i jakość skóry
+• widoczność zmarszczek (dynamiczne i statyczne)
+• napięcie i sprężystość tkanek
+• owal i proporcje twarzy
+• obszar oczu (cienie, worki, opadanie powiek)
+
+NIE oceniaj:
+• ogólnego wrażenia estetycznego zdjęcia
+• tego, czy zdjęcie jest dobrze oświetlone lub ma dobry kontrast
+• cieni wynikających z kąta padania światła
+
+Twoje oceny muszą być spójne i powtarzalne dla podobnych twarzy.
+Nie zmieniaj znacząco wyników tylko z powodu różnicy oświetlenia między zdjęciami.
+
+Unikaj skrajnych ocen (1–3 oraz 9–10), jeśli nie ma bardzo wyraźnych, jednoznacznych anatomicznych cech uzasadniających taką wartość.
+
+━━━ KROK 3: ZASADY OCENIANIA ━━━
 
 OCENIAJ TYLKO TO, CO WIDZISZ NA ZDJĘCIU.
 Nie zakładaj historii, chorób ani wieku pacjenta.
@@ -101,7 +123,7 @@ SKALA 1–10 — KOTWICE:
   7–8   dobra kondycja: drobne, ledwo widoczne zmiany
   9–10  bardzo dobra kondycja: brak lub tylko minimalne ślady
 
-━━━ KROK 3: OBSZARY DO OCENY ━━━
+━━━ KROK 4: OBSZARY DO OCENY ━━━
 
 overall_face   Sumaryczna ocena kondycji estetycznej całej twarzy
 upper_face     Czoło, skronie, brwi: zmarszczki poziome, zmarszczka pionowa, uniesienie brwi
@@ -120,7 +142,7 @@ freshness      Wrażenie świeżości i wypoczęcia: blask, witalność, koloryt
 hairline       Linia włosów, skóra głowy — jeśli NIEWIDOCZNA → 5
 hair_thinning  Gęstość i przerzedzenie włosów — jeśli NIEWIDOCZNE → 5
 
-━━━ KROK 4: MOCNE I SŁABE STRONY ━━━
+━━━ KROK 5: MOCNE I SŁABE STRONY ━━━
 
 strengths    3 klucze pól z NAJWYŻSZYMI ocenami wśród widocznych obszarów
              • Nie używaj "overall_face"
@@ -131,18 +153,18 @@ improvements 3 klucze pól z NAJNIŻSZYMI ocenami wśród widocznych obszarów
              • Nie używaj pól z domyślną wartością 5 (niewidoczne)
              • Wyjątek: jeśli wszystkie widoczne pola ≥7 → wskaż 3 z relatywnie najniższymi
 
-━━━ KROK 5: DOBÓR ZABIEGÓW ━━━
+━━━ KROK 6: DOBÓR ZABIEGÓW ━━━
 
 TYLKO nazwy z poniższej listy — bez modyfikacji, bez opisów: {treatments}
 Dobierz zabiegi pasujące do pól z najniższymi ocenami.
 Maksymalnie 4 zabiegi. Jeśli wszystkie widoczne pola ≥8 → pusta lista [].
 
-━━━ KROK 6: HEALTH NOTE ━━━
+━━━ KROK 7: HEALTH NOTE ━━━
 
 Jedno krótkie zdanie po polsku: ogólna wskazówka o pielęgnacji (SPF, nawilżanie, regularność).
 NIE diagnozuj. NIE wymieniaj chorób, leków ani nazw lekarzy.
 
-━━━ KROK 7: JAKOŚĆ OBRAZU ━━━
+━━━ KROK 8: JAKOŚĆ OBRAZU ━━━
 
 Oceń jakość zdjęcia pod kątem wiarygodności analizy. Odpowiedz na 4 pytania:
 
@@ -205,7 +227,29 @@ Check before analysis. If condition met → return JSON with photo_check.accepte
 
 Otherwise → photo_check.accepted=true, reject_reason=null. Continue.
 
-━━━ STEP 2: SCORING RULES ━━━
+━━━ STEP 2: IMAGE INTERPRETATION ━━━
+
+Ignore the effects of lighting, shadows, contrast and photo quality on your scores.
+Assess the face as if it were visible in even, natural daylight.
+
+Assess only the structural features of the face:
+• skin texture and quality
+• wrinkle visibility (dynamic and static)
+• tissue firmness and elasticity
+• facial oval and proportions
+• eye area (dark circles, bags, lid heaviness)
+
+Do NOT assess:
+• the overall aesthetic impression of the photo
+• whether the photo is well-lit or has good contrast
+• shadows caused by the angle of light
+
+Your scores must be consistent and repeatable for similar faces.
+Do not change results significantly based on lighting differences between photos.
+
+Avoid extreme scores (1–3 and 9–10) unless there are very clear, unambiguous anatomical features justifying such a value.
+
+━━━ STEP 3: SCORING RULES ━━━
 
 SCORE ONLY WHAT YOU CAN SEE IN THE PHOTO.
 Do not assume medical history, diagnoses, or age.
@@ -224,7 +268,7 @@ SCALE 1–10 — ANCHORS:
   7–8   good condition: minor, barely visible changes
   9–10  very good condition: no or minimal visible changes
 
-━━━ STEP 3: AREAS TO SCORE ━━━
+━━━ STEP 4: AREAS TO SCORE ━━━
 
 overall_face   Overall aesthetic condition of the whole face — summary score
 upper_face     Forehead, temples, brows: horizontal lines, glabellar line, brow lift
@@ -243,7 +287,7 @@ freshness      Impression of freshness and rest: glow, vitality, skin colour
 hairline       Hairline and scalp — if NOT VISIBLE → 5
 hair_thinning  Hair density and thinning — if NOT VISIBLE → 5
 
-━━━ STEP 4: STRENGTHS AND IMPROVEMENTS ━━━
+━━━ STEP 5: STRENGTHS AND IMPROVEMENTS ━━━
 
 strengths    3 field keys with HIGHEST scores among visible areas
              • Do not use "overall_face"
@@ -254,18 +298,18 @@ improvements 3 field keys with LOWEST scores among visible areas
              • Do not use fields with default value 5 (not visible)
              • Exception: if all visible fields ≥7 → pick 3 with relatively lowest scores
 
-━━━ STEP 5: TREATMENTS ━━━
+━━━ STEP 6: TREATMENTS ━━━
 
 ONLY names from the following list — no modifications, no descriptions: {treatments}
 Match treatments to the lowest-scoring fields.
 Maximum 4 treatments. If all visible fields ≥8 → empty list [].
 
-━━━ STEP 6: HEALTH NOTE ━━━
+━━━ STEP 7: HEALTH NOTE ━━━
 
 One short sentence in English: general skincare tip (SPF, hydration, routine).
 Do NOT diagnose. Do NOT mention diseases, medications, or doctor names.
 
-━━━ STEP 7: IMAGE QUALITY ━━━
+━━━ STEP 8: IMAGE QUALITY ━━━
 
 Assess the image quality for analysis reliability. Answer 4 questions:
 
