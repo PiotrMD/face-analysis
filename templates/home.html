@@ -232,8 +232,12 @@
             <h2 class="sa-title">{{ t.sa_title }}</h2>
             <p class="sa-sub">{{ t.sa_sub }}</p>
             <div class="sa-field">
-                <div class="sa-field__label">{{ t.sa_score_label }}: <strong id="saScoreVal">5</strong>/10</div>
-                <div class="sa-score-btns" id="saScoreBtns"></div>
+                <div class="sa-field__label">{{ t.sa_score_label }}</div>
+                <div class="sa-slider-wrap">
+                    <input type="range" id="saScoreSlider" class="sa-slider" min="0" max="10" value="5" step="1">
+                    <div class="sa-slider-val"><strong id="saScoreVal">5</strong><span>/10</span></div>
+                </div>
+                <div class="sa-slider-ticks"><span>0</span><span>5</span><span>10</span></div>
             </div>
             <div class="sa-field">
                 <div class="sa-field__label">{{ t.sa_age_label }}</div>
@@ -836,30 +840,24 @@
         /* Show self-assessment overlay, then call doFetch */
         var saOverlay = document.getElementById('saOverlay');
         var saScoreEl = document.getElementById('saScoreVal');
-        var saScoreBtns = document.getElementById('saScoreBtns');
+        var saSlider  = document.getElementById('saScoreSlider');
         var saAgeInput = document.getElementById('saAgeInput');
         var saConfirm = document.getElementById('saConfirmBtn');
         var saSkip = document.getElementById('saSkipBtn');
         var selectedScore = 5;
 
-        /* Build score buttons 0-10 */
-        if (saScoreBtns && !saScoreBtns.dataset.built) {
-            saScoreBtns.dataset.built = '1';
-            for (var s = 0; s <= 10; s++) {
-                (function(val) {
-                    var b = document.createElement('button');
-                    b.type = 'button';
-                    b.textContent = val;
-                    b.className = 'sa-score-btn' + (val === 5 ? ' sa-score-btn--active' : '');
-                    b.addEventListener('click', function() {
-                        selectedScore = val;
-                        if (saScoreEl) saScoreEl.textContent = val;
-                        saScoreBtns.querySelectorAll('.sa-score-btn').forEach(function(x) { x.classList.remove('sa-score-btn--active'); });
-                        b.classList.add('sa-score-btn--active');
-                    });
-                    saScoreBtns.appendChild(b);
-                })(s);
-            }
+        function updateSliderFill(slider) {
+            var pct = (parseInt(slider.value, 10) / parseInt(slider.max, 10)) * 100;
+            slider.style.setProperty('--pct', pct + '%');
+        }
+
+        if (saSlider) {
+            updateSliderFill(saSlider);
+            saSlider.addEventListener('input', function() {
+                selectedScore = parseInt(this.value, 10);
+                if (saScoreEl) saScoreEl.textContent = selectedScore;
+                updateSliderFill(this);
+            });
         }
 
         function closeSaOverlay() {

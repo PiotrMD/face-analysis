@@ -4458,56 +4458,82 @@ a.contact-row__value:hover { text-decoration: underline; }
 .sa-card {
     background: var(--bg-card);
     border-radius: 20px;
-    padding: 32px 28px 28px;
-    max-width: 420px; width: 100%;
+    padding: 36px 32px 28px;
+    max-width: 400px; width: 100%;
     box-shadow: 0 24px 64px rgba(0,0,0,.35);
-    display: flex; flex-direction: column; gap: 20px;
+    display: flex; flex-direction: column; gap: 22px;
+    text-align: center;
 }
 .sa-title {
-    font-size: 1.25rem; font-weight: 700; color: var(--ink);
+    font-size: 1.2rem; font-weight: 700; color: var(--ink);
     line-height: 1.3; margin: 0;
 }
 .sa-sub {
-    font-size: .9rem; color: var(--ink-3); margin: -12px 0 0; line-height: 1.5;
+    font-size: .88rem; color: var(--ink-3); margin: -14px 0 0; line-height: 1.5;
 }
-.sa-field { display: flex; flex-direction: column; gap: 10px; }
+.sa-field { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .sa-field__label { font-size: .82rem; font-weight: 600; color: var(--ink-2); }
-.sa-score-btns {
-    display: flex; flex-wrap: wrap; gap: 6px;
+
+/* Slider */
+.sa-slider-wrap {
+    width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
-.sa-score-btn {
-    width: 38px; height: 38px;
-    border-radius: 8px;
-    border: 1.5px solid #ddd;
-    background: var(--bg-surface);
-    font-size: .88rem; font-weight: 600; color: var(--ink-2);
-    cursor: pointer; transition: border-color .15s, background .15s, color .15s;
+.sa-slider-val {
+    font-size: 2rem; font-weight: 800; color: var(--ink); line-height: 1;
 }
-.sa-score-btn:hover { border-color: #C6A062; color: #C6A062; }
-.sa-score-btn--active { background: #C6A062; border-color: #C6A062; color: #fff; }
+.sa-slider-val strong { color: #C6A062; }
+.sa-slider-val span   { font-size: 1rem; font-weight: 400; color: var(--ink-3); }
+.sa-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, #C6A062 calc(var(--pct,50%) ), #ddd calc(var(--pct,50%)));
+    outline: none; cursor: pointer;
+}
+.sa-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #C6A062; border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.22);
+    cursor: pointer;
+}
+.sa-slider::-moz-range-thumb {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #C6A062; border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.22);
+    cursor: pointer;
+}
+.sa-slider-ticks {
+    width: 100%; display: flex; justify-content: space-between;
+    font-size: .72rem; color: var(--ink-4); margin-top: -8px;
+}
+
+/* Age input */
 .sa-age-input {
-    padding: 10px 14px;
+    padding: 11px 16px;
     border: 1.5px solid #ddd; border-radius: 10px;
-    font-size: 1rem; font-family: inherit; color: var(--ink);
+    font-size: 1.1rem; font-family: inherit; color: var(--ink);
     background: var(--bg-surface);
-    width: 130px;
+    width: 130px; text-align: center;
     outline: none;
     transition: border-color .15s;
 }
 .sa-age-input:focus { border-color: #C6A062; }
+
 .sa-btn-confirm {
     padding: 14px; background: #C6A062; color: #fff;
     border: none; border-radius: 12px;
     font-size: .95rem; font-weight: 700; cursor: pointer;
     font-family: inherit; letter-spacing: .02em;
     transition: opacity .15s;
+    width: 100%;
 }
 .sa-btn-confirm:hover { opacity: .88; }
 .sa-btn-skip {
     background: none; border: none; color: var(--ink-3);
     font-size: .82rem; cursor: pointer; font-family: inherit;
     text-decoration: underline; align-self: center;
-    padding: 4px;
+    padding: 4px; margin-top: -10px;
 }
 
 /* ── SELF-ASSESSMENT COMPARISON (results) ── */
