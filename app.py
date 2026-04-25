@@ -328,6 +328,22 @@ def _analyze_inner():
     if user_weight: analysis_result['user_weight'] = user_weight
     if user_bmi:    analysis_result['user_bmi']    = user_bmi
 
+    # Inject self-assessment values
+    try:
+        ss = request.form.get('self_skin_score', '').strip()
+        if ss != '':
+            analysis_result['self_skin_score'] = int(ss)
+    except (ValueError, TypeError):
+        pass
+    try:
+        sa = request.form.get('self_bio_age', '').strip()
+        if sa != '':
+            v = int(sa)
+            if 10 <= v <= 99:
+                analysis_result['self_bio_age'] = v
+    except (ValueError, TypeError):
+        pass
+
     # ── STEP 6: Store ────────────────────────────────────────────────────────
     Analysis.save_result(token, analysis_result)
     results_storage[token] = {'analysis': analysis_result, 'files': saved_paths}

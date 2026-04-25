@@ -219,6 +219,50 @@
             </div>
             {% endif %}
 
+            <!-- ── SELF-ASSESSMENT COMPARISON ── -->
+            {% if result.self_skin_score is defined or result.self_bio_age is defined %}
+            <div class="res-selfassess">
+                <div class="res-selfassess__title">
+                    {% if lang == 'en' %}Your self-assessment vs. analysis{% else %}Twoja samoocena vs. analiza{% endif %}
+                </div>
+                <div class="res-selfassess__rows">
+                    {% if result.self_skin_score is defined %}
+                    <div class="res-selfassess__row">
+                        <span class="res-selfassess__lbl">{% if lang == 'en' %}Skin condition{% else %}Kondycja skóry{% endif %}</span>
+                        <span class="res-selfassess__val res-selfassess__val--self">{{ result.self_skin_score }}/10</span>
+                        <span class="res-selfassess__arrow">→</span>
+                        <span class="res-selfassess__val res-selfassess__val--ai">{{ result.overall_score }}/10</span>
+                        {% set diff_score = result.overall_score - result.self_skin_score %}
+                        {% if diff_score > 0 %}
+                        <span class="res-selfassess__delta res-selfassess__delta--up">+{{ diff_score }}</span>
+                        {% elif diff_score < 0 %}
+                        <span class="res-selfassess__delta res-selfassess__delta--down">{{ diff_score }}</span>
+                        {% else %}
+                        <span class="res-selfassess__delta">=</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if result.self_bio_age is defined and result.bio_age_min and result.bio_age_max %}
+                    {% set bio_mid = ((result.bio_age_min + result.bio_age_max) / 2) | round | int %}
+                    <div class="res-selfassess__row">
+                        <span class="res-selfassess__lbl">{% if lang == 'en' %}Biological age{% else %}Wiek biologiczny{% endif %}</span>
+                        <span class="res-selfassess__val res-selfassess__val--self">{{ result.self_bio_age }} {% if lang == 'en' %}yr{% else %}lat{% endif %}</span>
+                        <span class="res-selfassess__arrow">→</span>
+                        <span class="res-selfassess__val res-selfassess__val--ai">{{ result.bio_age_min }}–{{ result.bio_age_max }} {% if lang == 'en' %}yr{% else %}lat{% endif %}</span>
+                        {% set diff_age = result.self_bio_age - bio_mid %}
+                        {% if diff_age >= 3 %}
+                        <span class="res-selfassess__delta res-selfassess__delta--down">{% if lang == 'en' %}You overestimated{% else %}Zawyżyłeś/aś{% endif %}</span>
+                        {% elif diff_age <= -3 %}
+                        <span class="res-selfassess__delta res-selfassess__delta--up">{% if lang == 'en' %}You underestimated{% else %}Zaniżyłeś/aś{% endif %}</span>
+                        {% else %}
+                        <span class="res-selfassess__delta">{% if lang == 'en' %}Spot on{% else %}Trafnie{% endif %}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- ── BMI ── -->
             {% if result.user_bmi %}
             {% set bmi = result.user_bmi %}

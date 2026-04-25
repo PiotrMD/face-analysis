@@ -226,6 +226,24 @@
         <p class="home-footer__version">Wersja {{ app_version }}</p>
     </footer>
 
+    <!-- SELF-ASSESSMENT OVERLAY -->
+    <div class="sa-overlay" id="saOverlay" aria-hidden="true">
+        <div class="sa-card">
+            <h2 class="sa-title">{{ t.sa_title }}</h2>
+            <p class="sa-sub">{{ t.sa_sub }}</p>
+            <div class="sa-field">
+                <div class="sa-field__label">{{ t.sa_score_label }}: <strong id="saScoreVal">5</strong>/10</div>
+                <div class="sa-score-btns" id="saScoreBtns"></div>
+            </div>
+            <div class="sa-field">
+                <div class="sa-field__label">{{ t.sa_age_label }}</div>
+                <input type="number" id="saAgeInput" class="sa-age-input" min="18" max="99" placeholder="{{ t.sa_age_ph }}">
+            </div>
+            <button type="button" class="sa-btn-confirm" id="saConfirmBtn">{{ t.sa_btn }}</button>
+            <button type="button" class="sa-btn-skip" id="saSkipBtn">{{ t.sa_skip }}</button>
+        </div>
+    </div>
+
     <!-- LOADING OVERLAY -->
     <div class="analysis-loader" id="analysisLoader" aria-hidden="true">
         <div class="analysis-loader__card">
@@ -755,12 +773,11 @@
             btn.textContent = _T.btn_start;
         }
 
-        showLoader();
-
-        var abortCtrl   = new AbortController();
-        var fetchTimeout = setTimeout(function() { abortCtrl.abort(); }, 180000);
-
-        fetch(analyzeUrl, { method: 'POST', body: fd, signal: abortCtrl.signal })
+        function doFetch() {
+            showLoader();
+            var abortCtrl   = new AbortController();
+            var fetchTimeout = setTimeout(function() { abortCtrl.abort(); }, 180000);
+            fetch(analyzeUrl, { method: 'POST', body: fd, signal: abortCtrl.signal })
             .then(async function(response) {
                 clearTimeout(fetchTimeout);
                 var rawText = await response.text();
@@ -814,6 +831,62 @@
                 btn.disabled = false;
                 btn.textContent = _T.btn_start;
             });
+        }
+
+        /* Show self-assessment overlay, then call doFetch */
+        var saOverlay = document.getElementById('saOverlay');
+        var saScoreEl = document.getElementById('saScoreVal');
+        var saScoreBtns = document.getElementById('saScoreBtns');
+        var saAgeInput = document.getElementById('saAgeInput');
+        var saConfirm = document.getElementById('saConfirmBtn');
+        var saSkip = document.getElementById('saSkipBtn');
+        var selectedScore = 5;
+
+        /* Build score buttons 0-10 */
+        if (saScoreBtns && !saScoreBtns.dataset.built) {
+            saScoreBtns.dataset.built = '1';
+            for (var s = 0; s <= 10; s++) {
+                (function(val) {
+                    var b = document.createElement('button');
+                    b.type = 'button';
+                    b.textContent = val;
+                    b.className = 'sa-score-btn' + (val === 5 ? ' sa-score-btn--active' : '');
+                    b.addEventListener('click', function() {
+                        selectedScore = val;
+                        if (saScoreEl) saScoreEl.textContent = val;
+                        saScoreBtns.querySelectorAll('.sa-score-btn').forEach(function(x) { x.classList.remove('sa-score-btn--active'); });
+                        b.classList.add('sa-score-btn--active');
+                    });
+                    saScoreBtns.appendChild(b);
+                })(s);
+            }
+        }
+
+        function closeSaOverlay() {
+            if (saOverlay) { saOverlay.classList.remove('sa-overlay--visible'); saOverlay.setAttribute('aria-hidden', 'true'); }
+            document.body.style.overflow = '';
+        }
+
+        saConfirm && saConfirm.addEventListener('click', function() {
+            fd.append('self_skin_score', selectedScore);
+            var age = saAgeInput ? saAgeInput.value.trim() : '';
+            if (age) fd.append('self_bio_age', age);
+            closeSaOverlay();
+            doFetch();
+        });
+
+        saSkip && saSkip.addEventListener('click', function() {
+            closeSaOverlay();
+            doFetch();
+        });
+
+        if (saOverlay) {
+            saOverlay.classList.add('sa-overlay--visible');
+            saOverlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        } else {
+            doFetch();
+        }
     }
     /* ── BMI calculator ── */
     (function() {
