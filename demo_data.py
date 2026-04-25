@@ -48,6 +48,9 @@ DEMO_RESULT = {
     "bio_confidence":   0.90,
     "bio_factors":      ["jakość skóry", "owal twarzy", "przebarwienia"],
     "bio_factors_type": "positive",
+    # Self-assessment (demo)
+    "self_skin_score": 8,
+    "self_bio_age":    40,
     # User data
     "user_age":    45,
     "user_height": 172,
