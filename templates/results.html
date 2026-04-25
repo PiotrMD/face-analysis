@@ -28,7 +28,10 @@
                 <a href="/set-lang/pl" class="lang-btn {% if lang == 'pl' %}lang-btn--active{% endif %}">PL</a>
                 <a href="/set-lang/en" class="lang-btn {% if lang == 'en' %}lang-btn--active{% endif %}">EN</a>
             </div>
-            <a href="tel:+48690584584" class="res-topbar__phone">+48&nbsp;690&nbsp;584&nbsp;584</a>
+            <div style="display:flex;flex-direction:column;gap:2px;text-align:right;">
+                <a href="tel:+48690584584" class="res-topbar__phone">+48&nbsp;690&nbsp;584&nbsp;584</a>
+                <a href="tel:+48609857377" class="res-topbar__phone" style="font-size:.72rem;opacity:.75;">+48&nbsp;609&nbsp;857&nbsp;377 <span style="font-size:.63rem;color:#C6A062;font-weight:700;text-transform:uppercase;">EN</span></a>
+            </div>
         </div>
     </header>
 
@@ -307,7 +310,7 @@
                         <div class="res-doctor-summary__name">{{ t.doctor_full }}</div>
                         <div class="res-doctor-summary__creds">{{ t.doctor_creds }}</div>
                         <div class="res-doctor-summary__clinic">{{ t.clinic_name }}</div>
-                        <div class="res-doctor-summary__address">📍 ul. Leszno 21, 01-199 Warszawa Wola &nbsp;·&nbsp; <a href="tel:+48690584584" style="color:#6F6A63;text-decoration:none;">+48 690 584 584</a></div>
+                        <div class="res-doctor-summary__address">📍 ul. Leszno 21, 01-199 Warszawa Wola &nbsp;·&nbsp; <a href="tel:+48690584584" style="color:#6F6A63;text-decoration:none;">+48 690 584 584</a> &nbsp;·&nbsp; <a href="tel:+48609857377" style="color:#6F6A63;text-decoration:none;">+48 609 857 377 <span style="font-size:.72em;color:#C6A062;font-weight:700;">EN</span></a></div>
                         <div class="res-doctor-summary__links">
                             <a href="https://www.ocenazdrowia.pl" target="_blank" rel="noopener">ocenazdrowia.pl</a>
                             <a href="https://www.estetykamedyczna.pl" target="_blank" rel="noopener">estetykamedyczna.pl</a>
@@ -352,12 +355,11 @@
                                    letter-spacing:.02em;">
                         {% if lang == 'en' %}Book a consultation{% else %}Umów konsultację{% endif %}
                     </button>
-                    <a href="tel:+48690584584"
-                       style="flex:1;padding:14px 10px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);
-                              border-radius:10px;font-size:.9rem;font-weight:600;text-decoration:none;
-                              display:flex;align-items:center;justify-content:center;text-align:center;">
-                        +48&nbsp;690&nbsp;584&nbsp;584
-                    </a>
+                    <div style="flex:1;padding:14px 10px;background:transparent;border:1.5px solid rgba(255,255,255,.3);
+                              border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                        <a href="tel:+48690584584" style="color:#fff;font-size:.9rem;font-weight:600;text-decoration:none;">+48&nbsp;690&nbsp;584&nbsp;584</a>
+                        <a href="tel:+48609857377" style="color:rgba(255,255,255,.75);font-size:.8rem;font-weight:600;text-decoration:none;">+48&nbsp;609&nbsp;857&nbsp;377 <span style="font-size:.7rem;color:#C6A062;font-weight:700;">EN</span></a>
+                    </div>
                 </div>
             </div>
 
