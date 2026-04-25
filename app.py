@@ -163,7 +163,7 @@ def _run_analysis_v2(token: str, saved_paths: dict, lang: str = 'pl', user_age: 
         return None
 
 
-APP_VERSION = "1.4"
+APP_VERSION = "1.5"
 
 
 @app.route('/privacy')
